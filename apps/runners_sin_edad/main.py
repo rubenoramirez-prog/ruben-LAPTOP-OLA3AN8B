@@ -9,10 +9,11 @@ import json
 
 # Add the skills directory to sys.path to import the humanizer logic
 import sys
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-HUMAN_SKILL_PATH = os.path.join(BASE_DIR, "..", "instagram-agent-skill", "skills", "ig-human")
+# Use an absolute path relative to the project root to avoid path resolution issues
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+HUMAN_SKILL_PATH = os.path.join(PROJECT_ROOT, "instagram-agent-skill", "skills", "ig-human")
 if HUMAN_SKILL_PATH not in sys.path:
-    sys.path.append(HUMAN_SKILL_PATH)
+    sys.path.insert(0, HUMAN_SKILL_PATH)
 
 try:
     from humanize import humanize as run_humanize
