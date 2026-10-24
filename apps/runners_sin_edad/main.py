@@ -143,7 +143,7 @@ def add_workout(member_id: str, workout: WorkoutSchema):
     return {"status": "Workout assigned", "workout_id": w_id}
 
 @app.patch("/members/{member_id}/workouts/{workout_id}")
-def complete_workout(member_id: str, workout_id: str, rpe: int, notes: str = None):
+def complete_workout(member_id: str, workout_id: str, rpe: int, notes: Optional[str] = None):
     service.complete_workout(member_id, workout_id, rpe, notes)
     return {"status": "Workout completed"}
 

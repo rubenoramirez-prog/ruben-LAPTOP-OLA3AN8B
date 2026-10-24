@@ -157,7 +157,10 @@
                 const member = await response.json();
                 CURRENT_MEMBER_ID = id;
 
-                document.getElementById('login-overlay').classList.add('hidden');
+                const overlay = document.getElementById('login-overlay');
+                overlay.style.display = 'none';
+                overlay.style.pointerEvents = 'none';
+
                 renderDashboard(member);
             } catch (err) {
                 alert(err.message);
