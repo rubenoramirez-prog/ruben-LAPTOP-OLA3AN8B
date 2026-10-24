@@ -44,9 +44,31 @@
         .phase-strength { background-color: var(--amber); }
         .phase-speed { background-color: #ff4500; }
         .phase-taper { background-color: #adff2f; }
+
+        #login-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 25, 47, 0.95);
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
+    <!-- Login Overlay -->
+    <div id="login-overlay">
+        <div class="card p-8 rounded-xl shadow-2xl max-w-md w-full text-center">
+            <h2 class="text-3xl mb-6">Acceso Corredor</h2>
+            <p class="text-slate-400 mb-6 text-sm">Ingresa tu ID de miembro para cargar tu plan.</p>
+            <input type="text" id="member-id-input" class="w-full bg-navy border border-slate-700 text-white p-3 rounded mb-4 metric-font text-center" placeholder="Ej: a1b2c3d4">
+            <button onclick="login()" class="w-full bg-teal-500 hover:bg-teal-600 text-navy font-bold py-3 rounded transition-colors uppercase">
+                Entrar al Plan
+            </button>
+        </div>
+    </div>
+
     <div class="max-w-4xl mx-auto">
         <!-- Header -->
         <header class="flex justify-between items-center mb-8">
@@ -72,9 +94,9 @@
                 <div class="text-center text-xs uppercase font-bold text-slate-500">Taper</div>
             </div>
             <div class="progress-bar-bg w-full">
-                <div id="phase-progress" class="progress-bar-fill phase-base" style="width: 25%"></div>
+                <div id="phase-progress" class="progress-bar-fill phase-base" style="width: 0%"></div>
             </div>
-            <p id="phase-desc" class="text-sm text-slate-400 mt-2 italic text-center">Construyendo la base aeróbica...</p>
+            <p id="phase-desc" class="text-sm text-slate-400 mt-2 italic text-center">Sincronizando con el Coach...</p>
         </section>
 
         <!-- Main Grid -->
@@ -120,27 +142,44 @@
     </div>
 
     <script>
-        // --- Mock Data for Demo (Can be connected to FastAPI) ---
-        const MOCK_MEMBER = {
-            id: "m1",
-            name: "Ruben Runner",
-            current_phase: "Base",
-            metrics: [
-                { name: "VO2max", value: 42.5, unit: "ml/kg/min" },
-                { name: "Cooper", value: 2100, unit: "m" }
-            ],
-            workouts: [
-                { id: "w1", date: "2023-10-23", description: "Trote suave 40min + Movilidad", target_rpe: 4, completed: false }
-            ]
-        };
+        const API_BASE = "http://127.0.0.1:8000";
+        let CURRENT_MEMBER_ID = null;
+        let CURRENT_WORKOUT_ID = null;
 
-        function init() {
+        async function login() {
+            const id = document.getElementById('member-id-input').value;
+            if (!id) return alert("Por favor ingresa tu ID");
+
+            try {
+                const response = await fetch(`${API_BASE}/members/${id}`);
+                if (!response.ok) throw new Error("Miembro no encontrado");
+
+                const member = await response.json();
+                CURRENT_MEMBER_ID = id;
+
+                document.getElementById('login-overlay').classList.add('hidden');
+                renderDashboard(member);
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        function renderDashboard(member) {
             document.getElementById('current-date').innerText = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            document.getElementById('member-name').innerText = MOCK_MEMBER.name;
+            document.getElementById('member-name').innerText = member.name;
 
-            renderPhase(MOCK_MEMBER.current_phase);
-            renderMetrics(MOCK_MEMBER.metrics);
-            renderWorkout(MOCK_MEMBER.workouts[0]);
+            renderPhase(member.current_phase);
+            renderMetrics(member.metrics);
+
+            // Get the most recent incomplete workout
+            const pendingWorkout = member.workouts.find(w => !w.completed) || member.workouts[0];
+            if (pendingWorkout) {
+                CURRENT_WORKOUT_ID = pendingWorkout.id;
+                renderWorkout(pendingWorkout);
+            } else {
+                document.getElementById('workout-desc').innerText = "¡Todas las sesiones completadas!";
+                document.getElementById('completion-form').classList.add('hidden');
+            }
         }
 
         function renderPhase(phase) {
@@ -179,32 +218,47 @@
                 document.getElementById('workout-status').className = "text-xs px-2 py-1 rounded bg-green-900 text-green-300";
                 document.getElementById('completion-form').classList.add('hidden');
             } else {
-                document.getElementById('completion-form').classList.add('block'); // Simplified for demo
-                // Note: in real app, this would be controlled by workout.completed
+                document.getElementById('workout-status').innerText = "Pendiente";
+                document.getElementById('completion-form').classList.remove('hidden');
             }
         }
 
-        function submitWorkout() {
+        async function submitWorkout() {
             const rpe = document.getElementById('actual-rpe').value;
             if (!rpe || rpe < 1 || rpe > 10) {
                 alert("Por favor ingresa un RPE válido (1-10)");
                 return;
             }
-            alert(`Sesión registrada con RPE ${rpe}. ¡Buen trabajo!`);
-            // Here we would call the FastAPI endpoint: PATCH /members/{id}/workouts/{id}
+
+            try {
+                const response = await fetch(`${API_BASE}/members/${CURRENT_MEMBER_ID}/workouts/${CURRENT_WORKOUT_ID}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        rpe: parseInt(rpe),
+                        notes: "Registrado desde el Dashboard"
+                    })
+                });
+
+                if (response.ok) {
+                    alert("Sesión registrada con éxito. ¡Buen trabajo!");
+                    location.reload(); // Refresh to update status
+                }
+            } catch (err) {
+                alert("Error al conectar con el servidor");
+            }
         }
 
-        function exportData() {
-            const data = JSON.stringify(MOCK_MEMBER, null, 2);
-            const blob = new Blob([data], { type: 'application/json' });
+        async function exportData() {
+            const response = await fetch(`${API_BASE}/members/${CURRENT_MEMBER_ID}`);
+            const data = await response.json();
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `member_${MOCK_MEMBER.id}_progress.json`;
+            a.download = `member_${CURRENT_MEMBER_ID}_progress.json`;
             a.click();
         }
-
-        init();
     </script>
 </body>
 </html>
