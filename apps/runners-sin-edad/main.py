@@ -1,8 +1,23 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import date
 import uuid
+import os
+
+# Add the skills directory to sys.path to import the humanizer logic
+# Using a relative path based on the project structure
+import sys
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+HUMAN_SKILL_PATH = os.path.join(BASE_DIR, "..", "instagram-agent-skill", "skills", "ig-human")
+if HUMAN_SKILL_PATH not in sys.path:
+    sys.path.append(HUMAN_SKILL_PATH)
+
+try:
+    from humanize import humanize as run_humanize
+    from detect import run as run_detect
+except ImportError as e:
+    print(f"Error importing humanizer tools: {e}")
 
 from .domain.models import Member, Workout, TrainingPhase, Metric
 from .application.services import TrainingPlanService
@@ -14,7 +29,16 @@ app = FastAPI(title="Runners Sin Edad API")
 repo = SQLiteMemberRepository()
 service = TrainingPlanService(repo)
 
-# --- Pydantic Schemas for API ---
+# --- Pydantic Schemas ---
+
+class HumanizeRequest(BaseModel):
+    text: str
+
+class HumanizeResponse(BaseModel):
+    original_text: str
+    cleaned_text: str
+    report: Dict[str, Any]
+    detection: Dict[str, Any]
 
 class MetricSchema(BaseModel):
     name: str
@@ -40,7 +64,41 @@ class MemberSchema(BaseModel):
     metrics: List[MetricSchema] = []
     workouts: List[WorkoutSchema] = []
 
-# --- Endpoints ---
+# --- Humanizer Endpoints ---
+
+@app.post("/humanize/", response_model=HumanizeResponse)
+def api_humanize(request: HumanizeRequest):
+    """
+    Takes a text draft, runs it through the humanize.py pipeline,
+    and returns the cleaned text along with the detection score.
+    """
+    try:
+        # 1. Load Lexicon
+        lex_path = os.path.join(HUMAN_SKILL_PATH, "slop.json")
+        import json
+        with open(lex_path, encoding="utf-8") as f:
+            lexicon = json.load(f)
+
+        # 2. Run Humanization
+        clean_text, report = run_humanize(request.text, lexicon)
+
+        # 3. Run Detection on the cleaned text
+        detect_results, overall_score, verdict = run_detect(clean_text, lexicon)
+
+        return {
+            "original_text": request.text,
+            "cleaned_text": clean_text,
+            "report": report,
+            "detection": {
+                "score": overall_score,
+                "verdict": verdict,
+                "details": detect_results
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Humanizer error: {str(e)}")
+
+# --- Member Endpoints ---
 
 @app.post("/members/", response_model=MemberSchema)
 def create_member(member: MemberSchema):
