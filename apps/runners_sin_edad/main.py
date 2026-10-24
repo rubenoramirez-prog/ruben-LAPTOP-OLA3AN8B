@@ -1,12 +1,13 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware # Added for CORS
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from datetime import date
 import uuid
 import os
+import json
 
 # Add the skills directory to sys.path to import the humanizer logic
-# Using a relative path based on the project structure
 import sys
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 HUMAN_SKILL_PATH = os.path.join(BASE_DIR, "..", "instagram-agent-skill", "skills", "ig-human")
@@ -24,6 +25,16 @@ from .application.services import TrainingPlanService
 from .infrastructure.repository import SQLiteMemberRepository
 
 app = FastAPI(title="Runners Sin Edad API")
+
+# --- CORS CONFIGURATION ---
+# This allows the dashboard.html file to talk to the API
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # Allow all origins for MVP
+    allow_credentials=True,
+    allow_methods=["*"], # Allow all methods (GET, POST, PATCH, etc.)
+    allow_headers=["*"], # Allow all headers
+)
 
 # Dependency Injection
 repo = SQLiteMemberRepository()
@@ -64,25 +75,20 @@ class MemberSchema(BaseModel):
     metrics: List[MetricSchema] = []
     workouts: List[WorkoutSchema] = []
 
-# --- Humanizer Endpoints ---
+# --- Endpoints ---
+
+@app.get("/")
+def read_root():
+    return {"message": "Runners Sin Edad API is online", "docs": "/docs"}
 
 @app.post("/humanize/", response_model=HumanizeResponse)
 def api_humanize(request: HumanizeRequest):
-    """
-    Takes a text draft, runs it through the humanize.py pipeline,
-    and returns the cleaned text along with the detection score.
-    """
     try:
-        # 1. Load Lexicon
         lex_path = os.path.join(HUMAN_SKILL_PATH, "slop.json")
-        import json
         with open(lex_path, encoding="utf-8") as f:
             lexicon = json.load(f)
 
-        # 2. Run Humanization
         clean_text, report = run_humanize(request.text, lexicon)
-
-        # 3. Run Detection on the cleaned text
         detect_results, overall_score, verdict = run_detect(clean_text, lexicon)
 
         return {
@@ -97,8 +103,6 @@ def api_humanize(request: HumanizeRequest):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Humanizer error: {str(e)}")
-
-# --- Member Endpoints ---
 
 @app.post("/members/", response_model=MemberSchema)
 def create_member(member: MemberSchema):
