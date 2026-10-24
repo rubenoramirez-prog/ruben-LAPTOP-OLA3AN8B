@@ -2,8 +2,8 @@ import sqlite3
 import json
 from datetime import date
 from typing import List, Optional
-from ..domain.models import Member, Workout, TrainingPhase, Metric
-from ..application.services import MemberRepository
+from apps.runners_sin_edad.domain.models import Member, Workout, TrainingPhase, Metric
+from apps.runners_sin_edad.application.services import MemberRepository
 
 class SQLiteMemberRepository(MemberRepository):
     """Adapter: SQLite implementation of the MemberRepository port."""

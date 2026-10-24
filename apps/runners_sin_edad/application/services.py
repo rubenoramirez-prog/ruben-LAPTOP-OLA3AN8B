@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
-from .models import Member, Workout, TrainingPhase, Metric
+from apps.runners_sin_edad.domain.models import Member, Workout, TrainingPhase, Metric
 
 class MemberRepository(ABC):
     """Port: Interface for member data persistence."""
