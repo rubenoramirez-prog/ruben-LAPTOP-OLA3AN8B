@@ -1,0 +1,586 @@
+<title>Test de Cooper VO2max</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+
+<style>
+/* Layout: Single-column flow, card-based results, persistent history strip */
+:root {
+  --navy: #1e3a5f;
+  --charcoal: #2a2a2a;
+  --amber: #f59e0b;
+  --teal: #14b8a6;
+  --slate: #64748b;
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --text: #1e293b;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --navy: #2e5a8f;
+    --charcoal: #1a1a1a;
+    --amber: #fbbf24;
+    --teal: #2dd4bf;
+    --slate: #94a3b8;
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --text: #f1f5f9;
+    --text-muted: #94a3b8;
+    --border: #334155;
+
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --navy: #2e5a8f;
+  --charcoal: #1a1a1a;
+  --amber: #fbbf24;
+  --teal: #2dd4bf;
+  --slate: #94a3b8;
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --border: #334155;
+
+  color-scheme: dark;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px;
+}
+
+h1, h2, h3 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: 2rem;
+  color: var(--navy);
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-bottom: 32px;
+}
+
+.container {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+input, select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 1rem;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+input:focus, select:focus {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+.input-group {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (min-width: 640px) {
+  .input-group {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+button {
+  background: var(--navy);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  font-family: 'Oswald', sans-serif;
+  letter-spacing: 0.5px;
+  transition: background 0.2s;
+}
+
+button:hover {
+  background: var(--teal);
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+.results {
+  display: none;
+}
+
+.results.visible {
+  display: block;
+}
+
+.metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: var(--bg);
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.metric-label {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.metric-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--amber);
+  font-variant-numeric: tabular-nums;
+}
+
+.category-badge {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-align: center;
+  width: 100%;
+}
+
+.category-excellent { background: #10b981; color: white; }
+.category-good { background: var(--teal); color: white; }
+.category-average { background: var(--amber); color: white; }
+.category-below { background: #f59e0b; color: white; }
+.category-poor { background: #ef4444; color: white; }
+
+.zones {
+  margin-top: 24px;
+}
+
+.zone-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.1rem;
+  color: var(--navy);
+  margin-bottom: 16px;
+}
+
+.zone {
+  display: grid;
+  grid-template-columns: 120px 1fr 80px;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.zone-name {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.zone-purpose {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.zone-pace {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  color: var(--teal);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.history {
+  margin-top: 32px;
+}
+
+.history-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.1rem;
+  color: var(--navy);
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.history-item {
+  display: grid;
+  grid-template-columns: 100px 80px 80px 1fr;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  align-items: center;
+}
+
+.history-date {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.history-distance {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.history-vo2 {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  color: var(--amber);
+  font-variant-numeric: tabular-nums;
+}
+
+.btn-clear {
+  background: transparent;
+  color: var(--text-muted);
+  padding: 4px 12px;
+  font-size: 0.85rem;
+  width: auto;
+  border: 1px solid var(--border);
+}
+
+.btn-clear:hover {
+  background: var(--border);
+  color: var(--text);
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 32px;
+  font-size: 0.9rem;
+}
+
+footer {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+footer strong {
+  color: var(--navy);
+  font-weight: 600;
+}
+</style>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap">
+
+<div class="container">
+  <h1>Test de Cooper + VO2max</h1>
+  <p class="subtitle">Calcula tu capacidad aeróbica y zonas de entrenamiento ideales</p>
+
+  <div class="card">
+    <form id="cooperForm">
+      <div class="input-group">
+        <div>
+          <label for="distance">Distancia recorrida (metros)</label>
+          <input type="number" id="distance" min="1000" max="5000" step="10" required placeholder="2400">
+        </div>
+        <div>
+          <label for="age">Edad (años)</label>
+          <input type="number" id="age" min="18" max="80" required placeholder="40">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <div>
+          <label for="gender">Género</label>
+          <select id="gender" required>
+            <option value="">Selecciona...</option>
+            <option value="male">Hombre</option>
+            <option value="female">Mujer</option>
+          </select>
+        </div>
+        <div>
+          <label for="weight">Peso (kg) - opcional</label>
+          <input type="number" id="weight" min="40" max="200" placeholder="75">
+        </div>
+      </div>
+
+      <button type="submit">CALCULAR VO2MAX</button>
+    </form>
+  </div>
+
+  <div id="results" class="results card">
+    <div class="metric">
+      <span class="metric-label">VO2max Estimado</span>
+      <span class="metric-value" id="vo2maxValue">--</span>
+    </div>
+
+    <div class="metric">
+      <span class="metric-label">Categoría de Fitness</span>
+      <div id="categoryBadge" class="category-badge">--</div>
+    </div>
+
+    <div class="zones">
+      <h3 class="zone-title">Zonas de Entrenamiento Recomendadas</h3>
+      <div class="zone">
+        <span class="zone-name">Recuperación</span>
+        <span class="zone-purpose">60-70% VO2max • Regeneración activa</span>
+        <span class="zone-pace" id="zoneRec">--</span>
+      </div>
+      <div class="zone">
+        <span class="zone-name">Base</span>
+        <span class="zone-purpose">70-80% VO2max • Resistencia aeróbica</span>
+        <span class="zone-pace" id="zoneBase">--</span>
+      </div>
+      <div class="zone">
+        <span class="zone-name">Tempo</span>
+        <span class="zone-purpose">80-90% VO2max • Umbral anaeróbico</span>
+        <span class="zone-pace" id="zoneTempo">--</span>
+      </div>
+      <div class="zone">
+        <span class="zone-name">Intervalo</span>
+        <span class="zone-purpose">90-95% VO2max • Potencia aeróbica</span>
+        <span class="zone-pace" id="zoneInterval">--</span>
+      </div>
+      <div class="zone">
+        <span class="zone-name">Sprint</span>
+        <span class="zone-purpose">95-100% VO2max • Velocidad máxima</span>
+        <span class="zone-pace" id="zoneSprint">--</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="historySection" class="history" hidden>
+    <div class="history-title">
+      <span>Historial de Pruebas</span>
+      <button class="btn-clear" id="clearHistory">Limpiar</button>
+    </div>
+    <div id="historyList"></div>
+  </div>
+</div>
+
+<footer>
+  <strong>A Tu Marca</strong> — Coaching para corredores 35+ por Ruben Ramírez
+</footer>
+
+<script>
+(function() {
+  'use strict';
+
+  const form = document.getElementById('cooperForm');
+  const resultsDiv = document.getElementById('results');
+  const historySection = document.getElementById('historySection');
+  const historyList = document.getElementById('historyList');
+  const clearHistoryBtn = document.getElementById('clearHistory');
+
+  // Calculate VO2max using Cooper formula
+  function calculateVO2max(distanceMeters) {
+    return (distanceMeters - 504.9) / 44.73;
+  }
+
+  // Get fitness category based on VO2max, age, and gender
+  function getCategory(vo2max, age, gender) {
+    const categories = {
+      male: {
+        '18-25': { excellent: 56, good: 48, average: 40, below: 35 },
+        '26-35': { excellent: 52, good: 44, average: 38, below: 33 },
+        '36-45': { excellent: 48, good: 40, average: 35, below: 30 },
+        '46-55': { excellent: 44, good: 36, average: 31, below: 27 },
+        '56-65': { excellent: 40, good: 32, average: 28, below: 24 },
+        '66+': { excellent: 36, good: 29, average: 25, below: 21 }
+      },
+      female: {
+        '18-25': { excellent: 48, good: 40, average: 33, below: 28 },
+        '26-35': { excellent: 44, good: 36, average: 30, below: 26 },
+        '36-45': { excellent: 40, good: 33, average: 27, below: 23 },
+        '46-55': { excellent: 36, good: 29, average: 24, below: 21 },
+        '56-65': { excellent: 32, good: 26, average: 22, below: 18 },
+        '66+': { excellent: 29, good: 23, average: 19, below: 16 }
+      }
+    };
+
+    let ageGroup;
+    if (age <= 25) ageGroup = '18-25';
+    else if (age <= 35) ageGroup = '26-35';
+    else if (age <= 45) ageGroup = '36-45';
+    else if (age <= 55) ageGroup = '46-55';
+    else if (age <= 65) ageGroup = '56-65';
+    else ageGroup = '66+';
+
+    const thresholds = categories[gender][ageGroup];
+
+    if (vo2max >= thresholds.excellent) return { label: 'Excelente', class: 'category-excellent' };
+    if (vo2max >= thresholds.good) return { label: 'Bueno', class: 'category-good' };
+    if (vo2max >= thresholds.average) return { label: 'Promedio', class: 'category-average' };
+    if (vo2max >= thresholds.below) return { label: 'Por Debajo del Promedio', class: 'category-below' };
+    return { label: 'Bajo', class: 'category-poor' };
+  }
+
+  // Calculate pace zones based on Cooper distance
+  function calculatePaceZones(distanceMeters) {
+    const avgPacePerKm = 720 / (distanceMeters / 1000); // 12 min = 720 sec
+
+    return {
+      recovery: avgPacePerKm * 1.45,
+      base: avgPacePerKm * 1.25,
+      tempo: avgPacePerKm * 1.10,
+      interval: avgPacePerKm * 0.95,
+      sprint: avgPacePerKm * 0.85
+    };
+  }
+
+  // Format pace in min:sec/km
+  function formatPace(seconds) {
+    const min = Math.floor(seconds / 60);
+    const sec = Math.round(seconds % 60);
+    return `${min}:${sec.toString().padStart(2, '0')}`;
+  }
+
+  // Save test to localStorage
+  function saveTest(data) {
+    try {
+      let history = JSON.parse(localStorage.getItem('cooperHistory') || '[]');
+      history.unshift(data);
+      if (history.length > 10) history = history.slice(0, 10);
+      localStorage.setItem('cooperHistory', JSON.stringify(history));
+      renderHistory();
+    } catch (e) {
+      console.warn('Could not save to localStorage:', e);
+    }
+  }
+
+  // Render history
+  function renderHistory() {
+    try {
+      const history = JSON.parse(localStorage.getItem('cooperHistory') || '[]');
+      if (history.length === 0) {
+        historySection.hidden = true;
+        return;
+      }
+
+      historySection.hidden = false;
+      historyList.innerHTML = history.map(test => `
+        <div class="history-item">
+          <span class="history-date">${new Date(test.date).toLocaleDateString('es-MX', { month: 'short', day: 'numeric' })}</span>
+          <span class="history-distance">${test.distance}m</span>
+          <span class="history-vo2">${test.vo2max.toFixed(1)}</span>
+          <span class="category-badge ${test.categoryClass}" style="padding: 4px 8px; font-size: 0.75rem;">${test.categoryLabel}</span>
+        </div>
+      `).join('');
+    } catch (e) {
+      console.warn('Could not render history:', e);
+    }
+  }
+
+  // Form submission
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const distance = parseFloat(document.getElementById('distance').value);
+    const age = parseInt(document.getElementById('age').value);
+    const gender = document.getElementById('gender').value;
+
+    const vo2max = calculateVO2max(distance);
+    const category = getCategory(vo2max, age, gender);
+    const zones = calculatePaceZones(distance);
+
+    document.getElementById('vo2maxValue').textContent = vo2max.toFixed(1);
+
+    const categoryBadge = document.getElementById('categoryBadge');
+    categoryBadge.textContent = category.label;
+    categoryBadge.className = 'category-badge ' + category.class;
+
+    document.getElementById('zoneRec').textContent = formatPace(zones.recovery);
+    document.getElementById('zoneBase').textContent = formatPace(zones.base);
+    document.getElementById('zoneTempo').textContent = formatPace(zones.tempo);
+    document.getElementById('zoneInterval').textContent = formatPace(zones.interval);
+    document.getElementById('zoneSprint').textContent = formatPace(zones.sprint);
+
+    resultsDiv.classList.add('visible');
+
+    saveTest({
+      date: new Date().toISOString(),
+      distance: distance,
+      vo2max: vo2max,
+      categoryLabel: category.label,
+      categoryClass: category.class,
+      age: age,
+      gender: gender
+    });
+
+    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+
+  // Clear history
+  clearHistoryBtn.addEventListener('click', function() {
+    if (confirm('¿Eliminar todo el historial de pruebas?')) {
+      try {
+        localStorage.removeItem('cooperHistory');
+        renderHistory();
+      } catch (e) {
+        console.warn('Could not clear history:', e);
+      }
+    }
+  });
+
+  // Initial render
+  renderHistory();
+})();
+</script>
