@@ -1,0 +1,445 @@
+<title>A Tu Marca - Herramientas de Coaching</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+
+<style>
+/* Layout: Hero header + 2x2 tool grid on desktop, single column mobile */
+:root {
+  --navy: #1e3a5f;
+  --charcoal: #2a2a2a;
+  --amber: #f59e0b;
+  --teal: #14b8a6;
+  --slate: #64748b;
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --text: #1e293b;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --navy: #2e5a8f;
+    --charcoal: #1a1a1a;
+    --amber: #fbbf24;
+    --teal: #2dd4bf;
+    --slate: #94a3b8;
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --text: #f1f5f9;
+    --text-muted: #94a3b8;
+    --border: #334155;
+
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --navy: #2e5a8f;
+  --charcoal: #1a1a1a;
+  --amber: #fbbf24;
+  --teal: #2dd4bf;
+  --slate: #94a3b8;
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --border: #334155;
+
+  color-scheme: dark;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px;
+  min-height: 100%;
+}
+
+h1, h2 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.hero {
+  text-align: center;
+  margin-bottom: 48px;
+  padding-bottom: 32px;
+  border-bottom: 2px solid var(--border);
+}
+
+.logo {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--navy) 0%, var(--teal) 100%);
+  color: white;
+  padding: 16px 32px;
+  border-radius: 12px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.tagline {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  color: var(--slate);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.tools-grid {
+  display: grid;
+  gap: 24px;
+  margin-bottom: 48px;
+}
+
+@media (min-width: 768px) {
+  .tools-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.tool-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tool-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-color: var(--teal);
+}
+
+.tool-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.tool-icon {
+  font-size: 2.5rem;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.tool-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.tool-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.4rem;
+  color: var(--navy);
+  margin-bottom: 4px;
+}
+
+.tool-category {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.tool-description {
+  color: var(--text-muted);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.tool-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.feature-badge {
+  padding: 4px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.about {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 32px;
+  margin-bottom: 32px;
+}
+
+.about-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.5rem;
+  color: var(--navy);
+  margin-bottom: 16px;
+}
+
+.about-content {
+  display: grid;
+  gap: 24px;
+}
+
+@media (min-width: 768px) {
+  .about-content {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+.about-text {
+  color: var(--text-muted);
+  line-height: 1.8;
+}
+
+.about-text p {
+  margin-bottom: 12px;
+}
+
+.about-text strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.methodology {
+  background: var(--bg);
+  padding: 20px;
+  border-radius: 8px;
+  border-left: 3px solid var(--amber);
+}
+
+.methodology-title {
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 12px;
+  font-size: 1.1rem;
+}
+
+.methodology-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.methodology-list li {
+  padding-left: 24px;
+  position: relative;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.methodology-list li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: var(--amber);
+  font-weight: 700;
+}
+
+footer {
+  text-align: center;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.footer-coach {
+  font-weight: 600;
+  color: var(--navy);
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.footer-credentials {
+  color: var(--slate);
+  margin-bottom: 8px;
+}
+
+.color-accent-navy { color: var(--navy); }
+.color-accent-amber { color: var(--amber); }
+.color-accent-teal { color: var(--teal); }
+</style>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@600;700&display=swap">
+
+<div class="container">
+  <div class="hero">
+    <div class="logo">A TU MARCA</div>
+    <div class="tagline">Herramientas de Coaching Profesional</div>
+    <p class="subtitle">
+      Suite completa de herramientas para corredores 35+. Basadas en periodización,
+      diagnóstico fisiológico y seguimiento de progreso con métricas científicas.
+    </p>
+  </div>
+
+  <div class="tools-grid">
+    <a href="cooper-vo2max.html" class="tool-card">
+      <div class="tool-header">
+        <div class="tool-icon">🏃</div>
+        <div class="tool-info">
+          <h2 class="tool-title">Test de Cooper VO2max</h2>
+          <div class="tool-category">Diagnóstico Aeróbico</div>
+        </div>
+      </div>
+      <p class="tool-description">
+        Calcula tu capacidad aeróbica con el test de 12 minutos. Obtén tu VO2max estimado,
+        categoría de fitness ajustada por edad/género, y zonas de entrenamiento personalizadas.
+      </p>
+      <div class="tool-features">
+        <span class="feature-badge">VO2max Calculator</span>
+        <span class="feature-badge">Age/Gender Categories</span>
+        <span class="feature-badge">Training Zones</span>
+        <span class="feature-badge">Test History</span>
+      </div>
+    </a>
+
+    <a href="plan-semanal.html" class="tool-card">
+      <div class="tool-header">
+        <div class="tool-icon">📅</div>
+        <div class="tool-info">
+          <h2 class="tool-title">Generador de Plan Semanal</h2>
+          <div class="tool-category">Periodización</div>
+        </div>
+      </div>
+      <p class="tool-description">
+        Genera planes de entrenamiento semanales basados en periodización (Base, Fuerza, Velocidad, Taper).
+        Adaptado a tus días disponibles, nivel y objetivos de kilometraje.
+      </p>
+      <div class="tool-features">
+        <span class="feature-badge">4 Fases</span>
+        <span class="feature-badge">3 Niveles</span>
+        <span class="feature-badge">RPE Control</span>
+        <span class="feature-badge">Export JSON</span>
+      </div>
+    </a>
+
+    <a href="bitacora.html" class="tool-card">
+      <div class="tool-header">
+        <div class="tool-icon">📊</div>
+        <div class="tool-info">
+          <h2 class="tool-title">Bitácora de Entrenamiento</h2>
+          <div class="tool-category">Seguimiento y Análisis</div>
+        </div>
+      </div>
+      <p class="tool-description">
+        Registra y analiza tu progreso con gráficos visuales. Estadísticas semanales,
+        volumen acumulado, métricas de esfuerzo (RPE/FC), y exportación completa de datos.
+      </p>
+      <div class="tool-features">
+        <span class="feature-badge">Chart.js Graphs</span>
+        <span class="feature-badge">Weekly Stats</span>
+        <span class="feature-badge">RPE Tracking</span>
+        <span class="feature-badge">Import/Export</span>
+      </div>
+    </a>
+
+    <a href="ritmos-edad.html" class="tool-card">
+      <div class="tool-header">
+        <div class="tool-icon">⏱️</div>
+        <div class="tool-info">
+          <h2 class="tool-title">Calculadora Ritmos por Edad</h2>
+          <div class="tool-category">Objetivos Realistas</div>
+        </div>
+      </div>
+      <p class="tool-description">
+        Calcula ritmos de carrera ajustados por edad usando age grading (WMA). Predicción de tiempos
+        para 5K, 10K y 21K con zonas de entrenamiento y frecuencia cardíaca personalizadas.
+      </p>
+      <div class="tool-features">
+        <span class="feature-badge">Age Grading</span>
+        <span class="feature-badge">Race Prediction</span>
+        <span class="feature-badge">HR Zones</span>
+        <span class="feature-badge">Training Paces</span>
+      </div>
+    </a>
+  </div>
+
+  <div class="about">
+    <h2 class="about-title">Metodología A Tu Marca</h2>
+    <div class="about-content">
+      <div class="about-text">
+        <p>
+          <strong>A Tu Marca</strong> es una metodología de coaching especializada en corredores adultos 35+
+          que comienzan desde cero o regresan al running tras años de inactividad.
+        </p>
+        <p>
+          Nuestra aproximación combina <strong>periodización estructurada</strong> (Base → Fuerza → Velocidad → Taper),
+          <strong>diagnóstico fisiológico</strong> (Test de Cooper, VO2max, zonas de FC), y
+          <strong>control de carga</strong> mediante RPE (Rate of Perceived Exertion) para prevenir lesiones
+          y maximizar adaptaciones sostenibles.
+        </p>
+        <p>
+          Estas herramientas digitales son el complemento práctico del coaching personalizado,
+          diseñadas para autonomía del corredor con seguimiento profesional.
+        </p>
+      </div>
+
+      <div class="methodology">
+        <div class="methodology-title">Pilares del Sistema</div>
+        <ul class="methodology-list">
+          <li>Periodización en 4 fases</li>
+          <li>Diagnóstico VO2max (Cooper)</li>
+          <li>Control de carga (RPE)</li>
+          <li>Age grading realista</li>
+          <li>Prevención de lesiones</li>
+          <li>Seguimiento basado en datos</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-coach">Coach Ruben Ramírez</div>
+    <div class="footer-credentials">
+      Ingeniero en Computación (UNAM) • Coach Certificado de Running
+    </div>
+    <div style="margin-top: 12px; color: var(--slate); font-size: 0.8rem;">
+      Especialidad: Corredores 35+ • Metodología: A Tu Marca • Enfoque: Prevención y Progresión Sostenible
+    </div>
+  </footer>
+</div>
