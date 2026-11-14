@@ -1,0 +1,5 @@
+---
+# OS-specific variables for RedHat/CentOS/Rocky 9
+package_manager: dnf
+grub_config_path: /boot/grub2/grub.cfg
+aide_db_path: /var/lib/aide/aide.db.gz

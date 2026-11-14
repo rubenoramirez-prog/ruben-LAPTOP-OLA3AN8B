@@ -1,0 +1,67 @@
+---
+# Default variables for cis-filesystem role
+# CIS Benchmark Level 1 & 2 filesystem hardening
+
+# Hardening level (level1 or level2)
+cis_level: "{{ hardening_level | default('level1') }}"
+
+# Backup configuration files before modification
+backup_configs: true
+
+# Separate partition requirements (CIS 1.1.2-1.1.5)
+separate_partitions:
+  tmp: true
+  var: true
+  var_tmp: true
+  var_log: true
+  var_log_audit: true
+  home: true
+
+# Mount options for partitions (CIS 1.1.6-1.1.22)
+mount_options:
+  tmp:
+    - nodev
+    - nosuid
+    - noexec
+  var_tmp:
+    - nodev
+    - nosuid
+    - noexec
+  home:
+    - nodev
+  dev_shm:
+    - nodev
+    - nosuid
+    - noexec
+  removable_media:
+    - nodev
+    - nosuid
+    - noexec
+
+# Disable unused filesystems (CIS 1.1.1.x)
+disable_filesystems:
+  - cramfs
+  - freevxfs
+  - jffs2
+  - hfs
+  - hfsplus
+  - udf
+  - vfat  # Only if not needed
+
+# Sticky bit on world-writable directories (CIS 1.1.23)
+sticky_bit_enabled: true
+
+# Disable automounting (CIS 1.1.24)
+disable_automount: true
+
+# GPG check for yum (CIS 1.2.3)
+gpgcheck_enabled: true
+
+# Aide configuration (CIS 1.3.1-1.3.2)
+aide_enabled: true
+aide_cron_schedule:
+  hour: "5"
+  minute: "0"
+
+# Filesystem integrity check
+fs_integrity_check: true

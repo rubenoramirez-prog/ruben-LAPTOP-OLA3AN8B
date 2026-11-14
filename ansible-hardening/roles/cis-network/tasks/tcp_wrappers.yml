@@ -1,0 +1,34 @@
+---
+# TCP Wrappers configuration
+
+- name: Backup hosts.allow and hosts.deny
+  copy:
+    src: "{{ item }}"
+    dest: /var/backups/ansible-hardening/cis-network/{{ item | basename }}.{{ ansible_date_time.epoch }}
+    remote_src: true
+  loop:
+    - /etc/hosts.allow
+    - /etc/hosts.deny
+  when: backup_configs
+  failed_when: false
+  tags: ['tcpwrappers']
+
+- name: Configure /etc/hosts.allow base entry
+  lineinfile:
+    path: /etc/hosts.allow
+    line: "# Managed by Ansible Hardening"
+    create: true
+    mode: '0644'
+    owner: root
+    group: root
+  tags: ['tcpwrappers']
+
+- name: Configure /etc/hosts.deny default deny
+  lineinfile:
+    path: /etc/hosts.deny
+    line: "ALL: ALL"
+    create: true
+    mode: '0644'
+    owner: root
+    group: root
+  tags: ['tcpwrappers']

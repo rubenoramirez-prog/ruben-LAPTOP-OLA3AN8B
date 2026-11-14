@@ -1,0 +1,31 @@
+---
+# CIS RHEL Filesystem Hardening Role
+# Implements CIS Benchmark Section 1: Filesystem Configuration
+# Author: Ruben Omar Ramírez Gutiérrez
+# Date: 2026-11-12
+
+galaxy_info:
+  author: Ruben Omar Ramírez Gutiérrez
+  description: CIS Benchmark filesystem hardening for RHEL 8/9
+  company: Independent
+  license: MIT
+  min_ansible_version: "2.15"
+
+  platforms:
+    - name: RedHat
+      versions:
+        - 8
+        - 9
+    - name: CentOS
+      versions:
+        - 8
+        - 9
+
+  galaxy_tags:
+    - security
+    - hardening
+    - cis
+    - rhel
+    - filesystem
+
+dependencies: []

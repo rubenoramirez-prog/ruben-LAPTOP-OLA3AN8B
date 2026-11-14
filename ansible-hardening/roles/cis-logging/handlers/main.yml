@@ -1,0 +1,25 @@
+---
+# Handlers for cis-logging role
+
+- name: Restart auditd
+  service:
+    name: auditd
+    state: restarted
+
+- name: Reload audit rules
+  command: augenrules --load
+  changed_when: false
+
+- name: Restart rsyslog
+  service:
+    name: rsyslog
+    state: restarted
+
+- name: Restart journald
+  service:
+    name: systemd-journald
+    state: restarted
+
+- name: Update grub config
+  command: grub2-mkconfig -o /boot/grub2/grub.cfg
+  changed_when: false

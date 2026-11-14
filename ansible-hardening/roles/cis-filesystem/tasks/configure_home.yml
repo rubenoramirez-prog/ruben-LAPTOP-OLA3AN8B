@@ -1,0 +1,19 @@
+---
+# CIS 1.1.14 - 1.1.16 - Configure /home Partition
+# Ensure nodev and nosuid mount options on /home
+
+- name: Identify /home mount
+  set_fact:
+    home_mounted: "{{ ansible_mounts | selectattr('mount', 'equalto', '/home') | list | length > 0 }}"
+  tags: ['home']
+
+- name: Ensure /home mount has nodev and nosuid options
+  mount:
+    path: /home
+    state: present
+    opts: "nodev,nosuid"
+    fstype: "{{ item.fstype }}"
+    src: "{{ item.device }}"
+  loop: "{{ ansible_mounts | selectattr('mount', 'equalto', '/home') | list }}"
+  when: home_mounted
+  tags: ['home']

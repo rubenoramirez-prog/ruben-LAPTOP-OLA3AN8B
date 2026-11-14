@@ -1,0 +1,31 @@
+---
+# CIS 4.2.1 - Configure rsyslog
+
+- name: Ensure rsyslog is installed
+  package:
+    name: rsyslog
+    state: present
+  tags: ['rsyslog']
+
+- name: Ensure rsyslog service is enabled and started
+  service:
+    name: rsyslog
+    enabled: true
+    state: started
+  tags: ['rsyslog']
+
+- name: Configure rsyslog default file permissions (CIS 4.2.1.3)
+  lineinfile:
+    path: /etc/rsyslog.conf
+    regexp: '^\$FileCreateMode\s+'
+    line: "$FileCreateMode {{ rsyslog_file_permissions }}"
+    insertafter: '^# #### GLOBAL DIRECTIVES'
+  notify: Restart rsyslog
+  tags: ['rsyslog']
+
+- name: Set permissions on all existing log files in /var/log (CIS 4.2.3)
+  shell: |
+    find /var/log -type f -exec chmod g-wx,o-rwx {} +
+  changed_when: false
+  failed_when: false
+  tags: ['rsyslog', 'permissions']

@@ -1,0 +1,38 @@
+---
+# CIS 4.2.2 - Configure systemd-journald
+
+- name: Backup journald.conf
+  copy:
+    src: /etc/systemd/journald.conf
+    dest: /var/backups/ansible-hardening/cis-logging/journald.conf.{{ ansible_date_time.epoch }}
+    remote_src: true
+  when: backup_configs
+  failed_when: false
+  tags: ['journald']
+
+- name: Ensure journald storage is persistent
+  lineinfile:
+    path: /etc/systemd/journald.conf
+    regexp: '^#?Storage='
+    line: "Storage={{ journald_storage }}"
+    state: present
+  notify: Restart journald
+  tags: ['journald']
+
+- name: Ensure journald compress is enabled
+  lineinfile:
+    path: /etc/systemd/journald.conf
+    regexp: '^#?Compress='
+    line: "Compress={{ journald_compress }}"
+    state: present
+  notify: Restart journald
+  tags: ['journald']
+
+- name: Ensure journald ForwardToSyslog is configured
+  lineinfile:
+    path: /etc/systemd/journald.conf
+    regexp: '^#?ForwardToSyslog='
+    line: "ForwardToSyslog=yes"
+    state: present
+  notify: Restart journald
+  tags: ['journald']

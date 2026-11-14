@@ -1,0 +1,58 @@
+---
+# CIS 2.3.x - Remove Insecure Service Clients
+# Remove clients for insecure services
+
+- name: Ensure NIS Client is not installed (CIS 2.3.1)
+  package:
+    name: ypbind
+    state: absent
+  tags: ['clients']
+
+- name: Ensure rsh client is not installed (CIS 2.3.2)
+  package:
+    name: rsh
+    state: absent
+  tags: ['clients']
+
+- name: Ensure talk client is not installed (CIS 2.3.3)
+  package:
+    name: talk
+    state: absent
+  tags: ['clients']
+
+- name: Ensure telnet client is not installed (CIS 2.3.4)
+  package:
+    name: telnet
+    state: absent
+  tags: ['clients']
+
+- name: Ensure LDAP client is not installed (CIS 2.3.5)
+  package:
+    name: openldap-clients
+    state: absent
+  when: cis_level == "level2"
+  tags: ['clients', 'level2']
+
+- name: Remove additional insecure clients
+  package:
+    name: "{{ item }}"
+    state: absent
+  loop: "{{ remove_clients }}"
+  tags: ['clients']
+
+- name: Verify insecure clients are removed
+  shell: |
+    set -euo pipefail
+    for client in telnet rsh talk ypbind; do
+      if rpm -q $client &>/dev/null; then
+        echo "$client: INSTALLED"
+      else
+        echo "$client: NOT_INSTALLED"
+      fi
+    done
+  args:
+    executable: /bin/bash
+  register: client_check
+  changed_when: false
+  failed_when: false
+  tags: ['clients', 'validate']

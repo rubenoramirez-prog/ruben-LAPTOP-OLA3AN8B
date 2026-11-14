@@ -1,0 +1,55 @@
+---
+# Main tasks for cis-logging role
+# CIS Benchmark Logging and Auditing Hardening
+
+- name: Validate logging input variables
+  assert:
+    that:
+      - cis_level in ['level1', 'level2']
+    fail_msg: "Invalid logging configuration"
+    success_msg: "Logging configuration validation passed"
+  tags: always
+
+- name: Create backup directory for logging role
+  file:
+    path: /var/backups/ansible-hardening/cis-logging
+    state: directory
+    mode: '0700'
+    owner: root
+    group: root
+  when: backup_configs
+  tags: always
+
+# CIS 4.1.1 - Auditd Service
+- name: Configure auditd service and boot parameters
+  include_tasks: configure_auditd.yml
+  when: auditd_enabled
+  tags: ['auditd', 'level1']
+
+# CIS 4.1.2 - Audit Log Storage and Retention
+- name: Configure audit log storage and retention
+  include_tasks: audit_log_storage.yml
+  when: auditd_enabled
+  tags: ['auditd', 'retention', 'level1']
+
+# CIS 4.1.3 - 4.1.18 - Audit Rules
+- name: Configure CIS audit rules
+  include_tasks: configure_audit_rules.yml
+  when: auditd_enabled
+  tags: ['auditd', 'rules', 'level1']
+
+# CIS 4.2.1 - Rsyslog
+- name: Configure rsyslog
+  include_tasks: configure_rsyslog.yml
+  when: rsyslog_enabled
+  tags: ['rsyslog', 'level1']
+
+# CIS 4.2.2 - Journald
+- name: Configure systemd-journald
+  include_tasks: configure_journald.yml
+  tags: ['journald', 'level1']
+
+# Validation
+- name: Validate logging hardening
+  include_tasks: validate.yml
+  tags: ['validate', 'always']

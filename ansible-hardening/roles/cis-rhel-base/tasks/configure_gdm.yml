@@ -1,0 +1,49 @@
+---
+# CIS 1.8.x - GNOME Display Manager Configuration
+# Secure GDM if installed
+
+- name: Check if GDM is installed
+  package_facts:
+    manager: auto
+  tags: ['gdm']
+
+- name: Configure GDM banner
+  template:
+    src: gdm-banner.j2
+    dest: /etc/dconf/db/gdm.d/01-banner-message
+    owner: root
+    group: root
+    mode: '0644'
+  when:
+    - "'gdm' in ansible_facts.packages"
+    - gdm_banner_enabled
+  notify: Update dconf
+  tags: ['gdm']
+
+- name: Disable GDM user list (CIS 1.8.2)
+  lineinfile:
+    path: /etc/dconf/db/gdm.d/00-login-screen
+    line: "{{ item }}"
+    create: true
+    owner: root
+    group: root
+    mode: '0644'
+  loop:
+    - "[org/gnome/login-screen]"
+    - "disable-user-list=true"
+  when:
+    - "'gdm' in ansible_facts.packages"
+    - gdm_disable_user_list
+  notify: Update dconf
+  tags: ['gdm']
+
+- name: Disable automatic login (CIS 1.8.3)
+  lineinfile:
+    path: /etc/gdm/custom.conf
+    regexp: '^AutomaticLoginEnable='
+    line: 'AutomaticLoginEnable=false'
+    state: present
+  when:
+    - "'gdm' in ansible_facts.packages"
+    - gdm_disable_automatic_login
+  tags: ['gdm']

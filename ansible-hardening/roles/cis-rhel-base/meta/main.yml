@@ -1,0 +1,19 @@
+---
+dependencies: []
+galaxy_info:
+  role_name: cis-rhel-base
+  author: Ruben Omar Ramírez Gutiérrez
+  description: CIS Benchmark Base System Hardening for RHEL 8/9
+  license: MIT
+  min_ansible_version: 2.15
+  platforms:
+    - name: EL
+      versions:
+        - 8
+        - 9
+  galaxy_tags:
+    - security
+    - hardening
+    - cis
+    - rhel
+    - compliance

@@ -1,0 +1,34 @@
+---
+# Mask nonessential services
+# Prevent services from being started
+
+- name: Mask unnecessary services
+  systemd:
+    name: "{{ item }}"
+    masked: true
+  loop:
+    - autofs
+    - bluetooth
+    - cups
+    - nfs-server
+    - rpcbind
+    - rsync
+    - smb
+    - snmpd
+    - squid
+    - vsftpd
+    - httpd
+    - nginx
+  failed_when: false
+  tags: ['mask']
+
+- name: Verify masked services
+  shell: |
+    set -euo pipefail
+    systemctl list-unit-files --state=masked --type=service --no-pager | grep -v "^UNIT" || echo "None masked"
+  args:
+    executable: /bin/bash
+  register: masked_check
+  changed_when: false
+  failed_when: false
+  tags: ['mask', 'validate']

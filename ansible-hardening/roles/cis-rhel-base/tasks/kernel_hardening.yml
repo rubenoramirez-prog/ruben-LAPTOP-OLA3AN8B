@@ -1,0 +1,45 @@
+---
+# Kernel hardening parameters
+# Additional security-focused kernel parameters
+
+- name: Backup sysctl.conf
+  copy:
+    src: /etc/sysctl.conf
+    dest: /var/backups/ansible-hardening/cis-rhel-base/sysctl.conf.{{ ansible_date_time.epoch }}
+    remote_src: true
+  when: backup_configs
+  failed_when: false
+  tags: ['kernel']
+
+- name: Configure kernel hardening parameters
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    sysctl_set: true
+    reload: true
+  loop:
+    # Restrict kernel logs
+    - { name: 'kernel.dmesg_restrict', value: '1' }
+    # Restrict kernel pointers
+    - { name: 'kernel.kptr_restrict', value: '2' }
+    # Restrict performance events
+    - { name: 'kernel.perf_event_paranoid', value: '3' }
+    # Restrict user namespaces
+    - { name: 'user.max_user_namespaces', value: '0' }
+    # Restrict BPF
+    - { name: 'kernel.unprivileged_bpf_disabled', value: '1' }
+    # Restrict userfaultfd
+    - { name: 'vm.unprivileged_userfaultfd', value: '0' }
+  tags: ['kernel', 'sysctl']
+
+- name: Verify kernel hardening
+  shell: |
+    set -euo pipefail
+    sysctl kernel.dmesg_restrict kernel.kptr_restrict
+  args:
+    executable: /bin/bash
+  register: kernel_check
+  changed_when: false
+  failed_when: false
+  tags: ['kernel', 'validate']

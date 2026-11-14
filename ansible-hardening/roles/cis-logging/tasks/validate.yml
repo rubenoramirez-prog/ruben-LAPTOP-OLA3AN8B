@@ -1,0 +1,35 @@
+---
+# Validation tasks for cis-logging role
+
+- name: Check auditd status
+  command: systemctl is-active auditd
+  register: auditd_status
+  failed_when: false
+  changed_when: false
+  tags: ['validate']
+
+- name: Query loaded audit rules count
+  command: auditctl -l
+  register: audit_rules_loaded
+  failed_when: false
+  changed_when: false
+  tags: ['validate']
+
+- name: Check rsyslog status
+  command: systemctl is-active rsyslog
+  register: rsyslog_status
+  failed_when: false
+  changed_when: false
+  tags: ['validate']
+
+- name: Display logging validation summary
+  debug:
+    msg: |
+      ========================================
+      CIS Logging Hardening Validation
+      ========================================
+      Auditd Service: {{ auditd_status.stdout | default('Unknown') }}
+      Audit Rules Loaded: {{ audit_rules_loaded.stdout_lines | length if audit_rules_loaded.stdout_lines is defined else 0 }}
+      Rsyslog Service: {{ rsyslog_status.stdout | default('Unknown') }}
+      ========================================
+  tags: ['validate']

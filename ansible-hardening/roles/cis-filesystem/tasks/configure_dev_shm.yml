@@ -1,0 +1,18 @@
+---
+# CIS 1.1.17 - 1.1.19 - Configure /dev/shm
+# Ensure nodev, nosuid, and noexec mount options on /dev/shm
+
+- name: Configure /dev/shm mount options in /etc/fstab
+  mount:
+    path: /dev/shm
+    src: tmpfs
+    fstype: tmpfs
+    opts: "defaults,nodev,nosuid,noexec"
+    state: present
+  tags: ['shm']
+
+- name: Remount /dev/shm with hardened options
+  command: mount -o remount,nodev,nosuid,noexec /dev/shm
+  changed_when: false
+  failed_when: false
+  tags: ['shm']

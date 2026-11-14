@@ -1,0 +1,22 @@
+---
+# CIS 3.1.2 - Disable wireless interfaces
+
+- name: Check for wireless interfaces
+  shell: |
+    set -euo pipefail
+    find /sys/class/net/*/wireless 2>/dev/null || echo "NONE"
+  args:
+    executable: /bin/bash
+  register: wireless_interfaces
+  changed_when: false
+  failed_when: false
+  tags: ['wireless']
+
+- name: Disable NM radio wifi if nmcli is present
+  shell: |
+    if command -v nmcli &>/dev/null; then
+      nmcli radio wifi off 2>/dev/null || true
+    fi
+  changed_when: false
+  failed_when: false
+  tags: ['wireless']

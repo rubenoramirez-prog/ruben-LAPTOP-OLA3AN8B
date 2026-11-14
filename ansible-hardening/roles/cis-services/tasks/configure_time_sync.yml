@@ -1,0 +1,89 @@
+---
+# CIS 2.1.x - Configure Time Synchronization
+# Ensure system time is synchronized
+
+- name: Ensure chrony is installed (CIS 2.1.1)
+  package:
+    name: chrony
+    state: present
+  when: time_sync_service == "chronyd"
+  tags: ['time']
+
+- name: Ensure systemd-timesyncd is installed
+  package:
+    name: systemd-timesyncd
+    state: present
+  when: time_sync_service == "systemd-timesyncd"
+  tags: ['time']
+
+- name: Backup chrony configuration
+  copy:
+    src: /etc/chrony.conf
+    dest: /var/backups/ansible-hardening/cis-services/chrony.conf.{{ ansible_date_time.epoch }}
+    remote_src: true
+  when:
+    - backup_configs
+    - time_sync_service == "chronyd"
+  failed_when: false
+  tags: ['time']
+
+- name: Configure chrony NTP servers (CIS 2.1.1.2)
+  lineinfile:
+    path: /etc/chrony.conf
+    regexp: '^server\s+'
+    state: absent
+  when: time_sync_service == "chronyd"
+  tags: ['time']
+
+- name: Add configured NTP servers
+  lineinfile:
+    path: /etc/chrony.conf
+    line: "server {{ item }} iburst"
+    insertafter: "^# Please consider"
+  loop: "{{ ntp_servers }}"
+  when: time_sync_service == "chronyd"
+  notify: Restart chronyd
+  tags: ['time']
+
+- name: Ensure chrony is enabled and running (CIS 2.1.1.3)
+  service:
+    name: chronyd
+    enabled: true
+    state: started
+  when: time_sync_service == "chronyd"
+  tags: ['time']
+
+- name: Ensure systemd-timesyncd is enabled and running
+  service:
+    name: systemd-timesyncd
+    enabled: true
+    state: started
+  when: time_sync_service == "systemd-timesyncd"
+  tags: ['time']
+
+- name: Ensure chrony is running as chrony user (CIS 2.1.1.4)
+  lineinfile:
+    path: /etc/sysconfig/chronyd
+    regexp: '^OPTIONS='
+    line: 'OPTIONS="-u chrony"'
+    state: present
+  when: time_sync_service == "chronyd"
+  notify: Restart chronyd
+  tags: ['time']
+
+- name: Verify time synchronization
+  shell: |
+    set -euo pipefail
+    if systemctl is-active chronyd &>/dev/null; then
+      chronyc tracking | grep "System time" || echo "chronyd active"
+    elif systemctl is-active systemd-timesyncd &>/dev/null; then
+      timedatectl status | grep "System clock synchronized" || echo "timesyncd active"
+    else
+      echo "NO_TIME_SYNC"
+    fi
+  args:
+    executable: /bin/bash
+  register: time_sync_check
+  changed_when: false
+  failed_when: false
+  tags: ['time', 'validate']

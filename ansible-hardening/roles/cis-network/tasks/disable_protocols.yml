@@ -1,0 +1,29 @@
+---
+# CIS 3.3.x - Disable Uncommon Network Protocols
+
+- name: Create modprobe cis-network configuration
+  lineinfile:
+    path: /etc/modprobe.d/cis-network.conf
+    line: "install {{ item }} /bin/true"
+    create: true
+    mode: '0644'
+    owner: root
+    group: root
+  loop: "{{ disable_protocols }}"
+  tags: ['protocols']
+
+- name: Blacklist uncommon network protocols
+  lineinfile:
+    path: /etc/modprobe.d/cis-network.conf
+    line: "blacklist {{ item }}"
+    state: present
+  loop: "{{ disable_protocols }}"
+  tags: ['protocols']
+
+- name: Unload protocol modules if currently loaded
+  modprobe:
+    name: "{{ item }}"
+    state: absent
+  loop: "{{ disable_protocols }}"
+  failed_when: false
+  tags: ['protocols']

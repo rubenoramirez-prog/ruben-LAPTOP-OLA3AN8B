@@ -1,0 +1,52 @@
+---
+# CIS 5.3 - Configure PAM Password Policy and Account Lockout
+
+- name: Backup pwquality.conf
+  copy:
+    src: /etc/security/pwquality.conf
+    dest: /var/backups/ansible-hardening/cis-access-control/pwquality.conf.{{ ansible_date_time.epoch }}
+    remote_src: true
+  when: backup_configs
+  failed_when: false
+  tags: ['pam']
+
+- name: Configure pwquality requirements (CIS 5.3.1)
+  lineinfile:
+    path: /etc/security/pwquality.conf
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+  loop:
+    - { regexp: '^#?minlen\s*=', line: "minlen = {{ pam_minlen }}" }
+    - { regexp: '^#?dcredit\s*=', line: "dcredit = {{ pam_dcredit }}" }
+    - { regexp: '^#?ucredit\s*=', line: "ucredit = {{ pam_ucredit }}" }
+    - { regexp: '^#?ocredit\s*=', line: "ocredit = {{ pam_ocredit }}" }
+    - { regexp: '^#?lcredit\s*=', line: "lcredit = {{ pam_lcredit }}" }
+    - { regexp: '^#?retry\s*=', line: "retry = {{ pam_retry }}" }
+  tags: ['pam']
+
+- name: Configure faillock in /etc/security/faillock.conf (CIS 5.3.2)
+  lineinfile:
+    path: /etc/security/faillock.conf
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    create: true
+    mode: '0644'
+    owner: root
+    group: root
+  loop:
+    - { regexp: '^#?deny\s*=', line: "deny = {{ pam_faillock_deny }}" }
+    - { regexp: '^#?unlock_time\s*=', line: "unlock_time = {{ pam_faillock_unlock_time }}" }
+    - { regexp: '^#?fail_interval\s*=', line: "fail_interval = 900" }
+  tags: ['pam']
+
+- name: Configure password reuse limitation (CIS 5.3.3)
+  lineinfile:
+    path: /etc/security/pwhistory.conf
+    regexp: '^#?remember\s*='
+    line: "remember = {{ pam_remember_passwords }}"
+    create: true
+    mode: '0644'
+    owner: root
+    group: root
+  tags: ['pam']

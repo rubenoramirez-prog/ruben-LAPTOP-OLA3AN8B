@@ -1,0 +1,30 @@
+---
+# Validation tasks for cis-filesystem role
+
+- name: Verify /dev/shm mount options
+  shell: |
+    mount | grep '/dev/shm' | grep -E 'nodev.*nosuid.*noexec' || echo "FAIL"
+  args:
+    executable: /bin/bash
+  register: shm_check
+  changed_when: false
+  failed_when: false
+  tags: ['validate']
+
+- name: Check AIDE package status
+  command: rpm -q aide
+  register: aide_status
+  changed_when: false
+  failed_when: false
+  tags: ['validate']
+
+- name: Display filesystem hardening validation summary
+  debug:
+    msg: |
+      ========================================
+      CIS Filesystem Hardening Validation
+      ========================================
+      /dev/shm Hardening: {{ 'PASS' if shm_check.stdout != 'FAIL' else 'NEEDS_REMOUNT' }}
+      AIDE Installed: {{ 'PASS' if aide_status.rc == 0 else 'NOT_INSTALLED' }}
+      ========================================
+  tags: ['validate']

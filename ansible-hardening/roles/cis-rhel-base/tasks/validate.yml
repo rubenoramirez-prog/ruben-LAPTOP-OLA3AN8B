@@ -1,0 +1,48 @@
+---
+# Validation tasks for cis-rhel-base role
+# Verify all hardening measures are applied
+
+- name: Check SELinux status
+  shell: |
+    set -euo pipefail
+    getenforce
+  args:
+    executable: /bin/bash
+  register: selinux_status
+  changed_when: false
+  failed_when: false
+  tags: ['validate']
+
+- name: Check ASLR status
+  shell: |
+    set -euo pipefail
+    sysctl kernel.randomize_va_space | awk '{print $3}'
+  args:
+    executable: /bin/bash
+  register: aslr_status
+  changed_when: false
+  failed_when: false
+  tags: ['validate']
+
+- name: Check core dumps status
+  shell: |
+    set -euo pipefail
+    sysctl fs.suid_dumpable | awk '{print $3}'
+  args:
+    executable: /bin/bash
+  register: coredump_status
+  changed_when: false
+  failed_when: false
+  tags: ['validate']
+
+- name: Display base hardening validation summary
+  debug:
+    msg: |
+      ========================================
+      CIS RHEL Base Hardening Validation
+      ========================================
+      SELinux: {{ selinux_status.stdout | default('Unknown') }}
+      ASLR: {{ 'Enabled (2)' if aslr_status.stdout == '2' else 'Disabled or Partial' }}
+      Core Dumps: {{ 'Restricted (0)' if coredump_status.stdout == '0' else 'Not Restricted' }}
+      ========================================
+  tags: ['validate']

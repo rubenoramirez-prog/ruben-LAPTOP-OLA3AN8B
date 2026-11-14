@@ -1,0 +1,184 @@
+---
+# CIS 5.2 - SSH Server Hardening
+
+- name: Backup sshd_config
+  copy:
+    src: /etc/ssh/sshd_config
+    dest: /var/backups/ansible-hardening/cis-access-control/sshd_config.{{ ansible_date_time.epoch }}
+    remote_src: true
+  when: backup_configs
+  failed_when: false
+  tags: ['sshd']
+
+- name: Set permissions on /etc/ssh/sshd_config (CIS 5.2.1)
+  file:
+    path: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: '0600'
+  tags: ['sshd']
+
+- name: Ensure SSH Protocol is 2 (CIS 5.2.2)
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?Protocol\s+'
+    line: "Protocol 2"
+    state: present
+  notify: Restart sshd
+  tags: ['sshd']
+
+- name: Configure SSH LogLevel (CIS 5.2.3)
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?LogLevel\s+'
+    line: "LogLevel VERBOSE"
+    state: present
+  notify: Restart sshd
+  tags: ['sshd']
+
+- name: Configure SSH X11Forwarding (CIS 5.2.4)
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?X11Forwarding\s+'
+    line: "X11Forwarding {{ sshd_x11_forwarding }}"
+    state: present
+  notify: Restart sshd
+  tags: ['sshd']
+
+- name: Configure SSH MaxAuthTries (CIS 5.2.5)
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?MaxAuthTries\s+'
+    line: "MaxAuthTries {{ sshd_max_auth_tries }}"
+    state: present
+  notify: Restart sshd
+  tags: ['sshd']
+
+- name: Configure SSH IgnoreRhosts (CIS 5.2.6)
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?IgnoreRhosts\s+'
+    line: "IgnoreRhosts yes"
+    state: present
+  notify: Restart sshd
+  tags: ['sshd']
+
+- name: Configure SSH HostbasedAuthentication (CIS 5.2.7)
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?HostbasedAuthentication\s+'
+    line: "HostbasedAuthentication no"
+    state: present
+  notify: Restart sshd
+  tags: ['sshd']
+
+- name: Configure SSH PermitRootLogin (CIS 5.2.8)
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PermitRootLogin\s+'
+    line: "PermitRootLogin {{ sshd_permit_root_login }}"
+    state: present
+  notify: Restart sshd
+  tags: ['sshd']
+
+- name: Configure SSH PermitEmptyPasswords (CIS 5.2.9)
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PermitEmptyPasswords\s+'
+    line: "PermitEmptyPasswords no"
+    state: present
+  notify: Restart sshd
+  tags: ['sshd']
+
+- name: Configure SSH PermitUserEnvironment (CIS 5.2.10)
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PermitUserEnvironment\s+'
+    line: "PermitUserEnvironment no"
+    state: present
+  notify: Restart sshd
+  tags: ['sshd']
+
+- name: Configure approved Ciphers (CIS 5.2.11)
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?Ciphers\s+'
+    line: "Ciphers {{ sshd_ciphers | join(',') }}"
+    state: present
+  notify: Restart sshd
+  tags: ['sshd']
+
+- name: Configure approved MACs (CIS 5.2.12)
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?MACs\s+'
+    line: "MACs {{ sshd_macs | join(',') }}"
+    state: present
+  notify: Restart sshd
+  tags: ['sshd']
+
+- name: Configure approved KexAlgorithms (CIS 5.2.13)
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?KexAlgorithms\s+'
+    line: "KexAlgorithms {{ sshd_kex_algorithms | join(',') }}"
+    state: present
+  notify: Restart sshd
+  tags: ['sshd']
+
+- name: Configure SSH ClientAlive timeout (CIS 5.2.14)
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+  loop:
+    - { regexp: '^#?ClientAliveInterval\s+', line: "ClientAliveInterval {{ sshd_client_alive_interval }}" }
+    - { regexp: '^#?ClientAliveCountMax\s+', line: "ClientAliveCountMax {{ sshd_client_alive_count_max }}" }
+  notify: Restart sshd
+  tags: ['sshd']
+
+- name: Configure SSH LoginGraceTime (CIS 5.2.15)
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?LoginGraceTime\s+'
+    line: "LoginGraceTime {{ sshd_login_grace_time }}"
+    state: present
+  notify: Restart sshd
+  tags: ['sshd']
+
+- name: Configure SSH warning banner (CIS 5.2.16)
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?Banner\s+'
+    line: "Banner {{ sshd_banner }}"
+    state: present
+  notify: Restart sshd
+  tags: ['sshd']
+
+- name: Ensure SSH PAM is enabled (CIS 5.2.17)
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?UsePAM\s+'
+    line: "UsePAM yes"
+    state: present
+  notify: Restart sshd
+  tags: ['sshd']
+
+- name: Configure SSH MaxStartups (CIS 5.2.19)
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?MaxStartups\s+'
+    line: "MaxStartups {{ sshd_max_startups }}"
+    state: present
+  notify: Restart sshd
+  tags: ['sshd']
+
+- name: Configure SSH MaxSessions (CIS 5.2.20)
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?MaxSessions\s+'
+    line: "MaxSessions {{ sshd_max_sessions }}"
+    state: present
+  notify: Restart sshd
+  tags: ['sshd']

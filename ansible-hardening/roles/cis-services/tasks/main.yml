@@ -1,0 +1,48 @@
+---
+# Main tasks for cis-services role
+# CIS Benchmark Service Configuration and Hardening
+
+- name: Validate input variables
+  assert:
+    that:
+      - cis_level in ['level1', 'level2']
+      - time_sync_service in ['chronyd', 'systemd-timesyncd']
+    fail_msg: "Invalid service configuration"
+    success_msg: "Service configuration validation passed"
+  tags: always
+
+- name: Create backup directory for services role
+  file:
+    path: /var/backups/ansible-hardening/cis-services
+    state: directory
+    mode: '0700'
+    owner: root
+    group: root
+  when: backup_configs
+  tags: always
+
+# CIS 2.1.x - Time Synchronization
+- name: Configure time synchronization
+  include_tasks: configure_time_sync.yml
+  tags: ['time', 'level1']
+
+# CIS 2.2.x - Disable special purpose services
+- name: Disable special purpose services
+  include_tasks: disable_services.yml
+  tags: ['services', 'level1']
+
+# CIS 2.3.x - Remove service clients
+- name: Remove insecure service clients
+  include_tasks: remove_clients.yml
+  tags: ['clients', 'level1']
+
+# Additional service hardening
+- name: Mask nonessential services
+  include_tasks: mask_services.yml
+  when: mask_services
+  tags: ['mask', 'level1']
+
+# Validation
+- name: Validate service hardening
+  include_tasks: validate.yml
+  tags: ['validate', 'always']

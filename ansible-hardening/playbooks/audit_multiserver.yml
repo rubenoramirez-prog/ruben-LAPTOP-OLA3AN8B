@@ -1,0 +1,116 @@
+---
+# Multiserver security audit orchestration.
+# This playbook is non-destructive: it copies and executes the auditor remotely,
+# then retrieves one JSON/HTML result per host.
+
+- name: Run modular Linux security audit on authorized servers
+  hosts: "{{ audit_target | default('all') }}"
+  become: true
+  gather_facts: true
+  strategy: free
+  vars:
+    audit_modules: "{{ audit_modules | default('all') }}"
+    audit_client: "{{ audit_client | default('Enterprise Client') }}"
+    audit_remote_root: "/var/tmp/ansible-security-audit"
+    audit_remote_script: "{{ audit_remote_root }}/audit_vulnerabilities.sh"
+    audit_remote_output: "{{ audit_remote_root }}/{{ inventory_hostname }}"
+    audit_local_output: "{{ playbook_dir }}/../reports/multiserver/{{ audit_run_id | default(ansible_date_time.epoch) }}"
+
+  pre_tasks:
+    - name: Validate required audit parameters
+      ansible.builtin.assert:
+        that:
+          - audit_modules | length > 0
+          - audit_client | length > 0
+          - audit_target | default('all') | length > 0
+        fail_msg: "audit_modules, audit_client and audit_target must be non-empty."
+      tags: [always]
+
+    - name: Validate supported Linux target
+      ansible.builtin.assert:
+        that:
+          - ansible_system == 'Linux'
+        fail_msg: "The multiserver auditor requires Linux targets."
+      tags: [always]
+
+    - name: Create remote audit workspace
+      ansible.builtin.file:
+        path: "{{ audit_remote_root }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0700'
+      tags: [always]
+
+  tasks:
+    - name: Upload security auditor to target host
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../scripts/bash/audit_vulnerabilities.sh"
+        dest: "{{ audit_remote_script }}"
+        owner: root
+        group: root
+        mode: '0700'
+      register: audit_script_upload
+      tags: [audit, always]
+
+    - name: Execute security auditor on target host
+      ansible.builtin.command:
+        argv:
+          - "{{ audit_remote_script }}"
+          - --modules
+          - "{{ audit_modules }}"
+          - --client
+          - "{{ audit_client }}"
+          - --output-dir
+          - "{{ audit_remote_output }}"
+          - --quiet
+      register: audit_execution
+      changed_when: false
+      failed_when: audit_execution.rc not in [0, 1]
+      tags: [audit]
+
+    - name: Create local report directory on controller
+      ansible.builtin.file:
+        path: "{{ audit_local_output }}"
+        state: directory
+        mode: '0750'
+      delegate_to: localhost
+      become: false
+      run_once: true
+      tags: [audit, always]
+
+    - name: Retrieve JSON report from target host
+      ansible.builtin.fetch:
+        src: "{{ audit_remote_output }}/audit_report.json"
+        dest: "{{ audit_local_output }}/{{ inventory_hostname }}_audit_report.json"
+        flat: true
+      tags: [audit]
+
+    - name: Retrieve HTML dashboard from target host
+      ansible.builtin.fetch:
+        src: "{{ audit_remote_output }}/client_dashboard.html"
+        dest: "{{ audit_local_output }}/{{ inventory_hostname }}_client_dashboard.html"
+        flat: true
+      tags: [audit]
+
+    - name: Record per-host audit result
+      ansible.builtin.set_fact:
+        audit_host_result:
+          host: "{{ inventory_hostname }}"
+          audit_rc: "{{ audit_execution.rc }}"
+          json_report: "{{ audit_local_output }}/{{ inventory_hostname }}_audit_report.json"
+          html_report: "{{ audit_local_output }}/{{ inventory_hostname }}_client_dashboard.html"
+      tags: [audit]
+
+  post_tasks:
+    - name: Remove remote temporary auditor and reports
+      ansible.builtin.file:
+        path: "{{ audit_remote_root }}"
+        state: absent
+      when: audit_cleanup_remote | default(true) | bool
+      tags: [audit, cleanup]
+
+    - name: Display host audit completion
+      ansible.builtin.debug:
+        msg: "Audit completed for {{ inventory_hostname }} with exit code {{ audit_execution.rc }}."
+      tags: [audit]

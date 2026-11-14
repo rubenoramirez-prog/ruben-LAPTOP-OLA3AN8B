@@ -1,0 +1,83 @@
+---
+# CIS 1.7.x - Warning Banners
+# Configure system access warning messages
+
+- name: Backup existing banner files
+  copy:
+    src: "{{ item }}"
+    dest: /var/backups/ansible-hardening/cis-rhel-base/{{ item | basename }}.{{ ansible_date_time.epoch }}
+    remote_src: true
+  loop:
+    - /etc/motd
+    - /etc/issue
+    - /etc/issue.net
+  when: backup_configs
+  failed_when: false
+  tags: ['banners']
+
+- name: Configure message of the day (CIS 1.7.1)
+  copy:
+    content: "{{ banner_content }}"
+    dest: /etc/motd
+    owner: root
+    group: root
+    mode: '0644'
+  when: motd_enabled
+  tags: ['banners']
+
+- name: Configure local login warning banner (CIS 1.7.2)
+  copy:
+    content: "{{ banner_content }}"
+    dest: /etc/issue
+    owner: root
+    group: root
+    mode: '0644'
+  when: issue_enabled
+  tags: ['banners']
+
+- name: Configure remote login warning banner (CIS 1.7.3)
+  copy:
+    content: "{{ banner_content }}"
+    dest: /etc/issue.net
+    owner: root
+    group: root
+    mode: '0644'
+  when: issue_net_enabled
+  tags: ['banners']
+
+- name: Ensure permissions on /etc/motd (CIS 1.7.4)
+  file:
+    path: /etc/motd
+    owner: root
+    group: root
+    mode: '0644'
+  tags: ['banners']
+
+- name: Ensure permissions on /etc/issue (CIS 1.7.5)
+  file:
+    path: /etc/issue
+    owner: root
+    group: root
+    mode: '0644'
+  tags: ['banners']
+
+- name: Ensure permissions on /etc/issue.net (CIS 1.7.6)
+  file:
+    path: /etc/issue.net
+    owner: root
+    group: root
+    mode: '0644'
+  tags: ['banners']
+
+- name: Verify banner permissions
+  shell: |
+    set -euo pipefail
+    for file in /etc/motd /etc/issue /etc/issue.net; do
+      stat -c "%a %U %G $file" $file
+    done
+  args:
+    executable: /bin/bash
+  register: banner_check
+  changed_when: false
+  failed_when: false
+  tags: ['banners', 'validate']

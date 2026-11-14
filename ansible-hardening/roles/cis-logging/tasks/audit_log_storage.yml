@@ -1,0 +1,44 @@
+---
+# CIS 4.1.2 - Configure Audit Log Storage and Retention
+
+- name: Backup auditd.conf
+  copy:
+    src: /etc/audit/auditd.conf
+    dest: /var/backups/ansible-hardening/cis-logging/auditd.conf.{{ ansible_date_time.epoch }}
+    remote_src: true
+  when: backup_configs
+  failed_when: false
+  tags: ['auditd']
+
+- name: Configure auditd max log file size (CIS 4.1.2.1)
+  lineinfile:
+    path: /etc/audit/auditd.conf
+    regexp: '^max_log_file\s*='
+    line: "max_log_file = {{ audit_max_log_file }}"
+    state: present
+  notify: Restart auditd
+  tags: ['auditd']
+
+- name: Configure max_log_file_action (CIS 4.1.2.2)
+  lineinfile:
+    path: /etc/audit/auditd.conf
+    regexp: '^max_log_file_action\s*='
+    line: "max_log_file_action = {{ audit_max_log_file_action }}"
+    state: present
+  notify: Restart auditd
+  tags: ['auditd']
+
+- name: Configure space_left and actions (CIS 4.1.2.3)
+  lineinfile:
+    path: /etc/audit/auditd.conf
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+  loop:
+    - { regexp: '^space_left\s*=', line: "space_left = {{ audit_space_left }}" }
+    - { regexp: '^space_left_action\s*=', line: "space_left_action = {{ audit_space_left_action }}" }
+    - { regexp: '^action_mail_acct\s*=', line: "action_mail_acct = {{ audit_action_mail_acct }}" }
+    - { regexp: '^admin_space_left\s*=', line: "admin_space_left = {{ audit_admin_space_left }}" }
+    - { regexp: '^admin_space_left_action\s*=', line: "admin_space_left_action = {{ audit_admin_space_left_action }}" }
+  notify: Restart auditd
+  tags: ['auditd']

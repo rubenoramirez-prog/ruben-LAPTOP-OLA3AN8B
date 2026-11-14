@@ -1,0 +1,37 @@
+---
+# CIS 4.1.1 - Configure Auditd Service
+
+- name: Ensure audit and audit-libs are installed
+  package:
+    name:
+      - audit
+      - audit-libs
+    state: present
+  tags: ['auditd']
+
+- name: Ensure auditd service is enabled
+  service:
+    name: auditd
+    enabled: true
+    state: started
+  tags: ['auditd']
+
+- name: Ensure auditing for processes before auditd is enabled (CIS 4.1.1.3)
+  lineinfile:
+    path: /etc/default/grub
+    regexp: '^(GRUB_CMDLINE_LINUX="(?!.*audit=1).*?)"$'
+    line: '\1 audit=1"'
+    backrefs: true
+  when: audit_bootloader_enable
+  notify: Update grub config
+  tags: ['auditd', 'boot']
+
+- name: Ensure audit_backlog_limit is set (CIS 4.1.1.4)
+  lineinfile:
+    path: /etc/default/grub
+    regexp: '^(GRUB_CMDLINE_LINUX="(?!.*audit_backlog_limit={{ audit_backlog_limit }}).*?)"$'
+    line: '\1 audit_backlog_limit={{ audit_backlog_limit }}"'
+    backrefs: true
+  when: audit_bootloader_enable
+  notify: Update grub config
+  tags: ['auditd', 'boot']

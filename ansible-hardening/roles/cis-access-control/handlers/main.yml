@@ -1,0 +1,12 @@
+---
+# Handlers for cis-access-control role
+
+- name: Restart sshd
+  service:
+    name: sshd
+    state: restarted
+
+- name: Restart crond
+  service:
+    name: crond
+    state: restarted

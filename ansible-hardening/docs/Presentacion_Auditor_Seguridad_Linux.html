@@ -1,0 +1,531 @@
+<title>Auditor de Seguridad Linux</title>
+<meta name="description" content="Presentación ejecutiva del auditor modular de seguridad Linux para diagnóstico, priorización y remediación controlada.">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Layout plan: a briefing deck built like a Linux operations console — quiet grid, strong evidence, one decision per slide. */
+  :root {
+    --bg: #f3f7f8;
+    --bg-deep: #e7eff1;
+    --surface: #ffffff;
+    --surface-2: #edf4f5;
+    --surface-3: #dfeaec;
+    --ink: #102a35;
+    --ink-soft: #49636d;
+    --ink-faint: #728991;
+    --line: #cddcdf;
+    --accent: #087f8c;
+    --accent-2: #d97706;
+    --accent-soft: #d7f1f1;
+    --critical: #be3030;
+    --high: #c65d16;
+    --medium: #9b7100;
+    --low: #2563a9;
+    --good: #16805a;
+    --white: #ffffff;
+    --shadow: 0 18px 46px rgba(17, 58, 70, .13);
+    --display: "Space Grotesk", "Trebuchet MS", sans-serif;
+    --body: "Inter", Arial, sans-serif;
+    --mono: "JetBrains Mono", Consolas, monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #09151b;
+      --bg-deep: #0d2028;
+      --surface: #10252e;
+      --surface-2: #142e38;
+      --surface-3: #1b3a45;
+      --ink: #edf8f8;
+      --ink-soft: #aec4c9;
+      --ink-faint: #78959d;
+      --line: #294852;
+      --accent: #43c3c4;
+      --accent-2: #f3ad45;
+      --accent-soft: #153f47;
+      --critical: #ff7777;
+      --high: #ff9b59;
+      --medium: #f0cc63;
+      --low: #74b4ef;
+      --good: #52d39a;
+      --white: #f8ffff;
+      --shadow: 0 18px 46px rgba(0, 0, 0, .28);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #09151b;
+    --bg-deep: #0d2028;
+    --surface: #10252e;
+    --surface-2: #142e38;
+    --surface-3: #1b3a45;
+    --ink: #edf8f8;
+    --ink-soft: #aec4c9;
+    --ink-faint: #78959d;
+    --line: #294852;
+    --accent: #43c3c4;
+    --accent-2: #f3ad45;
+    --accent-soft: #153f47;
+    --critical: #ff7777;
+    --high: #ff9b59;
+    --medium: #f0cc63;
+    --low: #74b4ef;
+    --good: #52d39a;
+    --white: #f8ffff;
+    --shadow: 0 18px 46px rgba(0, 0, 0, .28);
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--body);
+    padding-block: 22px 34px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    overflow-x: hidden;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0 0 auto;
+    height: env(safe-area-inset-top, 0px);
+    z-index: 10;
+    background: var(--bg);
+  }
+  button, input { font: inherit; }
+  button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px solid var(--accent-2); outline-offset: 3px; }
+  .deck-shell { width: min(1180px, 100%); margin: 0 auto; }
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 14px;
+  }
+  .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+  .brand-mark { width: 34px; height: 34px; flex: 0 0 auto; border: 1px solid var(--accent); display: grid; place-items: center; color: var(--accent); font-family: var(--mono); font-weight: 700; border-radius: 8px; background: var(--accent-soft); }
+  .brand-copy { min-width: 0; }
+  .eyebrow { color: var(--accent); font-family: var(--mono); font-size: 10px; letter-spacing: .13em; text-transform: uppercase; font-weight: 700; }
+  .brand-title { font-family: var(--display); font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .top-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .control-btn { border: 1px solid var(--line); color: var(--ink-soft); background: var(--surface); border-radius: 7px; padding: 8px 11px; cursor: pointer; font-size: 12px; font-weight: 700; }
+  .control-btn:hover { border-color: var(--accent); color: var(--ink); background: var(--surface-2); }
+  .progress-track { height: 3px; background: var(--line); border-radius: 99px; overflow: hidden; margin: 0 0 18px; }
+  .progress-fill { height: 100%; width: 12.5%; background: var(--accent); transition: width .35s ease; }
+  .slide {
+    display: none;
+    min-height: 650px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    border-radius: 16px;
+    padding: clamp(28px, 5vw, 68px);
+    position: relative;
+    overflow: hidden;
+  }
+  .slide.active { display: block; animation: enter .28s ease-out; }
+  @keyframes enter { from { opacity: .3; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+  .slide::after { content: ""; position: absolute; width: 360px; height: 360px; border: 1px solid var(--accent-soft); border-radius: 50%; right: -180px; bottom: -185px; pointer-events: none; }
+  .slide-num { position: absolute; top: 26px; right: 30px; color: var(--ink-faint); font-family: var(--mono); font-size: 11px; letter-spacing: .08em; }
+  .slide-kicker { color: var(--accent); font-family: var(--mono); font-size: 11px; letter-spacing: .13em; text-transform: uppercase; font-weight: 700; margin-bottom: 16px; }
+  h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; color: var(--ink); }
+  h1 { max-width: 850px; font-size: clamp(39px, 7vw, 78px); line-height: .98; letter-spacing: -.055em; }
+  h2 { font-size: clamp(29px, 4vw, 48px); line-height: 1.03; letter-spacing: -.04em; max-width: 820px; }
+  h3 { font-size: 18px; line-height: 1.15; }
+  .lead { color: var(--ink-soft); font-size: clamp(16px, 2vw, 20px); line-height: 1.5; max-width: 690px; margin-top: 22px; }
+  .muted { color: var(--ink-faint); }
+  .mono { font-family: var(--mono); }
+  .accent { color: var(--accent); }
+  .orange { color: var(--accent-2); }
+  .hero-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(280px, .85fr); gap: 48px; align-items: center; min-height: 535px; }
+  .hero-grid > * { min-width: 0; }
+  .hero-rule { width: 88px; height: 5px; background: var(--accent-2); margin: 26px 0 20px; border-radius: 2px; }
+  .hero-statement { border-left: 3px solid var(--accent); padding: 10px 0 10px 16px; color: var(--ink-soft); max-width: 580px; line-height: 1.55; }
+  .hero-visual { position: relative; min-height: 380px; display: grid; place-items: center; }
+  .terminal-card { width: min(100%, 410px); background: #0b1c23; color: #d7eeee; border: 1px solid #2e5d66; border-radius: 12px; box-shadow: 0 22px 44px rgba(5, 28, 35, .25); overflow: hidden; font-family: var(--mono); font-size: 12px; transform: rotate(2deg); }
+  .terminal-bar { background: #112f38; padding: 10px 13px; display: flex; gap: 6px; border-bottom: 1px solid #2e5d66; }
+  .terminal-dot { width: 8px; height: 8px; border-radius: 50%; background: #65838a; }
+  .terminal-body { padding: 20px; line-height: 1.75; }
+  .terminal-prompt { color: #63d2c8; }
+  .terminal-value { color: #f7bd62; }
+  .terminal-pass { color: #6fe0aa; }
+  .terminal-fail { color: #ff8c87; }
+  .hero-stamp { position: absolute; right: 4%; bottom: 5%; transform: rotate(-9deg); border: 1px solid var(--accent-2); color: var(--accent-2); padding: 12px 15px; border-radius: 6px; font-family: var(--mono); text-transform: uppercase; font-size: 10px; letter-spacing: .1em; background: var(--surface); }
+  .section-intro { display: flex; justify-content: space-between; gap: 26px; align-items: end; margin-bottom: 34px; }
+  .section-intro > * { min-width: 0; }
+  .section-intro p { max-width: 420px; color: var(--ink-soft); line-height: 1.55; margin: 0; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .panel { border: 1px solid var(--line); background: var(--surface-2); padding: 19px; border-radius: 10px; min-width: 0; }
+  .panel.white { background: var(--surface); }
+  .panel p { color: var(--ink-soft); line-height: 1.5; font-size: 13px; margin: 9px 0 0; }
+  .panel-label { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 12px; }
+  .icon-line { display: flex; gap: 11px; align-items: flex-start; }
+  .icon-box { flex: 0 0 auto; width: 28px; height: 28px; border: 1px solid var(--accent); color: var(--accent); border-radius: 6px; display: grid; place-items: center; font-family: var(--mono); font-size: 12px; font-weight: 700; }
+  .value-xl { font-family: var(--display); font-size: 56px; letter-spacing: -.06em; line-height: .9; font-weight: 700; }
+  .value-lg { font-family: var(--display); font-size: 34px; letter-spacing: -.04em; font-weight: 700; }
+  .metric-label { color: var(--ink-soft); font-size: 12px; margin-top: 8px; }
+  .score-layout { display: grid; grid-template-columns: minmax(245px, .65fr) minmax(0, 1.35fr); gap: 34px; align-items: center; }
+  .score-orbit { width: 235px; height: 235px; border-radius: 50%; border: 16px solid var(--surface-3); border-top-color: var(--accent); border-right-color: var(--accent-2); display: grid; place-items: center; position: relative; margin: 0 auto; }
+  .score-orbit::before { content: ""; position: absolute; inset: 18px; border: 1px dashed var(--line); border-radius: 50%; }
+  .score-inside { text-align: center; position: relative; }
+  .score-inside .value-xl { font-size: 64px; }
+  .score-caption { color: var(--ink-faint); font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: .08em; margin-top: 10px; }
+  .bar-list { display: grid; gap: 15px; }
+  .bar-row { display: grid; gap: 7px; }
+  .bar-head { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; color: var(--ink-soft); }
+  .bar-track { height: 9px; background: var(--surface-3); border-radius: 99px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: inherit; }
+  .bar-fill.good { background: var(--good); width: 71%; }
+  .bar-fill.critical { background: var(--critical); width: 18%; }
+  .bar-fill.high { background: var(--high); width: 28%; }
+  .bar-fill.medium { background: var(--medium); width: 44%; }
+  .bar-fill.low { background: var(--low); width: 23%; }
+  .status-chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid currentColor; border-radius: 999px; padding: 4px 8px; font-family: var(--mono); font-size: 10px; font-weight: 700; text-transform: uppercase; }
+  .status-chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .chip-good { color: var(--good); }
+  .chip-critical { color: var(--critical); }
+  .chip-high { color: var(--high); }
+  .chip-medium { color: var(--medium); }
+  .chip-low { color: var(--low); }
+  .module-card { min-height: 135px; display: flex; flex-direction: column; justify-content: space-between; }
+  .module-card .module-code { font-family: var(--mono); color: var(--accent); font-size: 12px; font-weight: 700; }
+  .module-card h3 { font-size: 16px; margin-top: 13px; }
+  .module-card p { font-size: 12px; margin-top: 6px; }
+  .module-count { color: var(--ink-faint); font-family: var(--mono); font-size: 10px; margin-top: 13px; }
+  .process { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; align-items: stretch; margin-top: 24px; }
+  .process-step { position: relative; border-top: 3px solid var(--accent); padding: 16px 13px; background: var(--surface-2); min-width: 0; }
+  .process-step:not(:last-child)::after { content: "→"; position: absolute; right: -12px; top: 14px; color: var(--accent-2); font-family: var(--mono); font-weight: 700; z-index: 1; }
+  .process-step .step-no { font-family: var(--mono); color: var(--accent-2); font-size: 11px; }
+  .process-step h3 { font-size: 14px; margin-top: 11px; }
+  .process-step p { color: var(--ink-soft); font-size: 11px; line-height: 1.4; margin: 6px 0 0; }
+  .output-card { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 14px; align-items: start; padding: 20px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); }
+  .file-icon { width: 52px; height: 60px; border: 2px solid var(--accent); border-radius: 5px; display: grid; place-items: center; color: var(--accent); font-family: var(--mono); font-size: 12px; font-weight: 700; position: relative; }
+  .file-icon::after { content: ""; position: absolute; top: -2px; right: -2px; width: 13px; height: 13px; background: var(--surface-2); border-left: 2px solid var(--accent); border-bottom: 2px solid var(--accent); }
+  .code-box { border: 1px solid var(--line); background: #0b1c23; color: #c8e8e7; padding: 15px; border-radius: 8px; font-family: var(--mono); font-size: 11px; line-height: 1.7; overflow-x: auto; max-width: 100%; }
+  .code-key { color: #6ed9cf; }
+  .code-value { color: #f4bd67; }
+  .code-quiet { color: #79a0a5; }
+  .cta-box { border: 1px solid var(--accent); background: var(--accent-soft); padding: 28px; border-radius: 12px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: center; }
+  .cta-box p { color: var(--ink-soft); margin: 9px 0 0; line-height: 1.5; max-width: 650px; }
+  .cta-button { border: 0; background: var(--accent); color: var(--white); border-radius: 7px; padding: 13px 17px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .cta-button:hover { filter: brightness(1.08); }
+  .notes { display: none; margin-top: 17px; border-left: 3px solid var(--accent-2); padding: 12px 16px; background: var(--surface-2); color: var(--ink-soft); font-size: 12px; line-height: 1.5; }
+  .notes.open { display: block; }
+  details { margin-top: 17px; border-top: 1px solid var(--line); padding-top: 12px; }
+  summary { cursor: pointer; color: var(--accent); font-family: var(--mono); font-size: 11px; font-weight: 700; }
+  .data-table-wrap { overflow-x: auto; margin-top: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 11px; min-width: 480px; }
+  th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; }
+  th { color: var(--ink-faint); font-family: var(--mono); font-size: 10px; text-transform: uppercase; }
+  .footer-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 14px; }
+  .nav-hint { color: var(--ink-faint); font-family: var(--mono); font-size: 10px; }
+  .nav-actions { display: flex; gap: 8px; }
+  .nav-btn { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 7px; padding: 9px 14px; cursor: pointer; font-size: 12px; font-weight: 700; }
+  .nav-btn.primary { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+  .nav-btn:hover { border-color: var(--accent); }
+  @media (max-width: 820px) {
+    .hero-grid, .score-layout, .grid-2 { grid-template-columns: 1fr; }
+    .hero-grid { gap: 28px; }
+    .hero-visual { min-height: 300px; }
+    .process { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .process-step:not(:last-child)::after { display: none; }
+    .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .section-intro { display: grid; }
+    .slide { min-height: 680px; }
+  }
+  @media (max-width: 520px) {
+    body { padding-block: 12px 24px; }
+    .topbar { align-items: flex-start; }
+    .top-actions { max-width: 150px; }
+    .slide { min-height: 0; padding: 31px 20px 24px; border-radius: 12px; }
+    .slide-num { top: 18px; right: 19px; }
+    h1 { font-size: 42px; }
+    h2 { font-size: 31px; }
+    .hero-grid { min-height: 0; }
+    .terminal-card { transform: none; font-size: 10px; }
+    .hero-stamp { right: 0; bottom: 0; }
+    .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    .process { grid-template-columns: 1fr; }
+    .cta-box { grid-template-columns: 1fr; }
+    .footer-nav { align-items: flex-start; }
+    .nav-hint { max-width: 150px; line-height: 1.4; }
+  }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; scroll-behavior: auto !important; } }
+</style>
+
+<div class="deck-shell">
+  <header class="topbar" aria-label="Controles de presentación">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">$_</div>
+      <div class="brand-copy">
+        <div class="eyebrow">Briefing de producto</div>
+        <div class="brand-title">Auditor de Seguridad Linux</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="control-btn" id="notesBtn" type="button">Notas del presentador</button>
+      <button class="control-btn" id="themeBtn" type="button">Tema</button>
+      <button class="control-btn" id="fullBtn" type="button">Pantalla completa</button>
+    </div>
+  </header>
+  <div class="progress-track" aria-label="Progreso de la presentación"><div class="progress-fill" id="progressFill"></div></div>
+
+  <main id="deck" aria-live="polite">
+    <section class="slide active" data-slide="diagnostico" data-title="El diagnóstico empieza con evidencia">
+      <span class="slide-num">01 / 08</span>
+      <div class="hero-grid">
+        <div>
+          <div class="slide-kicker">Seguridad operativa · Linux</div>
+          <h1>El diagnóstico empieza con <span class="accent">evidencia.</span></h1>
+          <div class="hero-rule"></div>
+          <p class="lead">Un auditor modular que convierte la configuración real de un servidor Linux en decisiones claras para infraestructura, seguridad y dirección.</p>
+          <p class="hero-statement">Del inventario técnico a un reporte defendible: qué está expuesto, por qué importa y qué debe corregirse primero.</p>
+        </div>
+        <div class="hero-visual" aria-label="Ejemplo visual de una auditoría en terminal">
+          <div class="terminal-card">
+            <div class="terminal-bar"><span class="terminal-dot"></span><span class="terminal-dot"></span><span class="terminal-dot"></span></div>
+            <div class="terminal-body">
+              <div><span class="terminal-prompt">$</span> audit_vulnerabilities.sh <span class="terminal-value">--modules all</span></div>
+              <div class="terminal-prompt">[auth] [ssh] [network] [fs]</div>
+              <div class="terminal-prompt">[services] [kernel] [mac]</div>
+              <br>
+              <div>controles evaluados: <span class="terminal-value">21</span></div>
+              <div>hallazgos críticos: <span class="terminal-fail">02</span></div>
+              <div>evidencia exportada: <span class="terminal-pass">JSON + HTML</span></div>
+              <br>
+              <div><span class="terminal-prompt">$</span> resultado: <span class="terminal-value">priorizar remediación</span></div>
+            </div>
+          </div>
+          <div class="hero-stamp">no destructivo<br>evidencia primero</div>
+        </div>
+      </div>
+      <aside class="notes">Abrir con el problema de negocio: el cliente necesita visibilidad antes de aprobar cambios. La herramienta no modifica el servidor; captura evidencia para decidir y remediar con control.</aside>
+    </section>
+
+    <section class="slide" data-slide="problema" data-title="La brecha entre revisar y decidir">
+      <span class="slide-num">02 / 08</span>
+      <div class="section-intro">
+        <div><div class="slide-kicker">El problema</div><h2>Revisar servidores no debería depender de capturas aisladas.</h2></div>
+        <p>La postura de seguridad se fragmenta entre comandos, hojas de cálculo y conocimiento tribal. El resultado: prioridades difíciles de defender.</p>
+      </div>
+      <div class="grid-3">
+        <article class="panel">
+          <div class="icon-line"><div class="icon-box">01</div><div><h3>Visibilidad parcial</h3><p>Cada equipo revisa algo distinto. Se pierden controles, excepciones y contexto.</p></div></div>
+        </article>
+        <article class="panel">
+          <div class="icon-line"><div class="icon-box">02</div><div><h3>Prioridad ambigua</h3><p>Un hallazgo crítico y una recomendación menor terminan en la misma lista.</p></div></div>
+        </article>
+        <article class="panel">
+          <div class="icon-line"><div class="icon-box">03</div><div><h3>Evidencia dispersa</h3><p>Sin evidencia estructurada, el cliente recibe opiniones y no una línea base.</p></div></div>
+        </article>
+      </div>
+      <div class="panel white" style="margin-top: 18px; border-left: 4px solid var(--accent-2);">
+        <div class="panel-label">La pregunta ejecutiva</div>
+        <h3>¿Qué riesgo debemos corregir primero y cómo demostramos que disminuyó?</h3>
+      </div>
+      <aside class="notes">Conectar la situación con la operación del cliente. No vender más controles; vender una forma repetible de transformar controles técnicos en decisiones priorizadas.</aside>
+    </section>
+
+    <section class="slide" data-slide="motores" data-title="Siete motores de revisión">
+      <span class="slide-num">03 / 08</span>
+      <div class="section-intro">
+        <div><div class="slide-kicker">Cobertura modular</div><h2>Siete motores. Una lectura común del riesgo.</h2></div>
+        <p>El operador puede revisar todo el host o seleccionar solo el perímetro que necesita validar en ese momento.</p>
+      </div>
+      <div class="grid-4">
+        <article class="panel module-card"><div><div class="module-code">AUTH</div><h3>Identidad</h3><p>UID 0, contraseñas vacías, sudoers y shadow.</p></div><div class="module-count">privilegios</div></article>
+        <article class="panel module-card"><div><div class="module-code">SSH</div><h3>Acceso remoto</h3><p>Root login, llaves, intentos y forwarding.</p></div><div class="module-count">entrada</div></article>
+        <article class="panel module-card"><div><div class="module-code">NETWORK</div><h3>Red y firewall</h3><p>Firewall, forwarding, SYN cookies y sockets.</p></div><div class="module-count">exposición</div></article>
+        <article class="panel module-card"><div><div class="module-code">FS</div><h3>Archivos</h3><p>Montajes, SUID temporales y sticky bit.</p></div><div class="module-count">persistencia</div></article>
+        <article class="panel module-card"><div><div class="module-code">SERVICES</div><h3>Servicios legacy</h3><p>Telnet, RSH, TFTP, FTP y NIS.</p></div><div class="module-count">superficie</div></article>
+        <article class="panel module-card"><div><div class="module-code">KERNEL</div><h3>Kernel y memoria</h3><p>ASLR, core dumps SUID y dmesg.</p></div><div class="module-count">explotación</div></article>
+        <article class="panel module-card"><div><div class="module-code">MAC</div><h3>Confinamiento</h3><p>SELinux, AppArmor y auditd.</p></div><div class="module-count">trazabilidad</div></article>
+        <article class="panel module-card" style="background: var(--accent-soft); border-color: var(--accent);"><div><div class="module-code">ALL</div><h3>Vista completa</h3><p>Ejecuta todos los módulos y consolida el resultado.</p></div><div class="module-count">baseline</div></article>
+      </div>
+      <aside class="notes">La modularidad es importante para operación: un equipo puede revisar auth y SSH durante una ventana corta, o ejecutar todos los controles para construir un baseline completo.</aside>
+    </section>
+
+    <section class="slide" data-slide="score" data-title="Un score que prioriza">
+      <span class="slide-num">04 / 08</span>
+      <div class="section-intro">
+        <div><div class="slide-kicker">Ejemplo de ejecución</div><h2>Un score que prioriza, no que oculta.</h2></div>
+        <p>El puntaje es una señal de priorización. La decisión siempre se apoya en la severidad y la evidencia de cada control.</p>
+      </div>
+      <div class="score-layout">
+        <div class="panel white" style="padding: 28px 18px;">
+          <div class="score-orbit"><div class="score-inside"><div class="value-xl accent">93%</div><div class="score-caption">seguridad observada</div></div></div>
+          <div style="text-align:center; margin-top: 18px;"><span class="status-chip chip-medium">ejemplo auth + ssh</span></div>
+        </div>
+        <div>
+          <div class="grid-3" style="margin-bottom: 25px;">
+            <div class="panel"><div class="value-lg">07</div><div class="metric-label">controles evaluados</div></div>
+            <div class="panel"><div class="value-lg accent">05</div><div class="metric-label">controles aprobados</div></div>
+            <div class="panel"><div class="value-lg" style="color:var(--critical);">02</div><div class="metric-label">fallas detectadas</div></div>
+          </div>
+          <div class="bar-list">
+            <div class="bar-row"><div class="bar-head"><span class="status-chip chip-critical">críticas</span><strong>0</strong></div><div class="bar-track"><div class="bar-fill critical" style="width: 0%"></div></div></div>
+            <div class="bar-row"><div class="bar-head"><span class="status-chip chip-high">altas</span><strong>0</strong></div><div class="bar-track"><div class="bar-fill high" style="width: 0%"></div></div></div>
+            <div class="bar-row"><div class="bar-head"><span class="status-chip chip-medium">medias</span><strong>1</strong></div><div class="bar-track"><div class="bar-fill medium" style="width: 14%"></div></div></div>
+            <div class="bar-row"><div class="bar-head"><span class="status-chip chip-low">bajas</span><strong>1</strong></div><div class="bar-track"><div class="bar-fill low" style="width: 14%"></div></div></div>
+          </div>
+        </div>
+      </div>
+      <details>
+        <summary>Ver datos de la prueba funcional</summary>
+        <div class="data-table-wrap"><table><thead><tr><th>Métrica</th><th>Valor</th><th>Lectura</th></tr></thead><tbody><tr><td>Puntaje</td><td>93%</td><td>Ejemplo de ejecución modular en entorno de prueba</td></tr><tr><td>Falla media</td><td>PasswordAuthentication=yes</td><td>Revisar estrategia de llaves antes de deshabilitar contraseñas</td></tr><tr><td>Falla baja</td><td>MaxAuthTries=6</td><td>Reducir ventana de intentos a un valor aprobado</td></tr></tbody></table></div>
+      </details>
+      <aside class="notes">Aclarar que el 93% es un resultado de prueba, no un compromiso sobre el entorno del cliente. En producción se genera el score real por host y se conserva el detalle para decidir.</aside>
+    </section>
+
+    <section class="slide" data-slide="evidencia" data-title="De comando a evidencia">
+      <span class="slide-num">05 / 08</span>
+      <div class="section-intro">
+        <div><div class="slide-kicker">Trazabilidad</div><h2>De comando a evidencia lista para revisión.</h2></div>
+        <p>Cada hallazgo conserva el contexto necesario para abrir un ticket, explicar el impacto y validar el cierre.</p>
+      </div>
+      <div class="grid-2">
+        <div class="code-box" aria-label="Ejemplo de estructura JSON"><span class="code-quiet">{</span><br>&nbsp;&nbsp;<span class="code-key">"id"</span>: <span class="code-value">"SSH-02"</span>,<br>&nbsp;&nbsp;<span class="code-key">"module"</span>: <span class="code-value">"ssh"</span>,<br>&nbsp;&nbsp;<span class="code-key">"severity"</span>: <span class="code-value">"MEDIUM"</span>,<br>&nbsp;&nbsp;<span class="code-key">"status"</span>: <span class="code-value">"FAIL"</span>,<br>&nbsp;&nbsp;<span class="code-key">"evidence"</span>: <span class="code-value">"PasswordAuthentication=yes"</span>,<br>&nbsp;&nbsp;<span class="code-key">"impact"</span>: <span class="code-value">"Permite fuerza bruta"</span>,<br>&nbsp;&nbsp;<span class="code-key">"remediation"</span>: <span class="code-value">"Migrar a llaves y validar acceso"</span><br><span class="code-quiet">}</span></div>
+        <div class="grid-2" style="align-content: start;">
+          <article class="panel"><div class="panel-label">ID estable</div><h3>SSH-02</h3><p>Permite comparar el mismo control entre ejecuciones y servidores.</p></article>
+          <article class="panel"><div class="panel-label">Evidencia</div><h3>Valor observado</h3><p>No depende de una opinión. El reporte muestra qué encontró el auditor.</p></article>
+          <article class="panel"><div class="panel-label">Impacto</div><h3>Lenguaje de riesgo</h3><p>Traduce una configuración técnica a una consecuencia entendible.</p></article>
+          <article class="panel"><div class="panel-label">Remediación</div><h3>Siguiente acción</h3><p>Orienta al equipo hacia el cambio y la validación posterior.</p></article>
+        </div>
+      </div>
+      <aside class="notes">Este es el puente entre seguridad e infraestructura. El JSON también habilita integraciones futuras con un dashboard multi-host, un SIEM o una mesa de servicios.</aside>
+    </section>
+
+    <section class="slide" data-slide="entregables" data-title="Dos entregables, dos audiencias">
+      <span class="slide-num">06 / 08</span>
+      <div class="section-intro">
+        <div><div class="slide-kicker">Entregables</div><h2>Dos entregables. Dos audiencias. Una fuente.</h2></div>
+        <p>La misma auditoría sirve para demostrar el resultado al cliente y para que los equipos técnicos actúen sin traducir manualmente el reporte.</p>
+      </div>
+      <div class="grid-2">
+        <article class="output-card"><div class="file-icon">JSON</div><div><div class="panel-label">Para automatización</div><h3>audit_report.json</h3><p>Metadatos, score, controles, severidad, evidencia e instrucciones de remediación. Listo para APIs, SIEM y tendencias históricas.</p><div style="margin-top:15px;"><span class="status-chip chip-good">estructurado</span></div></div></article>
+        <article class="output-card"><div class="file-icon">HTML</div><div><div class="panel-label">Para presentación</div><h3>client_dashboard.html</h3><p>Dashboard autocontenido con resumen ejecutivo, filtros por estado, búsqueda y detalle de impacto.</p><div style="margin-top:15px;"><span class="status-chip chip-good">presentable</span></div></div></article>
+      </div>
+      <div class="panel" style="margin-top: 18px; background: var(--ink); border-color: var(--ink); color: var(--surface);">
+        <div class="panel-label" style="color: var(--accent-2);">Contrato de salida</div>
+        <div class="grid-3"><div><h3 style="color:var(--surface);">0</h3><p style="color:var(--ink-soft);">sin fallas críticas o altas</p></div><div><h3 style="color:var(--surface);">1</h3><p style="color:var(--ink-soft);">hay hallazgos prioritarios</p></div><div><h3 style="color:var(--surface);">2</h3><p style="color:var(--ink-soft);">parámetros inválidos o error de ejecución</p></div></div>
+      </div>
+      <aside class="notes">Presentar el valor de separar la fuente de datos de la visualización. El cliente ve una historia clara; el equipo técnico conserva los campos necesarios para operar.</aside>
+    </section>
+
+    <section class="slide" data-slide="proceso" data-title="Un ciclo controlado de mejora">
+      <span class="slide-num">07 / 08</span>
+      <div class="section-intro">
+        <div><div class="slide-kicker">Modelo de servicio</div><h2>Un ciclo controlado de mejora, no una foto aislada.</h2></div>
+        <p>La auditoría gana valor cuando se repite antes y después de la remediación. La conversación pasa de “parece seguro” a “el control cambió de estado”.</p>
+      </div>
+      <div class="process">
+        <article class="process-step"><div class="step-no">01</div><h3>Autorizar</h3><p>Definir activos y ventana de revisión.</p></article>
+        <article class="process-step"><div class="step-no">02</div><h3>Medir</h3><p>Ejecutar baseline no destructivo.</p></article>
+        <article class="process-step"><div class="step-no">03</div><h3>Priorizar</h3><p>Ordenar por severidad e impacto.</p></article>
+        <article class="process-step"><div class="step-no">04</div><h3>Remediar</h3><p>Aplicar Ansible o change aprobado.</p></article>
+        <article class="process-step"><div class="step-no">05</div><h3>Validar</h3><p>Reejecutar y documentar la mejora.</p></article>
+      </div>
+      <div class="grid-3" style="margin-top: 34px;">
+        <article class="panel"><div class="panel-label">Antes</div><div class="value-lg" style="color:var(--critical);">riesgo visible</div><p>Hallazgos con evidencia y prioridad.</p></article>
+        <article class="panel"><div class="panel-label">Durante</div><div class="value-lg orange">cambio controlado</div><p>Remediación con respaldo, ventana y trazabilidad.</p></article>
+        <article class="panel"><div class="panel-label">Después</div><div class="value-lg" style="color:var(--good);">mejora medible</div><p>Comparación post-remediación y cierre defendible.</p></article>
+      </div>
+      <aside class="notes">Este slide presenta el servicio completo. El script es el motor de medición; la propuesta de valor es el ciclo repetible de diagnóstico, remediación y validación.</aside>
+    </section>
+
+    <section class="slide" data-slide="siguiente" data-title="La siguiente conversación">
+      <span class="slide-num">08 / 08</span>
+      <div style="display:grid; align-content:center; min-height:530px;">
+        <div class="slide-kicker">Siguiente conversación</div>
+        <h2>Empezar con una línea base autorizada.</h2>
+        <p class="lead">Seleccionamos un conjunto pequeño de servidores, ejecutamos la auditoría, revisamos los hallazgos con el equipo y definimos el primer paquete de remediación.</p>
+        <div class="cta-box" style="margin-top: 30px;">
+          <div><h3>Propuesta de piloto</h3><p>Un módulo o un host primero. Resultado en JSON, dashboard para cliente y plan de acción priorizado.</p></div>
+          <button class="cta-button" id="pilotBtn" type="button">Ver plan de piloto</button>
+        </div>
+        <div class="panel white" id="pilotPanel" hidden style="margin-top: 16px;">
+          <div class="panel-label">Piloto sugerido · 5 pasos</div>
+          <p><strong>1.</strong> Inventario y autorización &nbsp; <strong>2.</strong> Ejecución baseline &nbsp; <strong>3.</strong> Revisión ejecutiva &nbsp; <strong>4.</strong> Remediación priorizada &nbsp; <strong>5.</strong> Revisión de cierre</p>
+        </div>
+        <div style="display:flex; gap: 9px; flex-wrap:wrap; margin-top: 28px;"><span class="status-chip chip-good">no destructivo</span><span class="status-chip" style="color:var(--accent);">modular</span><span class="status-chip chip-medium">evidencia auditable</span><span class="status-chip" style="color:var(--ink-soft);">listo para Ansible</span></div>
+      </div>
+      <aside class="notes">Cerrar con una acción concreta: seleccionar activos autorizados y ejecutar un piloto. Evitar prometer una puntuación antes de medir el entorno real.</aside>
+    </section>
+  </main>
+
+  <div class="footer-nav">
+    <div class="nav-hint" id="navHint">Use ← → o los botones para avanzar · 1–8 para saltar</div>
+    <div class="nav-actions"><button class="nav-btn" id="prevBtn" type="button">← Anterior</button><button class="nav-btn primary" id="nextBtn" type="button">Siguiente →</button></div>
+  </div>
+</div>
+
+<script>
+  (() => {
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const progress = document.getElementById('progressFill');
+    const prev = document.getElementById('prevBtn');
+    const next = document.getElementById('nextBtn');
+    const notesBtn = document.getElementById('notesBtn');
+    const themeBtn = document.getElementById('themeBtn');
+    const fullBtn = document.getElementById('fullBtn');
+    const pilotBtn = document.getElementById('pilotBtn');
+    const pilotPanel = document.getElementById('pilotPanel');
+    const routeNames = slides.map(slide => slide.dataset.slide);
+    let index = Math.max(0, routeNames.indexOf(location.hash.slice(1)));
+
+    function render(updateHash = true) {
+      slides.forEach((slide, i) => {
+        const active = i === index;
+        slide.classList.toggle('active', active);
+        slide.setAttribute('aria-hidden', String(!active));
+      });
+      progress.style.width = `${((index + 1) / slides.length) * 100}%`;
+      prev.disabled = index === 0;
+      next.textContent = index === slides.length - 1 ? 'Reiniciar ↺' : 'Siguiente →';
+      document.getElementById('navHint').textContent = `${String(index + 1).padStart(2, '0')} / ${String(slides.length).padStart(2, '0')} · Use ← → o 1–8 para navegar`;
+      if (updateHash) history.replaceState(null, '', `#${routeNames[index]}`);
+    }
+    function move(delta) {
+      index = (index + delta + slides.length) % slides.length;
+      render();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    prev.addEventListener('click', () => move(-1));
+    next.addEventListener('click', () => move(1));
+    window.addEventListener('hashchange', () => {
+      const routeIndex = routeNames.indexOf(location.hash.slice(1));
+      if (routeIndex >= 0) { index = routeIndex; render(false); }
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowRight' || event.key === 'PageDown' || event.key === ' ') { event.preventDefault(); move(1); }
+      if (event.key === 'ArrowLeft' || event.key === 'PageUp') { event.preventDefault(); move(-1); }
+      if (/^[1-8]$/.test(event.key)) { index = Number(event.key) - 1; render(); }
+      if (event.key.toLowerCase() === 'n') document.querySelector('.slide.active .notes')?.classList.toggle('open');
+    });
+    notesBtn.addEventListener('click', () => document.querySelector('.slide.active .notes')?.classList.toggle('open'));
+    themeBtn.addEventListener('click', () => {
+      const root = document.documentElement;
+      const dark = root.getAttribute('data-theme') === 'dark' || (!root.hasAttribute('data-theme') && matchMedia('(prefers-color-scheme: dark)').matches);
+      root.setAttribute('data-theme', dark ? 'light' : 'dark');
+    });
+    fullBtn.addEventListener('click', async () => {
+      try {
+        if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
+        else await document.exitFullscreen();
+      } catch (_) { fullBtn.textContent = 'Modo presentación'; }
+    });
+    pilotBtn.addEventListener('click', () => {
+      pilotPanel.hidden = !pilotPanel.hidden;
+      pilotBtn.textContent = pilotPanel.hidden ? 'Ver plan de piloto' : 'Ocultar plan de piloto';
+    });
+    render();
+  })();
+</script>

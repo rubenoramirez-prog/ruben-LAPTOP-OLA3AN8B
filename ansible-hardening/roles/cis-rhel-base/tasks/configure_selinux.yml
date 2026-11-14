@@ -1,0 +1,73 @@
+---
+# CIS 1.6.x - Mandatory Access Control (SELinux)
+# Configure SELinux for security enforcement
+
+- name: Ensure SELinux is installed (CIS 1.6.1.1)
+  package:
+    name:
+      - libselinux
+      - policycoreutils
+      - policycoreutils-python-utils
+    state: present
+  tags: ['selinux']
+
+- name: Backup SELinux config
+  copy:
+    src: /etc/selinux/config
+    dest: /var/backups/ansible-hardening/cis-rhel-base/selinux.config.{{ ansible_date_time.epoch }}
+    remote_src: true
+  when: backup_configs
+  failed_when: false
+  tags: ['selinux']
+
+- name: Configure SELinux state (CIS 1.6.1.2)
+  selinux:
+    policy: "{{ selinux_policy }}"
+    state: "{{ selinux_state }}"
+  register: selinux_config
+  tags: ['selinux']
+
+- name: Ensure SELinux policy is configured (CIS 1.6.1.3)
+  lineinfile:
+    path: /etc/selinux/config
+    regexp: '^SELINUXTYPE='
+    line: "SELINUXTYPE={{ selinux_policy }}"
+    state: present
+  tags: ['selinux']
+
+- name: Ensure no unconfined services exist (CIS 1.6.1.4)
+  shell: |
+    set -euo pipefail
+    ps -eZ | grep unconfined_service_t || echo "OK"
+  args:
+    executable: /bin/bash
+  register: unconfined_check
+  changed_when: false
+  failed_when: false
+  when: selinux_state == "enforcing"
+  tags: ['selinux', 'validate']
+
+- name: Check for SELinux denials
+  shell: |
+    set -euo pipefail
+    ausearch -m avc -ts recent 2>/dev/null | head -10 || echo "No recent denials"
+  args:
+    executable: /bin/bash
+  register: selinux_denials
+  changed_when: false
+  failed_when: false
+  tags: ['selinux', 'validate']
+
+- name: Display SELinux status
+  debug:
+    msg: |
+      SELinux State: {{ selinux_state }}
+      SELinux Policy: {{ selinux_policy }}
+      Unconfined Services: {{ unconfined_check.stdout if unconfined_check.stdout != 'OK' else 'None detected' }}
+  tags: ['selinux']
+
+- name: Warn if reboot required
+  debug:
+    msg: "WARNING: SELinux state change requires reboot to take effect"
+  when: selinux_config.reboot_required | default(false)
+  tags: ['selinux']

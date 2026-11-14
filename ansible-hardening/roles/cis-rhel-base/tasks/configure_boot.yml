@@ -1,0 +1,64 @@
+---
+# CIS 1.4.x - Secure Boot Configuration
+# Configure GRUB password and single user mode authentication
+
+- name: Check if GRUB config exists
+  stat:
+    path: /etc/grub.d
+  register: grub_dir
+  tags: ['boot']
+
+- name: Backup GRUB configuration
+  copy:
+    src: /etc/default/grub
+    dest: /var/backups/ansible-hardening/cis-rhel-base/grub.{{ ansible_date_time.epoch }}
+    remote_src: true
+  when:
+    - backup_configs
+    - grub_dir.stat.exists
+  failed_when: false
+  tags: ['boot']
+
+- name: Set permissions on bootloader config (CIS 1.4.1)
+  file:
+    path: "{{ item }}"
+    owner: root
+    group: root
+    mode: '0600'
+  loop:
+    - /boot/grub2/grub.cfg
+    - /boot/grub2/grubenv
+  when: grub_dir.stat.exists
+  failed_when: false
+  tags: ['boot']
+
+- name: Ensure authentication required for single user mode (CIS 1.4.3)
+  lineinfile:
+    path: /usr/lib/systemd/system/rescue.service
+    regexp: '^ExecStart='
+    line: 'ExecStart=-/usr/lib/systemd/systemd-sulogin-shell rescue'
+    state: present
+  when: single_user_auth
+  notify: Reload systemd
+  tags: ['boot']
+
+- name: Ensure authentication required for emergency mode (CIS 1.4.3)
+  lineinfile:
+    path: /usr/lib/systemd/system/emergency.service
+    regexp: '^ExecStart='
+    line: 'ExecStart=-/usr/lib/systemd/systemd-sulogin-shell emergency'
+    state: present
+  when: single_user_auth
+  notify: Reload systemd
+  tags: ['boot']
+
+- name: Verify boot hardening
+  shell: |
+    set -euo pipefail
+    stat -c %a /boot/grub2/grub.cfg 2>/dev/null | grep -q '^600$' && echo "OK" || echo "FAIL"
+  args:
+    executable: /bin/bash
+  register: boot_check
+  changed_when: false
+  failed_when: false
+  tags: ['boot', 'validate']
