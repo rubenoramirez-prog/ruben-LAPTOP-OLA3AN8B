@@ -1,6 +1,12 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware # Added for CORS
-from pydantic import BaseModel
+from fastapi.responses import FileResponse
+from pydantic import BaseModel, Field
+
+try:
+    from pydantic import ConfigDict
+except ImportError:  # pragma: no cover - compatibility with Pydantic v1
+    ConfigDict = None
 from typing import List, Optional, Dict, Any
 from datetime import date
 import uuid
@@ -62,9 +68,13 @@ class WorkoutSchema(BaseModel):
     id: Optional[str] = None
     date: date
     description: str
-    target_rpe: int
-    actual_rpe: Optional[int] = None
+    target_rpe: int = Field(..., ge=1, le=10)
+    actual_rpe: Optional[int] = Field(default=None, ge=1, le=10)
     completed: bool = False
+    notes: Optional[str] = None
+
+class CompleteWorkoutRequest(BaseModel):
+    rpe: int = Field(..., ge=1, le=10)
     notes: Optional[str] = None
 
 class MemberSchema(BaseModel):
@@ -73,8 +83,14 @@ class MemberSchema(BaseModel):
     email: str
     birth_date: date
     current_phase: TrainingPhase
-    metrics: List[MetricSchema] = []
-    workouts: List[WorkoutSchema] = []
+    metrics: List[MetricSchema] = Field(default_factory=list)
+    workouts: List[WorkoutSchema] = Field(default_factory=list)
+
+    if ConfigDict is not None:
+        model_config = ConfigDict(from_attributes=True)
+    else:
+        class Config:
+            orm_mode = True
 
 # --- Endpoints ---
 
@@ -107,15 +123,16 @@ def api_humanize(request: HumanizeRequest):
 
 @app.post("/members/", response_model=MemberSchema)
 def create_member(member: MemberSchema):
-    member_id = str(uuid.uuid4())[:8]
+    member_id = member.id if member.id else str(uuid.uuid4())[:8]
+    _dump = lambda item: item.model_dump() if hasattr(item, "model_dump") else item.dict()
     new_member = Member(
         id=member_id,
         name=member.name,
         email=member.email,
         birth_date=member.birth_date,
         current_phase=member.current_phase,
-        metrics=[Metric(**m.dict()) for m in member.metrics],
-        workouts=[Workout(**w.dict()) for w in member.workouts]
+        metrics=[Metric(**_dump(m)) for m in member.metrics],
+        workouts=[Workout(**_dump(w)) for w in member.workouts]
     )
     repo.save(new_member)
     return new_member
@@ -129,7 +146,7 @@ def get_member(member_id: str):
 
 @app.post("/members/{member_id}/workouts/")
 def add_workout(member_id: str, workout: WorkoutSchema):
-    w_id = str(uuid.uuid4())[:8]
+    w_id = workout.id if workout.id else str(uuid.uuid4())[:8]
     new_workout = Workout(
         id=w_id,
         date=workout.date,
@@ -139,14 +156,49 @@ def add_workout(member_id: str, workout: WorkoutSchema):
         completed=workout.completed,
         notes=workout.notes
     )
-    service.assign_workout(member_id, new_workout)
-    return {"status": "Workout assigned", "workout_id": w_id}
+    try:
+        service.assign_workout(member_id, new_workout)
+        return {"status": "Workout assigned", "workout_id": w_id}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 @app.patch("/members/{member_id}/workouts/{workout_id}")
-def complete_workout(member_id: str, workout_id: str, rpe: int, notes: Optional[str] = None):
-    service.complete_workout(member_id, workout_id, rpe, notes)
-    return {"status": "Workout completed"}
+def complete_workout(member_id: str, workout_id: str, request: CompleteWorkoutRequest):
+    try:
+        service.complete_workout(member_id, workout_id, request.rpe, request.notes)
+        return {"status": "Workout completed"}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+    # Note: Pydantic validates rpe 1-10 and request body JSON for dashboard compatibility.
 
 @app.get("/members/", response_model=List[MemberSchema])
 def list_members():
     return repo.list_all()
+
+@app.get("/dashboard")
+@app.get("/dashboard.html")
+def serve_dashboard():
+    dashboard_path = os.path.join(PROJECT_ROOT, "apps", "runners_sin_edad", "dashboard.html")
+    if not os.path.exists(dashboard_path):
+        raise HTTPException(status_code=404, detail="Dashboard not found")
+    return FileResponse(dashboard_path)
+
+@app.get("/planes-entreno/{file_name}")
+def serve_planes_entreno(file_name: str):
+    allowed_files = {
+        "index.html",
+        "cooper-vo2max.html",
+        "plan-semanal.html",
+        "bitacora.html",
+        "ritmos-edad.html",
+        "README.md",
+    }
+    if file_name not in allowed_files:
+        raise HTTPException(status_code=404, detail="File not found")
+
+    file_path = os.path.join(PROJECT_ROOT, "PlanesEntreno", file_name)
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found")
+
+    return FileResponse(file_path)

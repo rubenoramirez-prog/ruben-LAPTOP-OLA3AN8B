@@ -118,4 +118,6 @@ class SQLiteMemberRepository(MemberRepository):
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
             rows = conn.execute("SELECT id FROM members").fetchall()
-            return [self.find_by_id(row["id"]) for row in rows]
+            ids = [row["id"] for row in rows]
+        members = [self.find_by_id(mid) for mid in ids]
+        return [m for m in members if m is not None]

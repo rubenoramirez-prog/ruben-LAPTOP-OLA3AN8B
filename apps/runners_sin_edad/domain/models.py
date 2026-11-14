@@ -28,6 +28,12 @@ class Workout:
     completed: bool = False
     notes: Optional[str] = None
 
+    def __post_init__(self):
+        if not 1 <= self.target_rpe <= 10:
+            raise ValueError(f"Target RPE must be between 1 and 10, got {self.target_rpe}")
+        if self.actual_rpe is not None and not 1 <= self.actual_rpe <= 10:
+            raise ValueError(f"Actual RPE must be between 1 and 10, got {self.actual_rpe}")
+
 @dataclass
 class Member:
     """Entity representing a coach's client (Adult 35+)."""

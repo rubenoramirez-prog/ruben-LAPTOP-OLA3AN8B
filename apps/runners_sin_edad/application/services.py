@@ -32,15 +32,23 @@ class TrainingPlanService:
         self.repo.save(member)
 
     def complete_workout(self, member_id: str, workout_id: str, rpe: int, notes: str = None) -> None:
+        if not 1 <= rpe <= 10:
+            raise ValueError(f"RPE must be between 1 and 10, got {rpe}")
+
         member = self.repo.find_by_id(member_id)
         if not member:
             raise ValueError(f"Member {member_id} not found")
 
+        found = False
         for w in member.workouts:
             if w.id == workout_id:
                 w.completed = True
                 w.actual_rpe = rpe
                 w.notes = notes
+                found = True
                 break
+
+        if not found:
+            raise ValueError(f"Workout {workout_id} not found for member {member_id}")
 
         self.repo.save(member)
