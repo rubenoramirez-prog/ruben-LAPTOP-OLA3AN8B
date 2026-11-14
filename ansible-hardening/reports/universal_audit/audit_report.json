@@ -1,0 +1,255 @@
+{
+  "audit_metadata": {
+    "tool": "Enterprise Linux Vulnerability Auditor",
+    "version": "2.1.0",
+    "client": "Cliente Enterprise Universal",
+    "operator": "ruben@localhost",
+    "host": "LAPTOP-OLA3AN8B",
+    "os": "MINGW64_NT-10.0-26300 3.6.7-fb42d713.x86_64",
+    "kernel": "3.6.7-fb42d713.x86_64",
+    "timestamp": "2026-11-14T03:29:28Z",
+    "modules_audited": "all"
+  },
+  "summary": {
+    "total_controls": 23,
+    "passed": 14,
+    "failed": 9,
+    "security_score_percent": 31,
+    "critical_failures": 1,
+    "high_failures": 2,
+    "medium_failures": 4,
+    "low_failures": 2
+  },
+  "findings": [
+  {
+    "id": "AUTH-01",
+    "module": "auth",
+    "title": "Sin cuentas no autorizadas con UID 0 (root)",
+    "severity": "CRITICAL",
+    "status": "PASS",
+    "impact": "Cuentas secundarias con UID 0 otorgan control absoluto sin trazabilidad.",
+    "remediation": "Eliminar o revocar UID 0 a usuarios no legítimos.",
+    "evidence": "Solo root posee UID 0"
+  },
+  {
+    "id": "AUTH-02",
+    "module": "auth",
+    "title": "Lectura de /etc/shadow restringida (Ejecute con privilegios)",
+    "severity": "MEDIUM",
+    "status": "PASS",
+    "impact": "No se pudo auditar /etc/shadow.",
+    "remediation": "Ejecutar con sudo/root.",
+    "evidence": "Sin acceso de lectura"
+  },
+  {
+    "id": "AUTH-04",
+    "module": "auth",
+    "title": "Archivo /etc/shadow no presente en este entorno",
+    "severity": "LOW",
+    "status": "PASS",
+    "impact": "Información no aplicable.",
+    "remediation": "N/A",
+    "evidence": "No presente"
+  },
+  {
+    "id": "SSH-01",
+    "module": "ssh",
+    "title": "Root login solo por llave SSH (PermitRootLogin prohibit-password)",
+    "severity": "MEDIUM",
+    "status": "PASS",
+    "impact": "Evita ataques de fuerza bruta de contraseña en root.",
+    "remediation": "Recomendado migrar a 'PermitRootLogin no' para trazabilidad de usuario.",
+    "evidence": "PermitRootLogin=prohibit-password"
+  },
+  {
+    "id": "SSH-02",
+    "module": "ssh",
+    "title": "Autenticación SSH por contraseña permitida",
+    "severity": "MEDIUM",
+    "status": "FAIL",
+    "impact": "Permite vectores de fuerza bruta y contraseñas débiles.",
+    "remediation": "Distribuir llaves públicas y configurar 'PasswordAuthentication no'.",
+    "evidence": "PasswordAuthentication=yes"
+  },
+  {
+    "id": "SSH-03",
+    "module": "ssh",
+    "title": "Intentos de autenticación SSH permisivos (MaxAuthTries > 4)",
+    "severity": "LOW",
+    "status": "FAIL",
+    "impact": "Permite mayor ventana para ataques de fuerza bruta.",
+    "remediation": "Definir 'MaxAuthTries 4' en /etc/ssh/sshd_config.",
+    "evidence": "MaxAuthTries=6"
+  },
+  {
+    "id": "SSH-04",
+    "module": "ssh",
+    "title": "Reenvío X11 deshabilitado (X11Forwarding no)",
+    "severity": "LOW",
+    "status": "PASS",
+    "impact": "Reduce la superficie de ataque de captura de teclas o ventanas X.",
+    "remediation": "Mantener X11Forwarding no.",
+    "evidence": "X11Forwarding=no"
+  },
+  {
+    "id": "NET-01",
+    "module": "network",
+    "title": "Sin servicio de Firewall local activo",
+    "severity": "CRITICAL",
+    "status": "FAIL",
+    "impact": "Todos los puertos abiertos en el host quedan expuestos directamente a la red.",
+    "remediation": "Habilitar e iniciar firewalld/iptables inmediatamente: systemctl enable --now firewalld",
+    "evidence": "No se detectó firewall activo"
+  },
+  {
+    "id": "NET-02",
+    "module": "network",
+    "title": "Reenvío de paquetes IP deshabilitado (ip_forward=0)",
+    "severity": "HIGH",
+    "status": "PASS",
+    "impact": "Previene que el servidor actúe como router o puente no autorizado.",
+    "remediation": "Mantener net.ipv4.ip_forward = 0.",
+    "evidence": "net.ipv4.ip_forward=0"
+  },
+  {
+    "id": "NET-03",
+    "module": "network",
+    "title": "Protección TCP SYN Cookies deshabilitada",
+    "severity": "MEDIUM",
+    "status": "FAIL",
+    "impact": "Vulnerable a agotamiento de tabla de conexiones bajo SYN Flood.",
+    "remediation": "Configurar: sysctl -w net.ipv4.tcp_syncookies=1",
+    "evidence": "net.ipv4.tcp_syncookies=0"
+  },
+  {
+    "id": "FS-02",
+    "module": "fs",
+    "title": "Sin ejecutables SUID sospechosos en /tmp, /var/tmp, /dev/shm",
+    "severity": "HIGH",
+    "status": "PASS",
+    "impact": "Previene técnicas clásicas de persistencia o elevación de privilegios.",
+    "remediation": "Mantener particiones temporales limpias de binarios SUID.",
+    "evidence": "Limpio"
+  },
+  {
+    "id": "FS-03",
+    "module": "fs",
+    "title": "Sticky bit activo en directorios públicos de escritura",
+    "severity": "MEDIUM",
+    "status": "PASS",
+    "impact": "Evita que usuarios no privilegiados borren o renombren archivos ajenos.",
+    "remediation": "Mantener permisos con sticky bit (chmod +t).",
+    "evidence": "Correcto"
+  },
+  {
+    "id": "SRV-LEGACY",
+    "module": "services",
+    "title": "Sin servicios heredados inseguros activos (Telnet, RSH, TFTP)",
+    "severity": "HIGH",
+    "status": "PASS",
+    "impact": "Evita vectores de ataque clásicos por protocolos en texto plano.",
+    "remediation": "Mantener deshabilitados servicios heredados.",
+    "evidence": "Todos inactivos"
+  },
+  {
+    "id": "KERN-01",
+    "module": "kernel",
+    "title": "ASLR deshabilitado o incompleto (actual: 0)",
+    "severity": "HIGH",
+    "status": "FAIL",
+    "impact": "Memoria predecible facilita la ejecución de exploits binarios ROP / Shellcode.",
+    "remediation": "Configurar: sysctl -w kernel.randomize_va_space=2",
+    "evidence": "kernel.randomize_va_space=0 (esperado 2)"
+  },
+  {
+    "id": "KERN-02",
+    "module": "kernel",
+    "title": "Volcados de memoria SUID permitidos (fs.suid_dumpable != 0)",
+    "severity": "MEDIUM",
+    "status": "FAIL",
+    "impact": "Procesos privilegiados que caen pueden generar archivos core con datos sensibles.",
+    "remediation": "Configurar: sysctl -w fs.suid_dumpable=0",
+    "evidence": "fs.suid_dumpable=1"
+  },
+  {
+    "id": "KERN-03",
+    "module": "kernel",
+    "title": "Mensajes de kernel dmesg visibles para usuarios no privilegiados",
+    "severity": "LOW",
+    "status": "FAIL",
+    "impact": "Filtración de direcciones de memoria del kernel a atacantes locales.",
+    "remediation": "Configurar: sysctl -w kernel.dmesg_restrict=1",
+    "evidence": "kernel.dmesg_restrict=0"
+  },
+  {
+    "id": "MAC-01",
+    "module": "mac",
+    "title": "Sin sistema MAC (SELinux / AppArmor) detectado",
+    "severity": "HIGH",
+    "status": "FAIL",
+    "impact": "El sistema carece de capa de confinamiento mandatorio L3.",
+    "remediation": "Instalar y habilitar SELinux o AppArmor según la distribución.",
+    "evidence": "No instalado"
+  },
+  {
+    "id": "MAC-02",
+    "module": "mac",
+    "title": "Servicio de auditoría auditd inactivo",
+    "severity": "MEDIUM",
+    "status": "FAIL",
+    "impact": "Pérdida de trazabilidad forense ante incidentes de seguridad.",
+    "remediation": "Habilitar e iniciar auditd: systemctl enable --now auditd",
+    "evidence": "auditd inactivo"
+  },
+  {
+    "id": "UPD-01",
+    "module": "updates",
+    "title": "Sistema al día con paquetes y parches de seguridad (Gestor genérico)",
+    "severity": "HIGH",
+    "status": "PASS",
+    "impact": "Reduce la exposición a vulnerabilidades conocidas (CVEs).",
+    "remediation": "Mantener política de parcheo mensual.",
+    "evidence": "Sin parches críticos pendientes"
+  },
+  {
+    "id": "UPD-02",
+    "module": "updates",
+    "title": "Kernel en ejecución sincronizado con la última versión instalada",
+    "severity": "MEDIUM",
+    "status": "PASS",
+    "impact": "El kernel activo es el más reciente disponible en el sistema.",
+    "remediation": "Continuar monitoreo de releases de kernel.",
+    "evidence": "Versión: 3.6.7-fb42d713.x86_64"
+  },
+  {
+    "id": "APP-01",
+    "module": "workload",
+    "title": "Sin motores de base de datos principales activos",
+    "severity": "INFO",
+    "status": "PASS",
+    "impact": "No se detectaron daemons de DB en ejecución.",
+    "remediation": "N/A",
+    "evidence": "Sin daemons de DB"
+  },
+  {
+    "id": "APP-02",
+    "module": "workload",
+    "title": "Sin servidores web HTTP principales activos",
+    "severity": "INFO",
+    "status": "PASS",
+    "impact": "No se detectaron daemons web en ejecución.",
+    "remediation": "N/A",
+    "evidence": "Sin daemons web"
+  },
+  {
+    "id": "APP-03",
+    "module": "workload",
+    "title": "Sin runtimes de aplicaciones principales activos",
+    "severity": "INFO",
+    "status": "PASS",
+    "impact": "No se detectaron daemons de app server.",
+    "remediation": "N/A",
+    "evidence": "Sin app servers"
+  }
+  ]
+}

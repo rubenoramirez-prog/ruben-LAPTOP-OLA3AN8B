@@ -61,7 +61,7 @@ show_help() {
   echo -e ""
   echo -e "${COLOR_CYAN}OPCIONES:${COLOR_RESET}"
   echo -e "  -m, --modules LIST     Lista de módulos separados por coma a ejecutar:"
-  echo -e "                         auth, ssh, network, fs, services, kernel, mac, all (Default: all)"
+  echo -e "                         auth, ssh, network, fs, services, kernel, mac, updates, workload, all (Default: all)"
   echo -e "  -c, --client NAME      Nombre del cliente para el reporte/dashboard (Default: 'Enterprise Client')"
   echo -e "  -o, --output-dir DIR   Directorio donde se guardarán el reporte JSON y HTML"
   echo -e "                         (Default: /tmp/security_audit_<timestamp>)"
@@ -536,11 +536,13 @@ run_module_kernel() {
 run_module_mac() {
   echo -e "\n${COLOR_CYAN}--- [MODULO 7] Control de Acceso Mandatorio (MAC) y Auditoría ---${COLOR_RESET}"
 
-  # 7.1 SELinux o AppArmor
+  # 7.1 SELinux o AppArmor (Soporte Universal RHEL/CentOS/Rocky/Fedora/Debian/Ubuntu/SLES)
+  local mac_detected=0
   if command -v getenforce &>/dev/null; then
     local se_status
-    se_status="$(getenforce)"
+    se_status="$(getenforce 2>/dev/null || echo 'Disabled')"
     if [[ "$se_status" == "Enforcing" ]]; then
+      mac_detected=1
       record_check "MAC-01" "mac" "SELinux activo en modo Enforcing" "HIGH" "PASS" \
         "Contención efectiva ante compromisos de servicios web o de base de datos." \
         "Mantener SELinux en modo Enforcing." "Estado: Enforcing"
@@ -549,22 +551,36 @@ run_module_mac() {
         "Sin confinamiento mandatorio; procesos comprometidos tienen acceso discrecional total." \
         "Modificar /etc/selinux/config y fijar SELINUX=enforcing." "Estado actual: $se_status"
     fi
-  elif command -v apparmor_status &>/dev/null; then
-    if apparmor_status | grep -q "profiles are loaded"; then
+  elif command -v aa-status &>/dev/null || command -v apparmor_status &>/dev/null; then
+    if (aa-status 2>/dev/null || apparmor_status 2>/dev/null) | grep -q "profiles are loaded"; then
+      mac_detected=1
       record_check "MAC-01" "mac" "AppArmor activo con perfiles cargados" "HIGH" "PASS" \
-        "Contención mandatoria activa." "Mantener perfiles de AppArmor vigentes." "AppArmor activo"
+        "Contención mandatoria activa en distribución basada en Debian/Ubuntu/SUSE." \
+        "Mantener perfiles de AppArmor vigentes." "AppArmor activo"
     else
-      record_check "MAC-01" "mac" "AppArmor no tiene perfiles en modo enforcing" "HIGH" "FAIL" \
-        "Sin confinamiento mandatorio." "Cargar perfiles estrictos en AppArmor." "Sin perfiles"
+      record_check "MAC-01" "mac" "AppArmor presente pero sin perfiles estrictos enforcing" "HIGH" "FAIL" \
+        "Sin confinamiento mandatorio estricto." "Cargar y activar perfiles en AppArmor." "Sin perfiles en enforce"
     fi
   else
-    record_check "MAC-01" "mac" "Sin sistema MAC (SELinux / AppArmor) detectado" "HIGH" "FAIL" \
-      "El sistema carece de capa de confinamiento mandatorio L3." \
-      "Instalar y habilitar SELinux o AppArmor según la distribución." "No instalado"
+    # Soporte openSUSE / SLES (AppArmor o YaST security)
+    if [[ -f /etc/os-release ]] && grep -qiE 'suse|sles' /etc/os-release; then
+      if systemctl is-active apparmor &>/dev/null; then
+        mac_detected=1
+        record_check "MAC-01" "mac" "AppArmor (SLES) activo y en ejecución" "HIGH" "PASS" \
+          "Confinamiento mandatorio activo en SUSE." "Mantener servicio activo." "AppArmor activo en SLES"
+      else
+        record_check "MAC-01" "mac" "AppArmor en SLES inactivo o no configurado" "HIGH" "FAIL" \
+          "Falta de aislamiento mandatorio en entorno SUSE." "Habilitar AppArmor via YaST o systemctl." "Inactivo"
+      fi
+    else
+      record_check "MAC-01" "mac" "Sin sistema MAC (SELinux / AppArmor) detectado" "HIGH" "FAIL" \
+        "El sistema carece de capa de confinamiento mandatorio L3." \
+        "Instalar y habilitar SELinux o AppArmor según la distribución." "No instalado"
+    fi
   fi
 
-  # 7.2 Servicio Auditd
-  if systemctl is-active auditd &>/dev/null; then
+  # 7.2 Servicio Auditd (Universal)
+  if systemctl is-active auditd &>/dev/null || service auditd status &>/dev/null; then
     record_check "MAC-02" "mac" "Servicio auditd en ejecución y capturando eventos" "MEDIUM" "PASS" \
       "Garantiza trazabilidad de acciones privilegiadas y modificaciones del sistema." \
       "Mantener auditd activo con reglas CIS cargadas." "auditd activo"
@@ -572,6 +588,186 @@ run_module_mac() {
     record_check "MAC-02" "mac" "Servicio de auditoría auditd inactivo" "MEDIUM" "FAIL" \
       "Pérdida de trazabilidad forense ante incidentes de seguridad." \
       "Habilitar e iniciar auditd: systemctl enable --now auditd" "auditd inactivo"
+  fi
+}
+
+# MODULE 8: UNIVERSAL PACKAGE UPDATES & KERNEL CURRENCY
+run_module_updates() {
+  echo -e "\n${COLOR_CYAN}--- [MODULO 8] Detección de Actualizaciones y Versionamiento de Kernel ---${COLOR_RESET}"
+
+  # 8.1 Detección de Distribución y Gestor de Paquetes
+  local os_id=""
+  local os_version=""
+  if [[ -f /etc/os-release ]]; then
+    os_id="$(grep -E '^ID=' /etc/os-release | cut -d= -f2 | tr -d '\"' || echo '')"
+    os_version="$(grep -E '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '\"' || echo '')"
+  fi
+
+  # 8.2 Comprobación de Actualizaciones de Seguridad Pendientes
+  local security_updates_pending=0
+  local update_mgr_name=""
+
+  if command -v dnf &>/dev/null; then
+    update_mgr_name="dnf (RHEL/Rocky/CentOS/Fedora)"
+    if dnf check-update --security &>/dev/null; then
+      security_updates_pending=0
+    else
+      # Exit code 100 in dnf means updates available
+      local dnf_rc=$?
+      if [[ $dnf_rc -eq 100 ]]; then
+        security_updates_pending=1
+      fi
+    fi
+  elif command -v yum &>/dev/null; then
+    update_mgr_name="yum (CentOS/RHEL legacy)"
+    if yum check-update --security &>/dev/null; then
+      security_updates_pending=0
+    else
+      local yum_rc=$?
+      if [[ $yum_rc -eq 100 ]]; then
+        security_updates_pending=1
+      fi
+    fi
+  elif command -v apt-get &>/dev/null; then
+    update_mgr_name="apt (Debian/Ubuntu)"
+    # Update package lists quietly if root
+    if [[ $EUID -eq 0 ]]; then
+      apt-get -qq update &>/dev/null || true
+    fi
+    local apt_upgrades
+    apt_upgrades="$(apt-get -s upgrade 2>/dev/null | grep -i '^inst' || true)"
+    if [[ -n "$apt_upgrades" ]]; then
+      security_updates_pending=1
+    fi
+  elif command -v zypper &>/dev/null; then
+    update_mgr_name="zypper (openSUSE/SLES)"
+    local zypper_patch
+    zypper_patch="$(zypper lp --severity important,moderate 2>/dev/null || true)"
+    if echo "$zypper_patch" | grep -q "vulnerability" || [[ -n "$zypper_patch" ]]; then
+      security_updates_pending=1
+    fi
+  else
+    update_mgr_name="Gestor genérico"
+  fi
+
+  if [[ $security_updates_pending -eq 1 ]]; then
+    record_check "UPD-01" "updates" "Actualizaciones de seguridad pendientes detectadas ($update_mgr_name)" "HIGH" "FAIL" \
+      "El sistema operativo contiene parches de seguridad críticos o de kernel sin aplicar." \
+      "Ejecutar el gestor de paquetes correspondiente para actualizar el sistema (ej: dnf upgrade --security o apt upgrade)." "Actualizaciones pendientes en $update_mgr_name"
+  else
+    record_check "UPD-01" "updates" "Sistema al día con paquetes y parches de seguridad ($update_mgr_name)" "HIGH" "PASS" \
+      "Reduce la exposición a vulnerabilidades conocidas (CVEs)." \
+      "Mantener política de parcheo mensual." "Sin parches críticos pendientes"
+  fi
+
+  # 8.3 Detección de Kernel y Necesidad de Reboot / Actualización
+  local current_kernel
+  current_kernel="$(uname -r)"
+
+  # Check if running kernel matches latest installed kernel package
+  local kernel_outdated=0
+  local latest_kernel=""
+
+  if command -v rpm &>/dev/null; then
+    latest_kernel="$(rpm -q kernel --qf '%{VERSION}-%{RELEASE}.%{ARCH}\n' 2>/dev/null | tail -1 || echo '')"
+    if [[ -n "$latest_kernel" && "$current_kernel" != *"$latest_kernel"* ]]; then
+      # Check if newer version exists
+      kernel_outdated=1
+    fi
+  elif command -v dpkg &>/dev/null; then
+    latest_kernel="$(dpkg -l | grep linux-image | awk '{print $2}' | tail -1 || echo '')"
+    if [[ -n "$latest_kernel" && "$current_kernel" != *"$latest_kernel"* ]]; then
+      kernel_outdated=1
+    fi
+  fi
+
+  if [[ $kernel_outdated -eq 1 ]]; then
+    record_check "UPD-02" "updates" "Kernel desactualizado en memoria (Requiere Reinicio / Reboot)" "MEDIUM" "FAIL" \
+      "El kernel activo en ejecución difiere del último paquete de kernel instalado." \
+      "Programar ventana de mantenimiento y reiniciar el servidor para cargar el nuevo kernel: sudo reboot" "Kernel activo: $current_kernel | Último instalado: $latest_kernel"
+  else
+    record_check "UPD-02" "updates" "Kernel en ejecución sincronizado con la última versión instalada" "MEDIUM" "PASS" \
+      "El kernel activo es el más reciente disponible en el sistema." \
+      "Continuar monitoreo de releases de kernel." "Versión: $current_kernel"
+  fi
+}
+
+# MODULE 9: APPLICATION ROLE & WORKLOAD FINGERPRINTING
+run_module_workload() {
+  echo -e "\n${COLOR_CYAN}--- [MODULO 9] Detección de Roles y Aplicaciones en el Servidor ---${COLOR_RESET}"
+
+  local detected_roles=()
+
+  # 9.1 Base de Datos (DB Server)
+  local db_detected=""
+  if pgrep -x "mysqld" &>/dev/null || pgrep -x "mariadbd" &>/dev/null || systemctl is-active mysql mariadb &>/dev/null; then
+    db_detected+="MySQL/MariaDB "
+  fi
+  if pgrep -x "postgres" &>/dev/null || systemctl is-active postgresql &>/dev/null; then
+    db_detected+="PostgreSQL "
+  fi
+  if pgrep -x "mongod" &>/dev/null || systemctl is-active mongod &>/dev/null; then
+    db_detected+="MongoDB "
+  fi
+  if pgrep -x "oracle" &>/dev/null || pgrep -x tslsnr &>/dev/null; then
+    db_detected+="Oracle Database "
+  fi
+  if pgrep -x "redis-server" &>/dev/null || systemctl is-active redis &>/dev/null; then
+    db_detected+="Redis "
+  fi
+
+  if [[ -n "$db_detected" ]]; then
+    record_check "APP-01" "workload" "Servidor clasificado como Base de Datos (DB Server)" "INFO" "PASS" \
+      "Rol detectado: Bases de datos activas ($db_detected)." \
+      "Asegurar hardening específico de DB (contraseñas fuertes, cifrado en tránsito, puertos restringidos)." "Detectado: $db_detected"
+  else
+    record_check "APP-01" "workload" "Sin motores de base de datos principales activos" "INFO" "PASS" \
+      "No se detectaron daemons de DB en ejecución." "N/A" "Sin daemons de DB"
+  fi
+
+  # 9.2 Servidor Web (Web Server)
+  local web_detected=""
+  if pgrep -x "nginx" &>/dev/null || systemctl is-active nginx &>/dev/null; then
+    web_detected+="Nginx "
+  fi
+  if pgrep -x "httpd" &>/dev/null || pgrep -x "apache2" &>/dev/null || systemctl is-active httpd apache2 &>/dev/null; then
+    web_detected+="Apache HTTPD "
+  fi
+  if pgrep -x "lighttpd" &>/dev/null || systemctl is-active lighttpd &>/dev/null; then
+    web_detected+="Lighttpd "
+  fi
+
+  if [[ -n "$web_detected" ]]; then
+    record_check "APP-02" "workload" "Servidor clasificado como Servidor Web (Web Server)" "INFO" "PASS" \
+      "Rol detectado: Servidores web activos ($web_detected)." \
+      "Revisar directivas SSL/TLS, ocultar versión de servidor y deshabilitar módulos innecesarios." "Detectado: $web_detected"
+  else
+    record_check "APP-02" "workload" "Sin servidores web HTTP principales activos" "INFO" "PASS" \
+      "No se detectaron daemons web en ejecución." "N/A" "Sin daemons web"
+  fi
+
+  # 9.3 Servidor de Aplicaciones / Runtime (App Server)
+  local app_detected=""
+  if pgrep -f "java" &>/dev/null || pgrep -f "tomcat" &>/dev/null; then
+    app_detected+="Java/Tomcat "
+  fi
+  if pgrep -f "node" &>/dev/null || pgrep -f "npm" &>/dev/null; then
+    app_detected+="Node.js "
+  fi
+  if pgrep -f "python" &>/dev/null || pgrep -f "gunicorn" &>/dev/null || pgrep -f "uwsgi" &>/dev/null; then
+    app_detected+="Python/WSGI "
+  fi
+  if pgrep -x "php-fpm" &>/dev/null || systemctl is-active php-fpm &>/dev/null; then
+    app_detected+="PHP-FPM "
+  fi
+
+  if [[ -n "$app_detected" ]]; then
+    record_check "APP-03" "workload" "Servidor clasificado como Servidor de Aplicaciones (App Server)" "INFO" "PASS" \
+      "Rol detectado: Runtimes de aplicación activos ($app_detected)." \
+      "Mantener dependencias actualizadas y aislar permisos de ejecución de procesos." "Detectado: $app_detected"
+  else
+    record_check "APP-03" "workload" "Sin runtimes de aplicaciones principales activos" "INFO" "PASS" \
+      "No se detectaron daemons de app server." "N/A" "Sin app servers"
   fi
 }
 
@@ -907,6 +1103,8 @@ main() {
   if is_module_enabled "services"; then run_module_services; fi
   if is_module_enabled "kernel"; then run_module_kernel; fi
   if is_module_enabled "mac"; then run_module_mac; fi
+  if is_module_enabled "updates"; then run_module_updates; fi
+  if is_module_enabled "workload"; then run_module_workload; fi
 
   # Calculate score
   local score=100
