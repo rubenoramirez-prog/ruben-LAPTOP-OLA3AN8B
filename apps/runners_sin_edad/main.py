@@ -176,6 +176,14 @@ def complete_workout(member_id: str, workout_id: str, request: CompleteWorkoutRe
 def list_members():
     return repo.list_all()
 
+@app.get("/coach")
+@app.get("/coach.html")
+def serve_coach():
+    coach_path = os.path.join(PROJECT_ROOT, "apps", "runners_sin_edad", "coach.html")
+    if not os.path.exists(coach_path):
+        raise HTTPException(status_code=404, detail="Coach panel not found")
+    return FileResponse(coach_path)
+
 @app.get("/dashboard")
 @app.get("/dashboard.html")
 def serve_dashboard():
