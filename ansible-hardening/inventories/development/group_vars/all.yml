@@ -1,0 +1,12 @@
+---
+# Shared variables for development validation.
+env: development
+hardening_level: level1
+backup_enabled: true
+backup_configs: true
+compliance_report: true
+
+# Network-dependent controls should be reviewed per host before production use.
+ipv6_enabled: false
+firewall_service: firewalld
+firewall_enabled: true

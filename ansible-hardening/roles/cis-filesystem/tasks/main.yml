@@ -1,0 +1,80 @@
+---
+# Main tasks for cis-filesystem role
+# CIS Benchmark Filesystem Configuration
+# Idempotent, modular, with robust error handling
+
+- name: Include OS-specific variables
+  include_vars: "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"
+  tags: always
+
+- name: Validate input variables
+  assert:
+    that:
+      - cis_level in ['level1', 'level2']
+      - ansible_distribution in ['RedHat', 'CentOS', 'Rocky']
+    fail_msg: "Invalid configuration detected"
+    success_msg: "Configuration validation passed"
+  tags: always
+
+- name: Create backup directory for this role
+  file:
+    path: /var/backups/ansible-hardening/cis-filesystem
+    state: directory
+    mode: '0700'
+    owner: root
+    group: root
+  when: backup_configs
+  tags: always
+
+# CIS 1.1.1.x - Disable unused filesystems
+- name: Disable unused filesystems
+  include_tasks: disable_filesystems.yml
+  tags: ['filesystems', 'level1']
+
+# CIS 1.1.2-1.1.5 - Configure /tmp
+- name: Configure /tmp partition
+  include_tasks: configure_tmp.yml
+  tags: ['tmp', 'level1']
+
+# CIS 1.1.6-1.1.10 - Configure /var partitions
+- name: Configure /var partitions
+  include_tasks: configure_var.yml
+  tags: ['var', 'level1']
+
+# CIS 1.1.14-1.1.16 - Configure /home
+- name: Configure /home partition
+  include_tasks: configure_home.yml
+  tags: ['home', 'level1']
+
+# CIS 1.1.17-1.1.19 - Configure /dev/shm
+- name: Configure /dev/shm
+  include_tasks: configure_dev_shm.yml
+  tags: ['shm', 'level1']
+
+# CIS 1.1.23 - Ensure sticky bit on world-writable directories
+- name: Set sticky bit on world-writable directories
+  include_tasks: sticky_bit.yml
+  when: sticky_bit_enabled
+  tags: ['sticky', 'level1']
+
+# CIS 1.1.24 - Disable automounting
+- name: Disable automounting
+  include_tasks: disable_automount.yml
+  when: disable_automount
+  tags: ['automount', 'level1']
+
+# CIS 1.2.x - Configure package manager
+- name: Configure package manager security
+  include_tasks: package_manager.yml
+  tags: ['packages', 'level1']
+
+# CIS 1.3.x - Filesystem integrity checking
+- name: Configure AIDE (Advanced Intrusion Detection Environment)
+  include_tasks: configure_aide.yml
+  when: aide_enabled
+  tags: ['aide', 'level1']
+
+# Validation tasks
+- name: Validate filesystem hardening
+  include_tasks: validate.yml
+  tags: ['validate', 'always']

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presentación Técnica - Auditoría de Seguridad Linux Enterprise</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Inter:wght@400;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #0a192f;
+            --charcoal: #112240;
+            --amber: #ffbf00;
+            --teal: #00ced1;
+            --slate: #8892b0;
+        }
+        body {
+            background-color: var(--navy);
+            color: white;
+            font-family: 'Inter', sans-serif;
+        }
+        h1, h2, h3 {
+            font-family: 'Oswald', sans-serif;
+            text-transform: uppercase;
+        }
+        .metric-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .card {
+            background-color: var(--charcoal);
+            border: 1px solid #233554;
+        }
+        code, pre {
+            font-family: 'JetBrains Mono', monospace;
+            background: #070d18;
+            border: 1px solid #1e293b;
+        }
+    </style>
+</head>
+<body class="p-6 md:p-12">
+    <div class="max-w-5xl mx-auto space-y-12">
+        <!-- Hero Header -->
+        <header class="card p-8 rounded-2xl shadow-2xl border-l-4 border-teal-400">
+            <div class="flex justify-between items-start flex-wrap gap-4">
+                <div>
+                    <span class="text-xs uppercase tracking-wider text-teal-400 font-bold">Estándar L3 Infrastructure</span>
+                    <h1 class="text-4xl md:text-5xl font-bold text-white mt-2">Auditoría de Seguridad Linux <span class="text-amber-400">& Hardening</span></h1>
+                    <p class="text-slate-400 mt-2 text-lg">Guía de Operación y Referencia Técnica para los Scripts de Auditoría Local y Multiserver.</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs text-slate-500">Autor:</p>
+                    <p class="font-bold text-teal-300">Coach Ruben Omar Ramírez Gutiérrez</p>
+                    <p class="text-xs text-slate-400">Ingeniero en Computación (UNAM)</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Section 1: Overview -->
+        <section class="card p-8 rounded-2xl shadow-xl space-y-4">
+            <h2 class="text-2xl text-teal-400 flex items-center gap-2">
+                <span>🛡️</span> 1. Propósito y Arquitectura de las Herramientas
+            </h2>
+            <p class="text-slate-300">
+                El conjunto de herramientas de auditoría de seguridad Linux está diseñado bajo los estrictos estándares de infraestructura empresarial (L3). Permite evaluar la postura de seguridad, cumplimiento de CIS Benchmarks, versionamiento de kernel y detección automática de roles de aplicación de manera <strong>no destructiva</strong> y modular.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                <div class="bg-navy p-5 rounded-xl border border-slate-700">
+                    <h3 class="text-lg text-amber-400 mb-2"><code>audit_vulnerabilities.sh</code></h3>
+                    <p class="text-sm text-slate-300">Auditor local modular de un solo nodo. Ejecuta más de 20 controles de seguridad en 9 dominios y genera consola, reporte JSON y un Dashboard HTML autocontenido e interactivo para presentaciones ejecutivas.</p>
+                </div>
+                <div class="bg-navy p-5 rounded-xl border border-slate-700">
+                    <h3 class="text-lg text-teal-400 mb-2"><code>audit_multiserver.sh</code></h3>
+                    <p class="text-sm text-slate-300">Orquestador multiserver basado en SSH. Despliega de forma desatendida y paralela el script de auditoría en flotas completas de servidores, recopilando y consolidando los reportes por host en una sola ejecución.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Domains -->
+        <section class="card p-8 rounded-2xl shadow-xl space-y-4">
+            <h2 class="text-2xl text-amber-400 flex items-center gap-2">
+                <span>🔍</span> 2. Módulos de Análisis Incluidos (9 Dominios)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-navy p-4 rounded-lg border border-slate-800">
+                    <strong class="text-teal-300">1. AUTH:</strong> Identidad, cuentas UID 0, integridad de /etc/shadow y privilegios sudo NOPASSWD.
+                </div>
+                <div class="bg-navy p-4 rounded-lg border border-slate-800">
+                    <strong class="text-teal-300">2. SSH:</strong> Hardening de acceso remoto (PermitRootLogin, PasswordAuthentication, MaxAuthTries).
+                </div>
+                <div class="bg-navy p-4 rounded-lg border border-slate-800">
+                    <strong class="text-teal-300">3. NETWORK:</strong> Estado de Firewalls (firewalld/iptables), ip_forward, SYN cookies y sockets en escucha.
+                </div>
+                <div class="bg-navy p-4 rounded-lg border border-slate-800">
+                    <strong class="text-teal-300">4. FS:</strong> Opciones de montaje en /dev/shm (nodev, nosuid, noexec), binarios SUID y sticky bit.
+                </div>
+                <div class="bg-navy p-4 rounded-lg border border-slate-800">
+                    <strong class="text-teal-300">5. SERVICES:</strong> Detección de servicios heredados inseguros (Telnet, RSH, TFTP, vsftpd).
+                </div>
+                <div class="bg-navy p-4 rounded-lg border border-slate-800">
+                    <strong class="text-teal-300">6. KERNEL:</strong> Protección de memoria con ASLR, suid_dumpable y restricción de dmesg.
+                </div>
+                <div class="bg-navy p-4 rounded-lg border border-slate-800">
+                    <strong class="text-teal-300">7. MAC:</strong> Control de Acceso Mandatorio (SELinux / AppArmor) y trazabilidad con auditd.
+                </div>
+                <div class="bg-navy p-4 rounded-lg border border-slate-800">
+                    <strong class="text-teal-300">8. UPDATES:</strong> Parches de seguridad pendientes universales (dnf/yum/apt/zypper) y necesidad de reboot por kernel.
+                </div>
+                <div class="bg-navy p-4 rounded-lg border border-slate-800">
+                    <strong class="text-teal-300">9. WORKLOAD:</strong> Detección automática de roles del servidor (DB Server, Web Server, App Server).
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Usage Guide -->
+        <section class="card p-8 rounded-2xl shadow-xl space-y-6">
+            <h2 class="text-2xl text-teal-400 flex items-center gap-2">
+                <span>🚀</span> 3. Guía de Uso y Comandos de Ejecución
+            </h2>
+
+            <div class="space-y-4">
+                <h3 class="text-lg text-white font-bold">A. Auditoría Local con <code>audit_vulnerabilities.sh</code></h3>
+                <p class="text-sm text-slate-400">Ejecuta todos los módulos en el servidor local y genera los reportes para un cliente específico:</p>
+                <pre class="p-4 rounded-lg text-sm text-teal-300 overflow-x-auto"><code>./scripts/bash/audit_vulnerabilities.sh --client "Banco Corporativo" --output-dir ./reports/banco_corp</code></pre>
+
+                <p class="text-sm text-slate-400 mt-2">Ejecución selectiva de módulos específicos (ej. Red y SSH):</p>
+                <pre class="p-4 rounded-lg text-sm text-teal-300 overflow-x-auto"><code>./scripts/bash/audit_vulnerabilities.sh --modules network,ssh --client "Auditoría Parcial"</code></pre>
+            </div>
+
+            <div class="space-y-4 pt-4 border-t border-slate-800">
+                <h3 class="text-lg text-white font-bold">B. Orquestación Masiva con <code>audit_multiserver.sh</code></h3>
+                <p class="text-sm text-slate-400">Audita múltiples servidores en paralelo mediante SSH utilizando una lista de IPs:</p>
+                <pre class="p-4 rounded-lg text-sm text-amber-300 overflow-x-auto"><code>./scripts/bash/audit_multiserver.sh --hosts "192.168.1.10,192.168.1.11,srv.empresa.com" --client "Flota Datacenter" --identity ~/.ssh/id_rsa --jobs 5</code></pre>
+
+                <p class="text-sm text-slate-400 mt-2">Auditoría leyendo servidores desde un archivo de inventario externo:</p>
+                <pre class="p-4 rounded-lg text-sm text-amber-300 overflow-x-auto"><code>./scripts/bash/audit_multiserver.sh --hosts-file ./inventories/production/hosts.txt --user root --output-dir ./reports/produccion</code></pre>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="text-center pt-6 border-t border-slate-800 text-slate-500 text-sm">
+            <p class="font-bold text-white">Coach Ruben Ramírez — Infrastructure & Security Solutions</p>
+            <p class="mt-1">Especialidad Enterprise L3 • Automatización Agentless • Metodología de Ciberseguridad Defensiva</p>
+        </footer>
+    </div>
+</body>
+</html>

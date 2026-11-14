@@ -1,0 +1,27 @@
+---
+# Validation tasks for cis-access-control role
+
+- name: Check sshd configuration syntax
+  command: sshd -t
+  register: sshd_syntax
+  changed_when: false
+  failed_when: false
+  tags: ['validate']
+
+- name: Check crond service status
+  command: systemctl is-active crond
+  register: crond_status
+  changed_when: false
+  failed_when: false
+  tags: ['validate']
+
+- name: Display access control validation summary
+  debug:
+    msg: |
+      ========================================
+      CIS Access Control Hardening Validation
+      ========================================
+      SSHD Syntax: {{ 'Valid (PASS)' if sshd_syntax.rc == 0 else 'Error (FAIL)' }}
+      Crond Service: {{ crond_status.stdout | default('Unknown') }}
+      ========================================
+  tags: ['validate']

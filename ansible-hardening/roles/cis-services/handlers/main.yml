@@ -1,0 +1,12 @@
+---
+# Handlers for cis-services role
+
+- name: Restart chronyd
+  service:
+    name: chronyd
+    state: restarted
+
+- name: Restart systemd-timesyncd
+  service:
+    name: systemd-timesyncd
+    state: restarted

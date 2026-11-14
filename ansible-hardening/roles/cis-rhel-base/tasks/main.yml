@@ -1,0 +1,66 @@
+---
+# Main tasks for cis-rhel-base role
+# CIS Benchmark Base System Hardening
+# Idempotent, modular, robust error handling
+
+- name: Validate input variables
+  assert:
+    that:
+      - cis_level in ['level1', 'level2']
+      - selinux_state in ['enforcing', 'permissive', 'disabled']
+      - ansible_distribution in ['RedHat', 'CentOS', 'Rocky']
+    fail_msg: "Invalid configuration detected"
+    success_msg: "Base role configuration validation passed"
+  tags: always
+
+- name: Create backup directory for base role
+  file:
+    path: /var/backups/ansible-hardening/cis-rhel-base
+    state: directory
+    mode: '0700'
+    owner: root
+    group: root
+  when: backup_configs
+  tags: always
+
+# CIS 1.4.x - Boot Settings
+- name: Configure secure boot settings
+  include_tasks: configure_boot.yml
+  tags: ['boot', 'level1']
+
+# CIS 1.5.x - Additional Process Hardening
+- name: Configure process hardening
+  include_tasks: process_hardening.yml
+  tags: ['process', 'level1']
+
+# CIS 1.6.x - Mandatory Access Control (SELinux)
+- name: Configure SELinux
+  include_tasks: configure_selinux.yml
+  tags: ['selinux', 'level1']
+
+# CIS 1.7.x - Warning Banners
+- name: Configure warning banners
+  include_tasks: configure_banners.yml
+  tags: ['banners', 'level1']
+
+# CIS 1.8.x - GNOME Display Manager
+- name: Configure GNOME Display Manager
+  include_tasks: configure_gdm.yml
+  when: gdm_installed
+  tags: ['gdm', 'level1']
+
+# System updates configuration
+- name: Configure system updates
+  include_tasks: configure_updates.yml
+  tags: ['updates', 'level1']
+
+# Kernel hardening
+- name: Configure kernel hardening parameters
+  include_tasks: kernel_hardening.yml
+  when: kernel_hardening_enabled
+  tags: ['kernel', 'level1']
+
+# Validation
+- name: Validate base hardening
+  include_tasks: validate.yml
+  tags: ['validate', 'always']

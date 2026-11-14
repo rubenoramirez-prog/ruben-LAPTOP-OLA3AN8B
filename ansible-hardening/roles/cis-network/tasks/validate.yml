@@ -1,0 +1,28 @@
+---
+# Validation tasks for cis-network role
+
+- name: Query firewall state
+  command: firewall-cmd --state
+  register: fw_state
+  failed_when: false
+  changed_when: false
+  when: firewall_service == "firewalld"
+  tags: ['validate']
+
+- name: Query sysctl net.ipv4.ip_forward
+  command: sysctl -n net.ipv4.ip_forward
+  register: ip_forward_check
+  failed_when: false
+  changed_when: false
+  tags: ['validate']
+
+- name: Display network hardening validation summary
+  debug:
+    msg: |
+      ========================================
+      CIS Network Hardening Validation
+      ========================================
+      Firewall State: {{ fw_state.stdout | default('N/A') }}
+      IP Forwarding: {{ 'Disabled (0)' if ip_forward_check.stdout == '0' else 'Enabled (FAIL)' }}
+      ========================================
+  tags: ['validate']

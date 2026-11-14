@@ -1,0 +1,48 @@
+---
+# Main tasks for cis-access-control role
+# CIS Benchmark Section 5 - Access, Authentication, and Authorization
+
+- name: Validate access control input variables
+  assert:
+    that:
+      - cis_level in ['level1', 'level2']
+      - sshd_permit_root_login in ['yes', 'no', 'prohibit-password', 'without-password']
+    fail_msg: "Invalid access control configuration"
+    success_msg: "Access control configuration validation passed"
+  tags: always
+
+- name: Create backup directory for access-control role
+  file:
+    path: /var/backups/ansible-hardening/cis-access-control
+    state: directory
+    mode: '0700'
+    owner: root
+    group: root
+  when: backup_configs
+  tags: always
+
+# CIS 5.1 - Cron configuration
+- name: Configure cron and at permissions
+  include_tasks: configure_cron.yml
+  when: cron_enabled
+  tags: ['cron', 'level1']
+
+# CIS 5.2 - SSH Server Hardening
+- name: Configure SSH server hardening
+  include_tasks: configure_sshd.yml
+  tags: ['sshd', 'ssh', 'level1']
+
+# CIS 5.3 - PAM Configuration
+- name: Configure PAM password policies and faillock
+  include_tasks: configure_pam.yml
+  tags: ['pam', 'level1']
+
+# CIS 5.4 - User Accounts and Environment
+- name: Configure user account parameters and default environment
+  include_tasks: user_environment.yml
+  tags: ['users', 'environment', 'level1']
+
+# Validation
+- name: Validate access control hardening
+  include_tasks: validate.yml
+  tags: ['validate', 'always']

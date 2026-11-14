@@ -1,0 +1,20 @@
+---
+# CIS 1.2.x - Configure Package Manager Security
+
+- name: Ensure gpgcheck is globally activated in /etc/dnf/dnf.conf
+  lineinfile:
+    path: /etc/dnf/dnf.conf
+    regexp: '^#?gpgcheck\s*='
+    line: 'gpgcheck=1'
+    state: present
+  failed_when: false
+  tags: ['packages']
+
+- name: Ensure gpgcheck is globally activated in /etc/yum.conf
+  lineinfile:
+    path: /etc/yum.conf
+    regexp: '^#?gpgcheck\s*='
+    line: 'gpgcheck=1'
+    state: present
+  failed_when: false
+  tags: ['packages']

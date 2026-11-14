@@ -1,0 +1,54 @@
+---
+# Default variables for cis-network role
+# CIS Benchmark Network Configuration for RHEL 8/9
+
+cis_level: "{{ hardening_level | default('level1') }}"
+backup_configs: true
+
+# CIS 3.1.x - Network Parameters (Host Only)
+network_host_only:
+  ipv4_forwarding: false
+  packet_redirect_send: false
+
+# CIS 3.2.x - Network Parameters (Host and Router)
+network_parameters:
+  accept_source_route_ipv4: false
+  accept_source_route_ipv6: false
+  accept_icmp_redirects_ipv4: false
+  accept_icmp_redirects_ipv6: false
+  secure_icmp_redirects: false
+  log_martians: true
+  ignore_broadcast_requests: true
+  ignore_bogus_icmp_responses: true
+  rp_filter: true
+  accept_router_advertisements: false
+
+# CIS 3.3.x - Uncommon Network Protocols to disable
+disable_protocols:
+  - dccp
+  - sctp
+  - rds
+  - tipc
+
+# CIS 3.4.x - Firewall Configuration
+firewall_service: "firewalld"  # 'firewalld' or 'iptables'
+firewall_enabled: true
+firewalld_config:
+  default_zone: "public"
+  allowed_services:
+    - ssh
+  allowed_ports: []
+
+iptables_rules:
+  input_policy: "DROP"
+  output_policy: "ACCEPT"
+  forward_policy: "DROP"
+  loopback_accept: true
+
+# IPv6 Configuration
+ipv6_enabled: false
+ipv6_disable_router_advertisements: true
+
+# Network Device & Wrappers
+disable_wireless: true
+tcp_wrappers_enabled: true

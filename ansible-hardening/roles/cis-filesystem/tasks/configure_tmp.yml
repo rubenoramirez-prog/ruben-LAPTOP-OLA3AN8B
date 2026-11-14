@@ -1,0 +1,29 @@
+---
+# CIS 1.1.2 - 1.1.5 - Configure /tmp Partition
+# Ensure nodev, nosuid, and noexec mount options on /tmp
+
+- name: Check /tmp mount status in mount points
+  set_fact:
+    tmp_mounted: "{{ ansible_mounts | selectattr('mount', 'equalto', '/tmp') | list | length > 0 }}"
+  tags: ['tmp']
+
+- name: Enable tmp.mount systemd unit if /tmp is not a dedicated partition
+  systemd:
+    name: tmp.mount
+    daemon_reload: true
+    enabled: true
+    state: started
+  when: not tmp_mounted
+  failed_when: false
+  tags: ['tmp']
+
+- name: Ensure /tmp mount options (nodev, nosuid, noexec) in fstab
+  mount:
+    path: /tmp
+    state: present
+    opts: "nodev,nosuid,noexec"
+    fstype: "{{ item.fstype }}"
+    src: "{{ item.device }}"
+  loop: "{{ ansible_mounts | selectattr('mount', 'equalto', '/tmp') | list }}"
+  when: tmp_mounted
+  tags: ['tmp']

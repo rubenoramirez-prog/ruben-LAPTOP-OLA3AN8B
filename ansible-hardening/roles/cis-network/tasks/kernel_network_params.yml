@@ -1,0 +1,133 @@
+---
+# CIS 3.2.x - Network Kernel Parameters
+# Configure sysctl network parameters according to CIS Benchmark
+
+- name: Backup sysctl configuration
+  copy:
+    src: /etc/sysctl.conf
+    dest: /var/backups/ansible-hardening/cis-network/sysctl.conf.{{ ansible_date_time.epoch }}
+    remote_src: true
+  when: backup_configs
+  failed_when: false
+  tags: ['kernel']
+
+- name: Ensure IP forwarding is disabled (CIS 3.2.1)
+  sysctl:
+    name: "{{ item }}"
+    value: '0'
+    state: present
+    sysctl_set: true
+    reload: true
+  loop:
+    - net.ipv4.ip_forward
+    - net.ipv6.conf.all.forwarding
+  when: not network_host_only.ipv4_forwarding
+  tags: ['kernel', 'ipv4']
+
+- name: Ensure packet redirect sending is disabled (CIS 3.2.2)
+  sysctl:
+    name: "{{ item }}"
+    value: '0'
+    state: present
+    sysctl_set: true
+    reload: true
+  loop:
+    - net.ipv4.conf.all.send_redirects
+    - net.ipv4.conf.default.send_redirects
+  when: not network_host_only.packet_redirect_send
+  tags: ['kernel', 'ipv4']
+
+- name: Ensure source routed packets are not accepted (CIS 3.2.3)
+  sysctl:
+    name: "{{ item }}"
+    value: '0'
+    state: present
+    sysctl_set: true
+    reload: true
+  loop:
+    - net.ipv4.conf.all.accept_source_route
+    - net.ipv4.conf.default.accept_source_route
+    - net.ipv6.conf.all.accept_source_route
+    - net.ipv6.conf.default.accept_source_route
+  tags: ['kernel']
+
+- name: Ensure ICMP redirects are not accepted (CIS 3.2.4)
+  sysctl:
+    name: "{{ item }}"
+    value: '0'
+    state: present
+    sysctl_set: true
+    reload: true
+  loop:
+    - net.ipv4.conf.all.accept_redirects
+    - net.ipv4.conf.default.accept_redirects
+    - net.ipv6.conf.all.accept_redirects
+    - net.ipv6.conf.default.accept_redirects
+  tags: ['kernel']
+
+- name: Ensure secure ICMP redirects are not accepted (CIS 3.2.5)
+  sysctl:
+    name: "{{ item }}"
+    value: '0'
+    state: present
+    sysctl_set: true
+    reload: true
+  loop:
+    - net.ipv4.conf.all.secure_redirects
+    - net.ipv4.conf.default.secure_redirects
+  tags: ['kernel', 'ipv4']
+
+- name: Ensure suspicious packets are logged (CIS 3.2.6)
+  sysctl:
+    name: "{{ item }}"
+    value: '1'
+    state: present
+    sysctl_set: true
+    reload: true
+  loop:
+    - net.ipv4.conf.all.log_martians
+    - net.ipv4.conf.default.log_martians
+  when: network_parameters.log_martians
+  tags: ['kernel', 'ipv4']
+
+- name: Ensure broadcast ICMP requests are ignored (CIS 3.2.7)
+  sysctl:
+    name: net.ipv4.icmp_echo_ignore_broadcasts
+    value: '1'
+    state: present
+    sysctl_set: true
+    reload: true
+  when: network_parameters.ignore_broadcast_requests
+  tags: ['kernel', 'ipv4']
+
+- name: Ensure bogus ICMP responses are ignored (CIS 3.2.8)
+  sysctl:
+    name: net.ipv4.icmp_ignore_bogus_error_responses
+    value: '1'
+    state: present
+    sysctl_set: true
+    reload: true
+  when: network_parameters.ignore_bogus_icmp_responses
+  tags: ['kernel', 'ipv4']
+
+- name: Ensure Reverse Path Filtering is enabled (CIS 3.2.9)
+  sysctl:
+    name: "{{ item }}"
+    value: '1'
+    state: present
+    sysctl_set: true
+    reload: true
+  loop:
+    - net.ipv4.conf.all.rp_filter
+    - net.ipv4.conf.default.rp_filter
+  when: network_parameters.rp_filter
+  tags: ['kernel', 'ipv4']
+
+- name: Ensure TCP SYN Cookies is enabled (CIS 3.2.10)
+  sysctl:
+    name: net.ipv4.tcp_syncookies
+    value: '1'
+    state: present
+    sysctl_set: true
+    reload: true
+  tags: ['kernel', 'ipv4']

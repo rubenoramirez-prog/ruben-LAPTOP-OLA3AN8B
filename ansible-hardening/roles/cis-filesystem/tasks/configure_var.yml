@@ -1,0 +1,30 @@
+---
+# CIS 1.1.6 - 1.1.10 - Configure /var Partitions
+# Enforce nodev, nosuid, noexec on /var/tmp and dedicated mounts
+
+- name: Identify /var/tmp mount
+  set_fact:
+    var_tmp_mounted: "{{ ansible_mounts | selectattr('mount', 'equalto', '/var/tmp') | list | length > 0 }}"
+  tags: ['var']
+
+- name: Ensure /var/tmp has nodev, nosuid, noexec mount options
+  mount:
+    path: /var/tmp
+    state: present
+    opts: "nodev,nosuid,noexec"
+    fstype: "{{ item.fstype }}"
+    src: "{{ item.device }}"
+  loop: "{{ ansible_mounts | selectattr('mount', 'equalto', '/var/tmp') | list }}"
+  when: var_tmp_mounted
+  tags: ['var']
+
+- name: Bind mount /var/tmp to /tmp if no separate partition exists
+  mount:
+    path: /var/tmp
+    src: /tmp
+    fstype: none
+    opts: "bind,nodev,nosuid,noexec"
+    state: present
+  when: not var_tmp_mounted
+  failed_when: false
+  tags: ['var']

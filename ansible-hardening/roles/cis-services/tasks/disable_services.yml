@@ -1,0 +1,123 @@
+---
+# CIS 2.2.x - Disable Special Purpose Services
+# Stop and disable unnecessary network services
+
+- name: Get list of installed packages
+  package_facts:
+    manager: auto
+  tags: ['services']
+
+- name: Stop and disable special purpose services
+  service:
+    name: "{{ item }}"
+    state: stopped
+    enabled: false
+  loop: "{{ disable_services }}"
+  when: item in ansible_facts.packages
+  failed_when: false
+  tags: ['services']
+
+- name: Remove special purpose service packages (Level 2)
+  package:
+    name: "{{ item }}"
+    state: absent
+  loop: "{{ disable_services }}"
+  when:
+    - cis_level == "level2"
+    - item in ansible_facts.packages
+    - item not in essential_services
+  tags: ['services', 'level2']
+
+- name: Ensure X Window System is not installed (CIS 2.2.2)
+  package:
+    name: xorg-x11-server-common
+    state: absent
+  when: cis_level == "level1"
+  tags: ['services']
+
+- name: Ensure Avahi Server is not installed (CIS 2.2.3)
+  package:
+    name:
+      - avahi-daemon
+      - avahi
+    state: absent
+  tags: ['services']
+
+- name: Ensure CUPS is not installed (CIS 2.2.4)
+  package:
+    name: cups
+    state: absent
+  tags: ['services']
+
+- name: Ensure DHCP Server is not installed (CIS 2.2.5)
+  package:
+    name: dhcp-server
+    state: absent
+  tags: ['services']
+
+- name: Ensure DNS Server is not installed (CIS 2.2.6)
+  package:
+    name: bind
+    state: absent
+  tags: ['services']
+
+- name: Ensure FTP Server is not installed (CIS 2.2.7)
+  package:
+    name: vsftpd
+    state: absent
+  tags: ['services']
+
+- name: Ensure HTTP server is not installed (CIS 2.2.8)
+  package:
+    name:
+      - httpd
+      - nginx
+    state: absent
+  tags: ['services']
+
+- name: Ensure IMAP and POP3 server is not installed (CIS 2.2.9)
+  package:
+    name: dovecot
+    state: absent
+  tags: ['services']
+
+- name: Ensure Samba is not installed (CIS 2.2.10)
+  package:
+    name: samba
+    state: absent
+  tags: ['services']
+
+- name: Ensure HTTP Proxy Server is not installed (CIS 2.2.11)
+  package:
+    name: squid
+    state: absent
+  tags: ['services']
+
+- name: Ensure SNMP Server is not installed (CIS 2.2.12)
+  package:
+    name: net-snmp
+    state: absent
+  tags: ['services']
+
+- name: Ensure NIS Server is not installed (CIS 2.2.15)
+  package:
+    name: ypserv
+    state: absent
+  tags: ['services']
+
+- name: Ensure telnet server is not installed (CIS 2.2.17)
+  package:
+    name: telnet-server
+    state: absent
+  tags: ['services']
+
+- name: List remaining active services
+  shell: |
+    set -euo pipefail
+    systemctl list-units --type=service --state=running --no-pager | grep -v "^UNIT" | awk '{print $1}'
+  args:
+    executable: /bin/bash
+  register: active_services
+  changed_when: false
+  failed_when: false
+  tags: ['services', 'validate']

@@ -1,0 +1,67 @@
+---
+# Default variables for cis-access-control role
+# CIS Benchmark Section 5 - Access, Authentication, and Authorization
+
+cis_level: "{{ hardening_level | default('level1') }}"
+backup_configs: true
+
+# CIS 5.1 - Cron & At configuration
+cron_enabled: true
+cron_allow_users:
+  - root
+
+# CIS 5.2 - SSH Server Hardening
+sshd_port: 22
+sshd_permit_root_login: "no"
+sshd_password_authentication: "yes"  # Set to "no" when SSH keys are verified
+sshd_max_auth_tries: 4
+sshd_client_alive_interval: 300
+sshd_client_alive_count_max: 3
+sshd_login_grace_time: 60
+sshd_x11_forwarding: "no"
+sshd_max_startups: "10:30:60"
+sshd_max_sessions: 4
+sshd_banner: "/etc/issue.net"
+
+# Approved Cryptographic Algorithms
+sshd_ciphers:
+  - "chacha20-poly1305@openssh.com"
+  - "aes256-gcm@openssh.com"
+  - "aes128-gcm@openssh.com"
+  - "aes256-ctr"
+  - "aes192-ctr"
+  - "aes128-ctr"
+
+sshd_macs:
+  - "hmac-sha2-512-etm@openssh.com"
+  - "hmac-sha2-256-etm@openssh.com"
+  - "hmac-sha2-512"
+  - "hmac-sha2-256"
+
+sshd_kex_algorithms:
+  - "curve25519-sha256"
+  - "curve25519-sha256@libssh.org"
+  - "diffie-hellman-group14-sha256"
+  - "diffie-hellman-group16-sha512"
+  - "diffie-hellman-group18-sha512"
+  - "ecdh-sha2-nistp521"
+  - "ecdh-sha2-nistp384"
+  - "ecdh-sha2-nistp256"
+
+# CIS 5.3 - PAM Configuration
+pam_minlen: 14
+pam_dcredit: -1
+pam_ucredit: -1
+pam_ocredit: -1
+pam_lcredit: -1
+pam_retry: 3
+pam_faillock_deny: 5
+pam_faillock_unlock_time: 900
+pam_remember_passwords: 5
+
+# CIS 5.4 - User Accounts and Environment
+pass_max_days: 90
+pass_min_days: 7
+pass_warn_age: 7
+default_umask: "027"
+shell_timeout: 900

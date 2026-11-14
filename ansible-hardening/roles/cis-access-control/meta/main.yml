@@ -1,0 +1,20 @@
+---
+dependencies: []
+galaxy_info:
+  role_name: cis-access-control
+  author: Ruben Omar Ramírez Gutiérrez
+  description: CIS Benchmark Access Control and Authentication Hardening for RHEL 8/9
+  license: MIT
+  min_ansible_version: 2.15
+  platforms:
+    - name: EL
+      versions:
+        - 8
+        - 9
+  galaxy_tags:
+    - security
+    - hardening
+    - cis
+    - ssh
+    - pam
+    - access

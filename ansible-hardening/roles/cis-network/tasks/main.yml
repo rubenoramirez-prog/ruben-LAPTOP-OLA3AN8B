@@ -1,0 +1,60 @@
+---
+# Main tasks for cis-network role
+# CIS Benchmark Network Hardening
+
+- name: Validate network input variables
+  assert:
+    that:
+      - cis_level in ['level1', 'level2']
+      - firewall_service in ['firewalld', 'iptables', 'none']
+    fail_msg: "Invalid network configuration"
+    success_msg: "Network configuration validation passed"
+  tags: always
+
+- name: Create backup directory for network role
+  file:
+    path: /var/backups/ansible-hardening/cis-network
+    state: directory
+    mode: '0700'
+    owner: root
+    group: root
+  when: backup_configs
+  tags: always
+
+# CIS 3.1.x - Wireless interfaces
+- name: Disable wireless interfaces
+  include_tasks: disable_wireless.yml
+  when: disable_wireless
+  tags: ['wireless', 'level1']
+
+# CIS 3.2.x - Network Parameters
+- name: Configure network kernel parameters
+  include_tasks: kernel_network_params.yml
+  tags: ['kernel', 'level1']
+
+# CIS 3.3.x - Uncommon Network Protocols
+- name: Disable uncommon network protocols
+  include_tasks: disable_protocols.yml
+  tags: ['protocols', 'level1']
+
+# CIS 3.4.x - Firewall Configuration
+- name: Configure firewall
+  include_tasks: configure_firewall.yml
+  when: firewall_enabled
+  tags: ['firewall', 'level1']
+
+# CIS 3.5.x - Configure IPv6
+- name: Configure IPv6
+  include_tasks: configure_ipv6.yml
+  tags: ['ipv6', 'level1']
+
+# TCP Wrappers
+- name: Configure TCP Wrappers
+  include_tasks: tcp_wrappers.yml
+  when: tcp_wrappers_enabled
+  tags: ['tcpwrappers', 'level1']
+
+# Validation
+- name: Validate network hardening
+  include_tasks: validate.yml
+  tags: ['validate', 'always']

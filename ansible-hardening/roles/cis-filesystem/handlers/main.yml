@@ -1,0 +1,6 @@
+---
+# Handlers for cis-filesystem role
+
+- name: Update initramfs
+  command: dracut -f
+  changed_when: false

@@ -1,0 +1,12 @@
+---
+# CIS 3.4.x - Firewall Orchestration
+
+- name: Configure firewalld implementation
+  include_tasks: configure_firewalld.yml
+  when: firewall_service == "firewalld"
+  tags: ['firewall', 'firewalld']
+
+- name: Configure iptables implementation
+  include_tasks: configure_iptables.yml
+  when: firewall_service == "iptables"
+  tags: ['firewall', 'iptables']

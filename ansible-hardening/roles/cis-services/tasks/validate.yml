@@ -1,0 +1,33 @@
+---
+# Validation tasks for cis-services role
+
+- name: Check time synchronization status
+  command: timedatectl status
+  register: timedatectl_status
+  changed_when: false
+  failed_when: false
+  tags: ['validate']
+
+- name: Count running services
+  shell: |
+    set -euo pipefail
+    systemctl list-units --type=service --state=running --no-pager | grep -c "\.service" || echo "0"
+  args:
+    executable: /bin/bash
+  register: service_count
+  changed_when: false
+  failed_when: false
+  tags: ['validate']
+
+- name: Display service hardening validation summary
+  debug:
+    msg: |
+      ========================================
+      CIS Service Hardening Validation
+      ========================================
+      Time Sync: {{ time_sync_check.stdout | default('Unknown') }}
+      Running Services: {{ service_count.stdout | default('Unknown') }}
+      Active Services (sample):
+      {{ active_services.stdout_lines[:10] | default(['None']) | join('\n') }}
+      ========================================
+  tags: ['validate']

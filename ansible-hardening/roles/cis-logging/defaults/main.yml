@@ -1,0 +1,34 @@
+---
+# Default variables for cis-logging role
+# CIS Benchmark Section 4 - Logging and Auditing
+
+cis_level: "{{ hardening_level | default('level1') }}"
+backup_configs: true
+
+# CIS 4.1.1 - Auditd service configuration
+auditd_enabled: true
+audit_backlog_limit: 8192
+audit_bootloader_enable: true
+
+# CIS 4.1.2 - Audit Data Retention
+audit_max_log_file: 32
+audit_max_log_file_action: "keep_logs"
+audit_space_left: 75
+audit_space_left_action: "email"
+audit_action_mail_acct: "root"
+audit_admin_space_left: 50
+audit_admin_space_left_action: "halt"
+
+# CIS 4.1.18 - Make audit configuration immutable
+audit_immutable: true  # -e 2 (Requires reboot to change rules)
+
+# CIS 4.2.1 - Rsyslog configuration
+rsyslog_enabled: true
+rsyslog_remote_server: ""
+rsyslog_remote_port: 514
+rsyslog_file_permissions: "0640"
+
+# CIS 4.2.2 - Systemd-journald configuration
+journald_storage: "persistent"
+journald_compress: "yes"
+journald_seal: "yes"

@@ -1,0 +1,18 @@
+{
+  "hook_spoken": "Hello everyone! In this video I will show you a secret hack to unlock your potential.",
+  "hook_on_screen": "UNLOCK YOUR POTENTIAL NOW WITH THIS HACK",
+  "score": 17.679999999999993,
+  "verdict": "WEAK",
+  "flags": [
+    "Video preamble. Delete it and open on the payoff."
+  ],
+  "script": "Hello everyone! In this video I will show you a secret hack to unlock your potential. It is a game changer for your life. Just follow me for more tips.",
+  "beats": [
+    {
+      "time": "0:00-0:02",
+      "text": "Hello everyone! In this video I will show you a secret hack to unlock your potential.",
+      "type": "HOOK"
+    }
+  ],
+  "loop": ""
+}

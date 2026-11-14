@@ -1,0 +1,685 @@
+<title>Generador Plan Semanal</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+
+<style>
+/* Layout: Two-column input/output, stacked on mobile, with export controls */
+:root {
+  --navy: #1e3a5f;
+  --charcoal: #2a2a2a;
+  --amber: #f59e0b;
+  --teal: #14b8a6;
+  --slate: #64748b;
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --text: #1e293b;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --navy: #2e5a8f;
+    --charcoal: #1a1a1a;
+    --amber: #fbbf24;
+    --teal: #2dd4bf;
+    --slate: #94a3b8;
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --text: #f1f5f9;
+    --text-muted: #94a3b8;
+    --border: #334155;
+
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --navy: #2e5a8f;
+  --charcoal: #1a1a1a;
+  --amber: #fbbf24;
+  --teal: #2dd4bf;
+  --slate: #94a3b8;
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --border: #334155;
+
+  color-scheme: dark;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px;
+}
+
+h1, h2, h3 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: 2rem;
+  color: var(--navy);
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-bottom: 32px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.layout {
+  display: grid;
+  gap: 24px;
+}
+
+@media (min-width: 768px) {
+  .layout {
+    grid-template-columns: 380px 1fr;
+  }
+}
+
+label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+input, select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 1rem;
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+}
+
+input:focus, select:focus {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.checkbox-group {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: var(--bg);
+  border-radius: 6px;
+}
+
+.checkbox-item input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.checkbox-item label {
+  margin: 0;
+  cursor: pointer;
+  font-weight: 400;
+}
+
+button {
+  background: var(--navy);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  font-family: 'Oswald', sans-serif;
+  letter-spacing: 0.5px;
+  transition: background 0.2s;
+}
+
+button:hover {
+  background: var(--teal);
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--navy);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: var(--border);
+  color: var(--text);
+}
+
+.phase-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 16px;
+}
+
+.phase-base { background: var(--teal); color: white; }
+.phase-fuerza { background: var(--amber); color: white; }
+.phase-velocidad { background: #ef4444; color: white; }
+.phase-taper { background: #8b5cf6; color: white; }
+
+.week-plan {
+  display: none;
+}
+
+.week-plan.visible {
+  display: block;
+}
+
+.week-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.3rem;
+  color: var(--navy);
+  margin-bottom: 20px;
+}
+
+.day-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.day-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--navy);
+}
+
+.day-type {
+  font-size: 0.85rem;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.type-rest { background: var(--slate); color: white; }
+.type-easy { background: var(--teal); color: white; }
+.type-tempo { background: var(--amber); color: white; }
+.type-interval { background: #ef4444; color: white; }
+.type-long { background: var(--navy); color: white; }
+.type-strength { background: #8b5cf6; color: white; }
+
+.day-details {
+  display: grid;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail-label {
+  color: var(--text-muted);
+  min-width: 80px;
+}
+
+.detail-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.day-description {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.export-controls {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+@media (min-width: 640px) {
+  .export-controls {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.info-box {
+  background: var(--bg);
+  border-left: 3px solid var(--teal);
+  padding: 12px 16px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-top: 16px;
+}
+
+footer {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+footer strong {
+  color: var(--navy);
+  font-weight: 600;
+}
+</style>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap">
+
+<div class="container">
+  <h1>Generador de Plan Semanal</h1>
+  <p class="subtitle">Crea planes personalizados según periodización y disponibilidad</p>
+
+  <div class="layout">
+    <div>
+      <div class="card">
+        <form id="planForm">
+          <div class="form-group">
+            <label for="phase">Fase de Periodización</label>
+            <select id="phase" required>
+              <option value="">Selecciona una fase...</option>
+              <option value="base">Base - Resistencia Aeróbica</option>
+              <option value="fuerza">Fuerza - Potencia y Cuestas</option>
+              <option value="velocidad">Velocidad - Ritmo y Tempo</option>
+              <option value="taper">Taper - Descarga Pre-Carrera</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="level">Nivel de Experiencia</label>
+            <select id="level" required>
+              <option value="">Selecciona nivel...</option>
+              <option value="beginner">Principiante (0-6 meses)</option>
+              <option value="intermediate">Intermedio (6-18 meses)</option>
+              <option value="advanced">Avanzado (18+ meses)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="weeklyKm">Kilometraje Semanal Objetivo (km)</label>
+            <input type="number" id="weeklyKm" min="15" max="100" step="5" required placeholder="30">
+          </div>
+
+          <div class="form-group">
+            <label>Días Disponibles para Entrenar</label>
+            <div class="checkbox-group">
+              <div class="checkbox-item">
+                <input type="checkbox" id="day1" value="Lunes">
+                <label for="day1">Lunes</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="day2" value="Martes">
+                <label for="day2">Martes</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="day3" value="Miércoles">
+                <label for="day3">Miércoles</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="day4" value="Jueves">
+                <label for="day4">Jueves</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="day5" value="Viernes">
+                <label for="day5">Viernes</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="day6" value="Sábado" checked>
+                <label for="day6">Sábado</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="day7" value="Domingo" checked>
+                <label for="day7">Domingo</label>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit">GENERAR PLAN</button>
+
+          <div class="info-box">
+            💡 Los planes se adaptan a tu fase de periodización y días disponibles
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div>
+      <div id="weekPlan" class="week-plan card">
+        <div id="phaseBadge"></div>
+        <h2 class="week-title">Tu Plan de la Semana</h2>
+        <div id="planContent"></div>
+
+        <div class="export-controls">
+          <button id="exportJSON" class="btn-secondary">📥 Exportar JSON</button>
+          <button id="copyPlan" class="btn-secondary">📋 Copiar Plan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <strong>A Tu Marca</strong> — Coaching para corredores 35+ por Ruben Ramírez
+</footer>
+
+<script>
+(function() {
+  'use strict';
+
+  const form = document.getElementById('planForm');
+  const weekPlan = document.getElementById('weekPlan');
+  const planContent = document.getElementById('planContent');
+  const phaseBadge = document.getElementById('phaseBadge');
+  const exportJSONBtn = document.getElementById('exportJSON');
+  const copyPlanBtn = document.getElementById('copyPlan');
+
+  let currentPlan = null;
+
+  const sessionTemplates = {
+    base: {
+      beginner: [
+        { type: 'easy', name: 'Carrera Fácil', duration: 30, rpe: 5, description: 'Ritmo conversacional cómodo, sin presión en el tiempo' },
+        { type: 'easy', name: 'Carrera Fácil', duration: 35, rpe: 5, description: 'Mantén el esfuerzo bajo, disfruta el movimiento' },
+        { type: 'long', name: 'Carrera Larga', duration: 50, rpe: 6, description: 'Aumenta resistencia aeróbica, ritmo controlado' },
+        { type: 'easy', name: 'Carrera Fácil', duration: 30, rpe: 5, description: 'Recuperación activa, ritmo relajado' }
+      ],
+      intermediate: [
+        { type: 'easy', name: 'Carrera Base', duration: 45, rpe: 5, description: 'Zona 2, construir base aeróbica' },
+        { type: 'tempo', name: 'Tempo Suave', duration: 40, rpe: 7, description: '20 min calentamiento + 15 min tempo + 5 min vuelta a calma' },
+        { type: 'easy', name: 'Carrera Fácil', duration: 40, rpe: 5, description: 'Ritmo conversacional, recuperación activa' },
+        { type: 'long', name: 'Carrera Larga', duration: 75, rpe: 6, description: 'Construir resistencia, mantener ritmo uniforme' }
+      ],
+      advanced: [
+        { type: 'easy', name: 'Carrera Base', duration: 60, rpe: 5, description: 'Zona 2 aeróbica, ritmo sostenido' },
+        { type: 'tempo', name: 'Tempo Moderado', duration: 50, rpe: 7, description: '15 min calentamiento + 25 min tempo + 10 min vuelta a calma' },
+        { type: 'easy', name: 'Carrera Fácil', duration: 45, rpe: 5, description: 'Recuperación activa entre sesiones clave' },
+        { type: 'long', name: 'Carrera Larga', duration: 90, rpe: 6, description: 'Resistencia aeróbica, mantener conversación' }
+      ]
+    },
+    fuerza: {
+      beginner: [
+        { type: 'easy', name: 'Carrera Fácil', duration: 30, rpe: 5, description: 'Calentamiento general, ritmo cómodo' },
+        { type: 'strength', name: 'Cuestas Suaves', duration: 35, rpe: 7, description: '15 min calentamiento + 6x30seg cuesta + 5 min vuelta a calma' },
+        { type: 'easy', name: 'Carrera Fácil', duration: 30, rpe: 5, description: 'Recuperación, ritmo muy cómodo' },
+        { type: 'long', name: 'Carrera Larga', duration: 50, rpe: 6, description: 'Volumen en terreno plano' }
+      ],
+      intermediate: [
+        { type: 'easy', name: 'Carrera Fácil', duration: 40, rpe: 5, description: 'Preparación para sesión de fuerza' },
+        { type: 'strength', name: 'Cuestas Moderadas', duration: 45, rpe: 8, description: '15 min calentamiento + 8x45seg cuesta + 10 min vuelta a calma' },
+        { type: 'easy', name: 'Carrera Recuperación', duration: 35, rpe: 4, description: 'Muy suave, regeneración muscular' },
+        { type: 'long', name: 'Carrera Larga', duration: 70, rpe: 6, description: 'Resistencia con ligeros cambios de ritmo' }
+      ],
+      advanced: [
+        { type: 'easy', name: 'Carrera Base', duration: 50, rpe: 5, description: 'Preparación muscular activa' },
+        { type: 'strength', name: 'Cuestas Intensas', duration: 55, rpe: 8, description: '20 min calentamiento + 10x60seg cuesta fuerte + 15 min vuelta a calma' },
+        { type: 'easy', name: 'Carrera Recuperación', duration: 40, rpe: 4, description: 'Recuperación completa, sin presión' },
+        { type: 'long', name: 'Carrera Larga', duration: 85, rpe: 6, description: 'Volumen con progresión final opcional' }
+      ]
+    },
+    velocidad: {
+      beginner: [
+        { type: 'easy', name: 'Carrera Fácil', duration: 30, rpe: 5, description: 'Preparación ligera' },
+        { type: 'interval', name: 'Intervalos Cortos', duration: 35, rpe: 8, description: '15 min calentamiento + 6x400m rápido (rec 90seg) + 5 min vuelta a calma' },
+        { type: 'easy', name: 'Carrera Fácil', duration: 30, rpe: 5, description: 'Recuperación activa' },
+        { type: 'tempo', name: 'Tempo Controlado', duration: 40, rpe: 7, description: '15 min calentamiento + 15 min tempo + 10 min vuelta a calma' }
+      ],
+      intermediate: [
+        { type: 'easy', name: 'Carrera Fácil', duration: 40, rpe: 5, description: 'Base aeróbica' },
+        { type: 'interval', name: 'Intervalos Medios', duration: 45, rpe: 8, description: '15 min calentamiento + 8x800m (rec 2min) + 10 min vuelta a calma' },
+        { type: 'easy', name: 'Carrera Recuperación', duration: 35, rpe: 4, description: 'Regeneración suave' },
+        { type: 'tempo', name: 'Tempo Sostenido', duration: 50, rpe: 7, description: '15 min calentamiento + 25 min tempo + 10 min vuelta a calma' }
+      ],
+      advanced: [
+        { type: 'easy', name: 'Carrera Base', duration: 50, rpe: 5, description: 'Preparación neuromuscular' },
+        { type: 'interval', name: 'Intervalos Largos', duration: 55, rpe: 9, description: '20 min calentamiento + 6x1200m (rec 2min) + 15 min vuelta a calma' },
+        { type: 'easy', name: 'Carrera Recuperación', duration: 40, rpe: 4, description: 'Recuperación completa' },
+        { type: 'tempo', name: 'Tempo Extendido', duration: 60, rpe: 7, description: '15 min calentamiento + 35 min tempo + 10 min vuelta a calma' }
+      ]
+    },
+    taper: {
+      beginner: [
+        { type: 'easy', name: 'Carrera Fácil', duration: 25, rpe: 4, description: 'Mantener piernas frescas' },
+        { type: 'easy', name: 'Carrera Suave + Aceleraciones', duration: 30, rpe: 5, description: '20 min fácil + 4x100m progresivos + 5 min vuelta a calma' },
+        { type: 'rest', name: 'Descanso o Caminata', duration: 0, rpe: 0, description: 'Descanso completo o caminata ligera 20 min' },
+        { type: 'easy', name: 'Carrera Muy Suave', duration: 20, rpe: 4, description: 'Mantener activación, sin fatiga' }
+      ],
+      intermediate: [
+        { type: 'easy', name: 'Carrera Fácil', duration: 30, rpe: 4, description: 'Reducción de volumen, frescura muscular' },
+        { type: 'tempo', name: 'Tempo Corto', duration: 35, rpe: 6, description: '15 min calentamiento + 10 min tempo + 10 min vuelta a calma' },
+        { type: 'rest', name: 'Descanso Activo', duration: 0, rpe: 0, description: 'Descanso o movilidad/estiramiento' },
+        { type: 'easy', name: 'Carrera Muy Suave', duration: 25, rpe: 4, description: 'Mantener activación sin acumular fatiga' }
+      ],
+      advanced: [
+        { type: 'easy', name: 'Carrera Fácil', duration: 35, rpe: 4, description: 'Descarga controlada' },
+        { type: 'interval', name: 'Intervalos Cortos', duration: 40, rpe: 7, description: '15 min calentamiento + 4x600m controlados + 10 min vuelta a calma' },
+        { type: 'rest', name: 'Descanso', duration: 0, rpe: 0, description: 'Descanso completo' },
+        { type: 'easy', name: 'Carrera Activación', duration: 30, rpe: 4, description: 'Activación neuromuscular, sin fatiga' }
+      ]
+    }
+  };
+
+  const phaseNames = {
+    base: 'Base - Resistencia Aeróbica',
+    fuerza: 'Fuerza - Potencia y Cuestas',
+    velocidad: 'Velocidad - Ritmo y Tempo',
+    taper: 'Taper - Descarga'
+  };
+
+  function getAvailableDays() {
+    const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    return days.filter((_, idx) => document.getElementById(`day${idx + 1}`).checked);
+  }
+
+  function generatePlan(phase, level, weeklyKm, availableDays) {
+    const templates = sessionTemplates[phase][level];
+    const numSessions = Math.min(availableDays.length, templates.length);
+    const selectedSessions = templates.slice(0, numSessions);
+
+    // Distribute weekly km across sessions
+    const totalTemplateDuration = selectedSessions.reduce((sum, s) => sum + s.duration, 0);
+    const kmPerMinute = weeklyKm / totalTemplateDuration;
+
+    const allDays = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    const plan = allDays.map(day => {
+      const dayIndex = availableDays.indexOf(day);
+      if (dayIndex === -1 || dayIndex >= selectedSessions.length) {
+        return {
+          day,
+          type: 'rest',
+          name: 'Descanso',
+          duration: 0,
+          distance: 0,
+          rpe: 0,
+          description: 'Día de recuperación completa o actividad alternativa (yoga, bici suave)'
+        };
+      }
+
+      const session = selectedSessions[dayIndex];
+      const distance = Math.round(session.duration * kmPerMinute * 10) / 10;
+
+      return {
+        day,
+        type: session.type,
+        name: session.name,
+        duration: session.duration,
+        distance,
+        rpe: session.rpe,
+        description: session.description
+      };
+    });
+
+    return {
+      phase,
+      phaseName: phaseNames[phase],
+      level,
+      weeklyKm,
+      generatedAt: new Date().toISOString(),
+      days: plan
+    };
+  }
+
+  function renderPlan(plan) {
+    phaseBadge.innerHTML = `<span class="phase-badge phase-${plan.phase}">${plan.phaseName}</span>`;
+
+    planContent.innerHTML = plan.days.map(day => `
+      <div class="day-card">
+        <div class="day-header">
+          <div class="day-name">${day.day}</div>
+          <div class="day-type type-${day.type}">${day.name}</div>
+        </div>
+        <div class="day-details">
+          ${day.duration > 0 ? `
+            <div class="detail-row">
+              <span class="detail-label">Duración:</span>
+              <span class="detail-value">${day.duration} min</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Distancia:</span>
+              <span class="detail-value">~${day.distance} km</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">RPE:</span>
+              <span class="detail-value">${day.rpe}/10</span>
+            </div>
+          ` : ''}
+        </div>
+        <div class="day-description">${day.description}</div>
+      </div>
+    `).join('');
+
+    weekPlan.classList.add('visible');
+    weekPlan.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const phase = document.getElementById('phase').value;
+    const level = document.getElementById('level').value;
+    const weeklyKm = parseFloat(document.getElementById('weeklyKm').value);
+    const availableDays = getAvailableDays();
+
+    if (availableDays.length === 0) {
+      alert('Selecciona al menos un día disponible para entrenar');
+      return;
+    }
+
+    currentPlan = generatePlan(phase, level, weeklyKm, availableDays);
+    renderPlan(currentPlan);
+  });
+
+  exportJSONBtn.addEventListener('click', function() {
+    if (!currentPlan) return;
+
+    const dataStr = JSON.stringify(currentPlan, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `plan-semana-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  copyPlanBtn.addEventListener('click', function() {
+    if (!currentPlan) return;
+
+    const text = `PLAN SEMANAL - ${currentPlan.phaseName}\n` +
+      `Kilometraje objetivo: ${currentPlan.weeklyKm} km\n\n` +
+      currentPlan.days.map(day =>
+        `${day.day}: ${day.name}\n` +
+        (day.duration > 0 ? `  • ${day.duration} min | ~${day.distance} km | RPE ${day.rpe}/10\n` : '') +
+        `  • ${day.description}\n`
+      ).join('\n');
+
+    navigator.clipboard.writeText(text).then(() => {
+      const originalText = copyPlanBtn.textContent;
+      copyPlanBtn.textContent = '✓ Copiado';
+      setTimeout(() => {
+        copyPlanBtn.textContent = originalText;
+      }, 2000);
+    }).catch(err => {
+      // Fallback: select text manually
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+    });
+  });
+})();
+</script>

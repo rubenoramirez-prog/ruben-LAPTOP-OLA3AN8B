@@ -1,0 +1,68 @@
+---
+# Default variables for cis-services role
+# CIS Benchmark Service Hardening
+
+cis_level: "{{ hardening_level | default('level1') }}"
+backup_configs: true
+
+# CIS 2.1.x - Time synchronization
+time_sync_service: "chronyd"  # chronyd or systemd-timesyncd
+ntp_servers:
+  - "0.rhel.pool.ntp.org"
+  - "1.rhel.pool.ntp.org"
+  - "2.rhel.pool.ntp.org"
+
+# CIS 2.2.x - Special purpose services to disable
+disable_services:
+  # X Window System
+  - xorg-x11-server-common
+  # Avahi Server
+  - avahi-daemon
+  - avahi
+  # CUPS (printing)
+  - cups
+  # DHCP Server
+  - dhcpd
+  # DNS Server
+  - named
+  # FTP Server
+  - vsftpd
+  # HTTP Server
+  - httpd
+  - nginx
+  # IMAP/POP3 Server
+  - dovecot
+  # Samba
+  - smb
+  # HTTP Proxy Server
+  - squid
+  # SNMP Server
+  - snmpd
+  # NIS Server
+  - ypserv
+  # Telnet Server
+  - telnet-server
+  # Mail Transfer Agent (if not needed)
+  - postfix
+  # NFS
+  - nfs-server
+  - rpcbind
+
+# CIS 2.3.x - Service clients to remove
+remove_clients:
+  - ypbind  # NIS Client
+  - rsh     # RSH Client
+  - talk    # Talk Client
+  - telnet  # Telnet Client
+  - openldap-clients  # LDAP Client (if not needed)
+
+# CIS 2.4 - Ensure nonessential services are removed or masked
+mask_services: true
+
+# SSH will be handled separately (not disabled)
+essential_services:
+  - sshd
+  - rsyslog
+  - chronyd
+  - auditd
+  - crond

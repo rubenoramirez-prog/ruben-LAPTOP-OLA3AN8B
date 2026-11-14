@@ -1,0 +1,16 @@
+---
+# Handlers for cis-network role
+
+- name: Reload firewalld
+  service:
+    name: firewalld
+    state: reloaded
+
+- name: Reload iptables
+  service:
+    name: iptables
+    state: reloaded
+
+- name: Reload sysctl
+  command: sysctl -p
+  changed_when: false

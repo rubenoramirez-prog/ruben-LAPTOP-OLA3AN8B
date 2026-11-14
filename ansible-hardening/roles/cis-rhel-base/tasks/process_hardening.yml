@@ -1,0 +1,72 @@
+---
+# CIS 1.5.x - Additional Process Hardening
+# ASLR, core dumps, and other process protections
+
+- name: Ensure Address Space Layout Randomization (ASLR) is enabled (CIS 1.5.1)
+  sysctl:
+    name: kernel.randomize_va_space
+    value: '2'
+    state: present
+    sysctl_set: true
+    reload: true
+  when: aslr_enabled
+  tags: ['process', 'sysctl']
+
+- name: Create limits.d directory
+  file:
+    path: /etc/security/limits.d
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+  tags: ['process']
+
+- name: Restrict core dumps via limits (CIS 1.5.2)
+  pam_limits:
+    domain: '*'
+    limit_type: hard
+    limit_item: core
+    value: '0'
+  when: core_dumps_restricted
+  tags: ['process']
+
+- name: Disable core dumps via sysctl (CIS 1.5.2)
+  sysctl:
+    name: fs.suid_dumpable
+    value: '0'
+    state: present
+    sysctl_set: true
+    reload: true
+  when: core_dumps_restricted
+  tags: ['process', 'sysctl']
+
+- name: Disable core dumps for setuid programs (CIS 1.5.2)
+  lineinfile:
+    path: /etc/systemd/coredump.conf
+    regexp: '^#?Storage='
+    line: 'Storage=none'
+    state: present
+  notify: Reload systemd
+  when: core_dumps_restricted
+  tags: ['process']
+
+- name: Disable core dumps processing (CIS 1.5.2)
+  lineinfile:
+    path: /etc/systemd/coredump.conf
+    regexp: '^#?ProcessSizeMax='
+    line: 'ProcessSizeMax=0'
+    state: present
+  notify: Reload systemd
+  when: core_dumps_restricted
+  tags: ['process']
+
+- name: Verify ASLR is enabled
+  shell: |
+    set -euo pipefail
+    sysctl kernel.randomize_va_space | grep -q '= 2' && echo "OK" || echo "FAIL"
+  args:
+    executable: /bin/bash
+  register: aslr_check
+  changed_when: false
+  failed_when: false
+  tags: ['process', 'validate']

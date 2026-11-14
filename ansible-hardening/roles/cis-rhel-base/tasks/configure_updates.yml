@@ -1,0 +1,43 @@
+---
+# System updates configuration
+# Configure automatic security updates
+
+- name: Ensure yum-cron is installed
+  package:
+    name: yum-cron
+    state: present
+  when: auto_updates_enabled
+  tags: ['updates']
+
+- name: Configure yum-cron for security updates
+  lineinfile:
+    path: /etc/yum/yum-cron.conf
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+  loop:
+    - { regexp: '^update_cmd =', line: 'update_cmd = security' }
+    - { regexp: '^apply_updates =', line: 'apply_updates = no' }
+    - { regexp: '^download_updates =', line: 'download_updates = yes' }
+  when:
+    - auto_updates_enabled
+    - security_updates_only
+  notify: Restart yum-cron
+  tags: ['updates']
+
+- name: Ensure yum-cron is enabled
+  service:
+    name: yum-cron
+    enabled: true
+    state: started
+  when: auto_updates_enabled
+  tags: ['updates']
+
+- name: Disable yum-cron if not needed
+  service:
+    name: yum-cron
+    enabled: false
+    state: stopped
+  when: not auto_updates_enabled
+  failed_when: false
+  tags: ['updates']

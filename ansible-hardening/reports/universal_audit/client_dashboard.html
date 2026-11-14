@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard de Seguridad Linux - Auditoría</title>
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --critical: #ef4444;
+      --high: #f97316;
+      --medium: #eab308;
+      --low: #3b82f6;
+      --pass: #22c55e;
+      --accent-cyan: #06b6d4;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: var(--bg-dark); color: var(--text-main); padding: 24px; line-height: 1.5; }
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 20px; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+    .header-title h1 { font-size: 24px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
+    .header-title p { color: var(--text-muted); font-size: 14px; margin-top: 4px; }
+    .badge-client { background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); padding: 6px 14px; border-radius: 9999px; font-weight: 600; font-size: 13px; border: 1px solid rgba(6, 182, 212, 0.3); }
+
+    .grid-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .kpi-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 18px; text-align: center; }
+    .kpi-title { font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; }
+    .kpi-val { font-size: 32px; font-weight: 800; margin-top: 6px; }
+
+    .grid-main { display: grid; grid-template-columns: 320px 1fr; gap: 24px; margin-bottom: 24px; }
+    @media (max-width: 900px) { .grid-main { grid-template-columns: 1fr; } }
+
+    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 20px; }
+    .card h2 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px; }
+
+    .score-circle { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 0; }
+    .score-text { font-size: 38px; font-weight: 800; fill: #fff; }
+    .meta-list { margin-top: 16px; font-size: 13px; color: var(--text-muted); }
+    .meta-list li { margin-bottom: 8px; display: flex; justify-content: space-between; }
+    .meta-list strong { color: #e2e8f0; }
+
+    .controls-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 12px; flex-wrap: wrap; }
+    .search-box { background: #0f172a; border: 1px solid var(--card-border); color: #fff; padding: 8px 14px; border-radius: 6px; font-size: 14px; width: 260px; outline: none; }
+    .search-box:focus { border-color: var(--accent-cyan); }
+    .btn-filter { background: #0f172a; border: 1px solid var(--card-border); color: var(--text-muted); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; }
+    .btn-filter.active, .btn-filter:hover { background: #334155; color: #fff; border-color: #64748b; }
+
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+    th { background: #0f172a; color: var(--text-muted); font-weight: 600; padding: 12px 14px; border-bottom: 1px solid var(--card-border); text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
+    td { padding: 14px; border-bottom: 1px solid var(--card-border); vertical-align: top; }
+    tr:hover { background: rgba(255, 255, 255, 0.02); }
+
+    .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+    .badge-CRITICAL { background: rgba(239, 68, 68, 0.2); color: var(--critical); border: 1px solid rgba(239, 68, 68, 0.4); }
+    .badge-HIGH { background: rgba(249, 115, 22, 0.2); color: var(--high); border: 1px solid rgba(249, 115, 22, 0.4); }
+    .badge-MEDIUM { background: rgba(234, 179, 8, 0.2); color: var(--medium); border: 1px solid rgba(234, 179, 8, 0.4); }
+    .badge-LOW { background: rgba(59, 130, 246, 0.2); color: var(--low); border: 1px solid rgba(59, 130, 246, 0.4); }
+    .badge-PASS { background: rgba(34, 197, 94, 0.2); color: var(--pass); border: 1px solid rgba(34, 197, 94, 0.4); }
+    .badge-FAIL { background: rgba(239, 68, 68, 0.2); color: var(--critical); border: 1px solid rgba(239, 68, 68, 0.4); }
+
+    .evidence-box { font-family: monospace; font-size: 11px; background: #0b0f19; padding: 6px 10px; border-radius: 4px; border: 1px solid #1e293b; color: #38bdf8; margin-top: 6px; word-break: break-all; }
+    .remed-box { margin-top: 6px; color: #94a3b8; font-size: 12px; }
+    .remed-box strong { color: #e2e8f0; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="header-title">
+      <h1>Auditoría de Vulnerabilidades y Seguridad Linux</h1>
+      <p>Reporte Técnico de Postura de Seguridad y Hardening Enterprise</p>
+    </div>
+    <div>
+      <span class="badge-client">CLIENTE: <span id="clientName"></span></span>
+    </div>
+  </div>
+
+  <div class="grid-kpis">
+    <div class="kpi-card">
+      <div class="kpi-title">Puntaje de Seguridad</div>
+      <div class="kpi-val" id="scoreVal" style="color: var(--pass);">--%</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-title">Fallas Críticas</div>
+      <div class="kpi-val" style="color: var(--critical);" id="critVal">0</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-title">Fallas Altas</div>
+      <div class="kpi-val" style="color: var(--high);" id="highVal">0</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-title">Fallas Medias</div>
+      <div class="kpi-val" style="color: var(--medium);" id="medVal">0</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-title">Controles Aprobados</div>
+      <div class="kpi-val" style="color: var(--pass);" id="passVal">0</div>
+    </div>
+  </div>
+
+  <div class="grid-main">
+    <div class="card">
+      <h2>Resumen Ejecutivo</h2>
+      <div class="score-circle">
+        <svg width="180" height="180" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="45" fill="none" stroke="#334155" stroke-width="8"></circle>
+          <circle id="scoreRing" cx="50" cy="50" r="45" fill="none" stroke="#22c55e" stroke-width="8"
+                  stroke-dasharray="283" stroke-dashoffset="283" stroke-linecap="round"
+                  transform="rotate(-90 50 50)" style="transition: stroke-dashoffset 1s ease;"></circle>
+          <text id="scoreSvgText" x="50" y="55" text-anchor="middle" class="score-text">0%</text>
+        </svg>
+      </div>
+      <ul class="meta-list">
+        <li><span>Servidor / Host:</span> <strong id="hostVal">--</strong></li>
+        <li><span>Sistema Operativo:</span> <strong id="osVal">--</strong></li>
+        <li><span>Kernel:</span> <strong id="kernelVal">--</strong></li>
+        <li><span>Fecha Auditoría:</span> <strong id="dateVal">--</strong></li>
+        <li><span>Auditor:</span> <strong id="opVal">--</strong></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Detalle de Puntos de Control y Remediación</h2>
+      <div class="controls-bar">
+        <input type="text" id="searchInput" class="search-box" placeholder="Buscar control, módulo o palabra...">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn-filter active" onclick="setFilter('ALL')">Todos</button>
+          <button class="btn-filter" onclick="setFilter('FAIL')">Solo Fallas</button>
+          <button class="btn-filter" onclick="setFilter('CRITICAL')">Críticos</button>
+          <button class="btn-filter" onclick="setFilter('HIGH')">Altos</button>
+          <button class="btn-filter" onclick="setFilter('PASS')">Aprobados</button>
+        </div>
+      </div>
+      <div class="table-container">
+        <table id="findingsTable">
+          <thead>
+            <tr>
+              <th style="width: 80px;">ID</th>
+              <th style="width: 100px;">Módulo</th>
+              <th>Hallazgo / Control</th>
+              <th style="width: 90px;">Severidad</th>
+              <th style="width: 90px;">Estado</th>
+              <th>Impacto y Remediación</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Embedded JSON Audit Data
+    const AUDIT_DATA =
+{
+  "audit_metadata": {
+    "tool": "Enterprise Linux Vulnerability Auditor",
+    "version": "2.1.0",
+    "client": "Cliente Enterprise Universal",
+    "operator": "ruben@localhost",
+    "host": "LAPTOP-OLA3AN8B",
+    "os": "MINGW64_NT-10.0-26300 3.6.7-fb42d713.x86_64",
+    "kernel": "3.6.7-fb42d713.x86_64",
+    "timestamp": "2026-11-14T03:29:28Z",
+    "modules_audited": "all"
+  },
+  "summary": {
+    "total_controls": 23,
+    "passed": 14,
+    "failed": 9,
+    "security_score_percent": 31,
+    "critical_failures": 1,
+    "high_failures": 2,
+    "medium_failures": 4,
+    "low_failures": 2
+  },
+  "findings": [
+  {
+    "id": "AUTH-01",
+    "module": "auth",
+    "title": "Sin cuentas no autorizadas con UID 0 (root)",
+    "severity": "CRITICAL",
+    "status": "PASS",
+    "impact": "Cuentas secundarias con UID 0 otorgan control absoluto sin trazabilidad.",
+    "remediation": "Eliminar o revocar UID 0 a usuarios no legítimos.",
+    "evidence": "Solo root posee UID 0"
+  },
+  {
+    "id": "AUTH-02",
+    "module": "auth",
+    "title": "Lectura de /etc/shadow restringida (Ejecute con privilegios)",
+    "severity": "MEDIUM",
+    "status": "PASS",
+    "impact": "No se pudo auditar /etc/shadow.",
+    "remediation": "Ejecutar con sudo/root.",
+    "evidence": "Sin acceso de lectura"
+  },
+  {
+    "id": "AUTH-04",
+    "module": "auth",
+    "title": "Archivo /etc/shadow no presente en este entorno",
+    "severity": "LOW",
+    "status": "PASS",
+    "impact": "Información no aplicable.",
+    "remediation": "N/A",
+    "evidence": "No presente"
+  },
+  {
+    "id": "SSH-01",
+    "module": "ssh",
+    "title": "Root login solo por llave SSH (PermitRootLogin prohibit-password)",
+    "severity": "MEDIUM",
+    "status": "PASS",
+    "impact": "Evita ataques de fuerza bruta de contraseña en root.",
+    "remediation": "Recomendado migrar a 'PermitRootLogin no' para trazabilidad de usuario.",
+    "evidence": "PermitRootLogin=prohibit-password"
+  },
+  {
+    "id": "SSH-02",
+    "module": "ssh",
+    "title": "Autenticación SSH por contraseña permitida",
+    "severity": "MEDIUM",
+    "status": "FAIL",
+    "impact": "Permite vectores de fuerza bruta y contraseñas débiles.",
+    "remediation": "Distribuir llaves públicas y configurar 'PasswordAuthentication no'.",
+    "evidence": "PasswordAuthentication=yes"
+  },
+  {
+    "id": "SSH-03",
+    "module": "ssh",
+    "title": "Intentos de autenticación SSH permisivos (MaxAuthTries > 4)",
+    "severity": "LOW",
+    "status": "FAIL",
+    "impact": "Permite mayor ventana para ataques de fuerza bruta.",
+    "remediation": "Definir 'MaxAuthTries 4' en /etc/ssh/sshd_config.",
+    "evidence": "MaxAuthTries=6"
+  },
+  {
+    "id": "SSH-04",
+    "module": "ssh",
+    "title": "Reenvío X11 deshabilitado (X11Forwarding no)",
+    "severity": "LOW",
+    "status": "PASS",
+    "impact": "Reduce la superficie de ataque de captura de teclas o ventanas X.",
+    "remediation": "Mantener X11Forwarding no.",
+    "evidence": "X11Forwarding=no"
+  },
+  {
+    "id": "NET-01",
+    "module": "network",
+    "title": "Sin servicio de Firewall local activo",
+    "severity": "CRITICAL",
+    "status": "FAIL",
+    "impact": "Todos los puertos abiertos en el host quedan expuestos directamente a la red.",
+    "remediation": "Habilitar e iniciar firewalld/iptables inmediatamente: systemctl enable --now firewalld",
+    "evidence": "No se detectó firewall activo"
+  },
+  {
+    "id": "NET-02",
+    "module": "network",
+    "title": "Reenvío de paquetes IP deshabilitado (ip_forward=0)",
+    "severity": "HIGH",
+    "status": "PASS",
+    "impact": "Previene que el servidor actúe como router o puente no autorizado.",
+    "remediation": "Mantener net.ipv4.ip_forward = 0.",
+    "evidence": "net.ipv4.ip_forward=0"
+  },
+  {
+    "id": "NET-03",
+    "module": "network",
+    "title": "Protección TCP SYN Cookies deshabilitada",
+    "severity": "MEDIUM",
+    "status": "FAIL",
+    "impact": "Vulnerable a agotamiento de tabla de conexiones bajo SYN Flood.",
+    "remediation": "Configurar: sysctl -w net.ipv4.tcp_syncookies=1",
+    "evidence": "net.ipv4.tcp_syncookies=0"
+  },
+  {
+    "id": "FS-02",
+    "module": "fs",
+    "title": "Sin ejecutables SUID sospechosos en /tmp, /var/tmp, /dev/shm",
+    "severity": "HIGH",
+    "status": "PASS",
+    "impact": "Previene técnicas clásicas de persistencia o elevación de privilegios.",
+    "remediation": "Mantener particiones temporales limpias de binarios SUID.",
+    "evidence": "Limpio"
+  },
+  {
+    "id": "FS-03",
+    "module": "fs",
+    "title": "Sticky bit activo en directorios públicos de escritura",
+    "severity": "MEDIUM",
+    "status": "PASS",
+    "impact": "Evita que usuarios no privilegiados borren o renombren archivos ajenos.",
+    "remediation": "Mantener permisos con sticky bit (chmod +t).",
+    "evidence": "Correcto"
+  },
+  {
+    "id": "SRV-LEGACY",
+    "module": "services",
+    "title": "Sin servicios heredados inseguros activos (Telnet, RSH, TFTP)",
+    "severity": "HIGH",
+    "status": "PASS",
+    "impact": "Evita vectores de ataque clásicos por protocolos en texto plano.",
+    "remediation": "Mantener deshabilitados servicios heredados.",
+    "evidence": "Todos inactivos"
+  },
+  {
+    "id": "KERN-01",
+    "module": "kernel",
+    "title": "ASLR deshabilitado o incompleto (actual: 0)",
+    "severity": "HIGH",
+    "status": "FAIL",
+    "impact": "Memoria predecible facilita la ejecución de exploits binarios ROP / Shellcode.",
+    "remediation": "Configurar: sysctl -w kernel.randomize_va_space=2",
+    "evidence": "kernel.randomize_va_space=0 (esperado 2)"
+  },
+  {
+    "id": "KERN-02",
+    "module": "kernel",
+    "title": "Volcados de memoria SUID permitidos (fs.suid_dumpable != 0)",
+    "severity": "MEDIUM",
+    "status": "FAIL",
+    "impact": "Procesos privilegiados que caen pueden generar archivos core con datos sensibles.",
+    "remediation": "Configurar: sysctl -w fs.suid_dumpable=0",
+    "evidence": "fs.suid_dumpable=1"
+  },
+  {
+    "id": "KERN-03",
+    "module": "kernel",
+    "title": "Mensajes de kernel dmesg visibles para usuarios no privilegiados",
+    "severity": "LOW",
+    "status": "FAIL",
+    "impact": "Filtración de direcciones de memoria del kernel a atacantes locales.",
+    "remediation": "Configurar: sysctl -w kernel.dmesg_restrict=1",
+    "evidence": "kernel.dmesg_restrict=0"
+  },
+  {
+    "id": "MAC-01",
+    "module": "mac",
+    "title": "Sin sistema MAC (SELinux / AppArmor) detectado",
+    "severity": "HIGH",
+    "status": "FAIL",
+    "impact": "El sistema carece de capa de confinamiento mandatorio L3.",
+    "remediation": "Instalar y habilitar SELinux o AppArmor según la distribución.",
+    "evidence": "No instalado"
+  },
+  {
+    "id": "MAC-02",
+    "module": "mac",
+    "title": "Servicio de auditoría auditd inactivo",
+    "severity": "MEDIUM",
+    "status": "FAIL",
+    "impact": "Pérdida de trazabilidad forense ante incidentes de seguridad.",
+    "remediation": "Habilitar e iniciar auditd: systemctl enable --now auditd",
+    "evidence": "auditd inactivo"
+  },
+  {
+    "id": "UPD-01",
+    "module": "updates",
+    "title": "Sistema al día con paquetes y parches de seguridad (Gestor genérico)",
+    "severity": "HIGH",
+    "status": "PASS",
+    "impact": "Reduce la exposición a vulnerabilidades conocidas (CVEs).",
+    "remediation": "Mantener política de parcheo mensual.",
+    "evidence": "Sin parches críticos pendientes"
+  },
+  {
+    "id": "UPD-02",
+    "module": "updates",
+    "title": "Kernel en ejecución sincronizado con la última versión instalada",
+    "severity": "MEDIUM",
+    "status": "PASS",
+    "impact": "El kernel activo es el más reciente disponible en el sistema.",
+    "remediation": "Continuar monitoreo de releases de kernel.",
+    "evidence": "Versión: 3.6.7-fb42d713.x86_64"
+  },
+  {
+    "id": "APP-01",
+    "module": "workload",
+    "title": "Sin motores de base de datos principales activos",
+    "severity": "INFO",
+    "status": "PASS",
+    "impact": "No se detectaron daemons de DB en ejecución.",
+    "remediation": "N/A",
+    "evidence": "Sin daemons de DB"
+  },
+  {
+    "id": "APP-02",
+    "module": "workload",
+    "title": "Sin servidores web HTTP principales activos",
+    "severity": "INFO",
+    "status": "PASS",
+    "impact": "No se detectaron daemons web en ejecución.",
+    "remediation": "N/A",
+    "evidence": "Sin daemons web"
+  },
+  {
+    "id": "APP-03",
+    "module": "workload",
+    "title": "Sin runtimes de aplicaciones principales activos",
+    "severity": "INFO",
+    "status": "PASS",
+    "impact": "No se detectaron daemons de app server.",
+    "remediation": "N/A",
+    "evidence": "Sin app servers"
+  }
+  ]
+}
+;
+
+    // Render Dashboard
+    document.getElementById('clientName').textContent = AUDIT_DATA.audit_metadata.client;
+    document.getElementById('hostVal').textContent = AUDIT_DATA.audit_metadata.host;
+    document.getElementById('osVal').textContent = AUDIT_DATA.audit_metadata.os;
+    document.getElementById('kernelVal').textContent = AUDIT_DATA.audit_metadata.kernel;
+    document.getElementById('dateVal').textContent = AUDIT_DATA.audit_metadata.timestamp;
+    document.getElementById('opVal').textContent = AUDIT_DATA.audit_metadata.operator;
+
+    const summary = AUDIT_DATA.summary;
+    const score = summary.security_score_percent;
+    document.getElementById('scoreVal').textContent = score + '%';
+    document.getElementById('scoreSvgText').textContent = score + '%';
+    document.getElementById('critVal').textContent = summary.critical_failures;
+    document.getElementById('highVal').textContent = summary.high_failures;
+    document.getElementById('medVal').textContent = summary.medium_failures;
+    document.getElementById('passVal').textContent = summary.passed;
+
+    // SVG Score Circle
+    const ring = document.getElementById('scoreRing');
+    const offset = 283 - ((score * 283) / 100);
+    ring.style.strokeDashoffset = offset;
+    let ringColor = "#22c55e";
+    if (score < 70) ringColor = "#eab308";
+    if (score < 50) ringColor = "#ef4444";
+    ring.style.stroke = ringColor;
+    document.getElementById('scoreVal').style.color = ringColor;
+
+    let currentFilter = 'ALL';
+    let searchQuery = '';
+
+    function renderTable() {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+
+      AUDIT_DATA.findings.forEach(f => {
+        // Filter logic
+        if (currentFilter === 'FAIL' && f.status !== 'FAIL') return;
+        if (currentFilter === 'PASS' && f.status !== 'PASS') return;
+        if (currentFilter === 'CRITICAL' && (f.severity !== 'CRITICAL' || f.status !== 'FAIL')) return;
+        if (currentFilter === 'HIGH' && (f.severity !== 'HIGH' || f.status !== 'FAIL')) return;
+
+        // Search logic
+        if (searchQuery) {
+          const text = (f.id + ' ' + f.module + ' ' + f.title + ' ' + f.impact + ' ' + f.remediation).toLowerCase();
+          if (!text.includes(searchQuery.toLowerCase())) return;
+        }
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${f.id}</strong></td>
+          <td><span style="color:var(--text-muted);font-weight:600;">${f.module.toUpperCase()}</span></td>
+          <td>
+            <strong>${f.title}</strong>
+            <div class="evidence-box">Evidencia: ${f.evidence}</div>
+          </td>
+          <td><span class="badge badge-${f.severity}">${f.severity}</span></td>
+          <td><span class="badge badge-${f.status}">${f.status}</span></td>
+          <td>
+            <div>${f.impact}</div>
+            <div class="remed-box"><strong>Remediación:</strong> ${f.remediation}</div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function setFilter(type) {
+      currentFilter = type;
+      document.querySelectorAll('.btn-filter').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      renderTable();
+    }
+
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      searchQuery = e.target.value;
+      renderTable();
+    });
+
+    renderTable();
+  </script>
+</body>
+</html>

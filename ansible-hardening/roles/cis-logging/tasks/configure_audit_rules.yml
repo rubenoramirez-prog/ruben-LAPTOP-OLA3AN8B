@@ -1,0 +1,89 @@
+---
+# CIS 4.1.3 - 4.1.18 - Audit Rules Configuration
+
+- name: Create /etc/audit/rules.d/cis.rules
+  copy:
+    dest: /etc/audit/rules.d/cis.rules
+    owner: root
+    group: root
+    mode: '0600'
+    content: |
+      # CIS Benchmark Audit Rules
+      # Managed by Ansible Hardening
+
+      # Delete all previous rules
+      -D
+
+      # Set buffer size
+      -b 8192
+
+      # Failure mode: 1 = printk, 2 = panic
+      -f 1
+
+      # CIS 4.1.3 - Record events that modify date and time
+      -a always,exit -F arch=b64 -S adjtimex,settimeofday,clock_settime -k time-change
+      -a always,exit -F arch=b32 -S adjtimex,settimeofday,clock_settime,stime -k time-change
+      -w /etc/localtime -p wa -k time-change
+
+      # CIS 4.1.4 - Record events that modify user/group information
+      -w /etc/group -p wa -k identity
+      -w /etc/passwd -p wa -k identity
+      -w /etc/gshadow -p wa -k identity
+      -w /etc/shadow -p wa -k identity
+      -w /etc/security/opasswd -p wa -k identity
+
+      # CIS 4.1.5 - Record events that modify the system's network environment
+      -a always,exit -F arch=b64 -S sethostname,setdomainname -k system-locale
+      -a always,exit -F arch=b32 -S sethostname,setdomainname -k system-locale
+      -w /etc/issue -p wa -k system-locale
+      -w /etc/issue.net -p wa -k system-locale
+      -w /etc/hosts -p wa -k system-locale
+      -w /etc/sysconfig/network -p wa -k system-locale
+
+      # CIS 4.1.6 - Record events that modify MAC policy (SELinux)
+      -w /etc/selinux/ -p wa -k MAC-policy
+      -w /usr/share/selinux/ -p wa -k MAC-policy
+
+      # CIS 4.1.7 - Record login and logout events
+      -w /var/log/lastlog -p wa -k logins
+      -w /var/run/faillock/ -p wa -k logins
+
+      # CIS 4.1.8 - Record session initiation information
+      -w /var/run/utmp -p wa -k session
+      -w /var/log/wtmp -p wa -k session
+      -w /var/log/btmp -p wa -k session
+
+      # CIS 4.1.9 - Discretionary access control permission modification events
+      -a always,exit -F arch=b64 -S chmod,fchmod,fchmodat -F auid>=1000 -F auid!=unset -k perm_mod
+      -a always,exit -F arch=b64 -S chown,fchown,lchown,fchownat -F auid>=1000 -F auid!=unset -k perm_mod
+      -a always,exit -F arch=b64 -S setxattr,lsetxattr,fsetxattr,removexattr,lremovexattr,fremovexattr -F auid>=1000 -F auid!=unset -k perm_mod
+
+      # CIS 4.1.10 - Record unsuccessful unauthorized file access attempts
+      -a always,exit -F arch=b64 -S creat,open,openat,truncate,ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=unset -k access
+      -a always,exit -F arch=b64 -S creat,open,openat,truncate,ftruncate -F exit=-EPERM -F auid>=1000 -F auid!=unset -k access
+
+      # CIS 4.1.13 - Record successful file system mounts
+      -a always,exit -F arch=b64 -S mount -F auid>=1000 -F auid!=unset -k mounts
+
+      # CIS 4.1.14 - Record file deletion events by users
+      -a always,exit -F arch=b64 -S unlink,unlinkat,rename,renameat -F auid>=1000 -F auid!=unset -k delete
+
+      # CIS 4.1.15 - Record changes to sudoers
+      -w /etc/sudoers -p wa -k actions
+      -w /etc/sudoers.d/ -p wa -k actions
+
+      # CIS 4.1.16 - Record system administrator actions (sudo log)
+      -w /var/log/sudo.log -p wa -k actions
+
+      # CIS 4.1.17 - Record kernel module loading and unloading
+      -w /sbin/insmod -p x -k modules
+      -w /sbin/rmmod -p x -k modules
+      -w /sbin/modprobe -p x -k modules
+      -a always,exit -F arch=b64 -S init_module,delete_module -k modules
+
+      {% if audit_immutable %}
+      # CIS 4.1.18 - Make the audit configuration immutable
+      -e 2
+      {% endif %}
+  notify: Reload audit rules
+  tags: ['auditd', 'rules']

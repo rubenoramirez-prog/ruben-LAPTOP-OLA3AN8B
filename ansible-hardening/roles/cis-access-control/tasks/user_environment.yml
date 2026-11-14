@@ -1,0 +1,46 @@
+---
+# CIS 5.4 - User Accounts and Environment
+
+- name: Backup login.defs
+  copy:
+    src: /etc/login.defs
+    dest: /var/backups/ansible-hardening/cis-access-control/login.defs.{{ ansible_date_time.epoch }}
+    remote_src: true
+  when: backup_configs
+  failed_when: false
+  tags: ['users']
+
+- name: Configure password expiration policies in /etc/login.defs (CIS 5.4.1.1 - 5.4.1.3)
+  lineinfile:
+    path: /etc/login.defs
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+  loop:
+    - { regexp: '^#?PASS_MAX_DAYS\s+', line: "PASS_MAX_DAYS\t{{ pass_max_days }}" }
+    - { regexp: '^#?PASS_MIN_DAYS\s+', line: "PASS_MIN_DAYS\t{{ pass_min_days }}" }
+    - { regexp: '^#?PASS_WARN_AGE\s+', line: "PASS_WARN_AGE\t{{ pass_warn_age }}" }
+  tags: ['users']
+
+- name: Configure default umask in /etc/bashrc and /etc/profile (CIS 5.4.4)
+  lineinfile:
+    path: "{{ item }}"
+    regexp: 'umask\s+[0-9]+'
+    line: "umask {{ default_umask }}"
+    state: present
+  loop:
+    - /etc/bashrc
+    - /etc/profile
+  tags: ['environment']
+
+- name: Configure session timeout in /etc/profile.d/tmout.sh (CIS 5.4.5)
+  copy:
+    dest: /etc/profile.d/tmout.sh
+    content: |
+      # CIS Benchmark Shell Inactivity Timeout
+      readonly TMOUT={{ shell_timeout }}
+      export TMOUT
+    owner: root
+    group: root
+    mode: '0644'
+  tags: ['environment']

@@ -1,0 +1,50 @@
+---
+# Default variables for cis-rhel-base role
+# CIS Benchmark Base System Configuration
+
+# Hardening level
+cis_level: "{{ hardening_level | default('level1') }}"
+
+# Backup configuration
+backup_configs: true
+
+# CIS 1.4.x - Boot Settings
+grub_password_enabled: true
+grub_password: ""  # Should be set via vault
+single_user_auth: true
+
+# CIS 1.5.x - Additional Process Hardening
+aslr_enabled: true
+core_dumps_restricted: true
+
+# CIS 1.6.x - Mandatory Access Control
+selinux_state: "enforcing"  # enforcing, permissive, disabled
+selinux_policy: "targeted"
+
+# CIS 1.7.x - Warning Banners
+motd_enabled: true
+issue_enabled: true
+issue_net_enabled: true
+gdm_banner_enabled: true
+
+banner_content: |
+  ******************************************************************
+  *                      AUTHORIZED ACCESS ONLY                    *
+  ******************************************************************
+  * This system is for authorized use only. Users have no          *
+  * expectation of privacy. Unauthorized access is prohibited      *
+  * and will be prosecuted to the fullest extent of the law.       *
+  ******************************************************************
+
+# CIS 1.8.x - GNOME Display Manager
+gdm_installed: false
+gdm_disable_user_list: true
+gdm_disable_guest: true
+gdm_disable_automatic_login: true
+
+# System updates
+auto_updates_enabled: false  # Manual control preferred in enterprise
+security_updates_only: true
+
+# Kernel parameters
+kernel_hardening_enabled: true

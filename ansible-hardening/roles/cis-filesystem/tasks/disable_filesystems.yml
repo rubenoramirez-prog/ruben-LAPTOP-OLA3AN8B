@@ -1,0 +1,70 @@
+---
+# CIS 1.1.1.x - Disable unused filesystems
+# Prevents loading of kernel modules for filesystems not in use
+# Reduces attack surface
+
+- name: Check if modprobe.d directory exists
+  stat:
+    path: /etc/modprobe.d
+  register: modprobe_dir
+  tags: ['filesystems']
+
+- name: Create modprobe.d if not exists
+  file:
+    path: /etc/modprobe.d
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+  when: not modprobe_dir.stat.exists
+  tags: ['filesystems']
+
+- name: Backup existing CIS filesystem config
+  copy:
+    src: /etc/modprobe.d/cis-filesystem.conf
+    dest: /var/backups/ansible-hardening/cis-filesystem/cis-filesystem.conf.{{ ansible_date_time.epoch }}
+    remote_src: true
+  when:
+    - backup_configs
+    - modprobe_dir.stat.exists
+  failed_when: false
+  tags: ['filesystems']
+
+- name: Disable unused filesystems via modprobe
+  lineinfile:
+    path: /etc/modprobe.d/cis-filesystem.conf
+    line: "install {{ item }} /bin/true"
+    create: true
+    mode: '0644'
+    owner: root
+    group: root
+  loop: "{{ disable_filesystems }}"
+  notify: Update initramfs
+  tags: ['filesystems']
+
+- name: Remove unused filesystem modules from kernel
+  modprobe:
+    name: "{{ item }}"
+    state: absent
+  loop: "{{ disable_filesystems }}"
+  failed_when: false
+  tags: ['filesystems']
+
+- name: Verify filesystems are disabled
+  shell: |
+    set -euo pipefail
+    lsmod | grep -q "^{{ item }}\s" && echo "LOADED" || echo "NOT_LOADED"
+  args:
+    executable: /bin/bash
+  loop: "{{ disable_filesystems }}"
+  register: fs_check
+  changed_when: false
+  failed_when: false
+  tags: ['filesystems', 'validate']
+
+- name: Report disabled filesystems status
+  debug:
+    msg: "Filesystem {{ item.item }}: {{ item.stdout }}"
+  loop: "{{ fs_check.results }}"
+  when: fs_check is defined
+  tags: ['filesystems', 'validate']

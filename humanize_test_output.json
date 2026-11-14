@@ -1,0 +1,57 @@
+{
+  "raw": {
+    "text": "I spent ten years in the agency world. Here is why most proposal templates fail. They are too generic. You need one specific line that proves you know the client's pain.",
+    "score": 39.7,
+    "verdict": "FLAGGED",
+    "checks": {
+      "BURSTINESS": {
+        "score": 31.1,
+        "detail": "variation 0.37 across 4 sentences (want 0.55+)"
+      },
+      "SPECIFICITY": {
+        "score": 0.0,
+        "detail": "0 concrete markers, 0.0 per 100 words (want 4+)"
+      },
+      "SLOP DENSITY": {
+        "score": 100.0,
+        "detail": "0 stock terms, 0.0 per 100 words"
+      },
+      "FINGERPRINT": {
+        "score": 100.0,
+        "detail": "0 invisible, 0 em dash, 0 curly quote, 0 ellipsis, 0 hard space"
+      },
+      "VOICE": {
+        "score": 100.0,
+        "detail": "3.2 contractions, 9.7 personal pronouns per 100 words, 0 structural tell(s)"
+      }
+    }
+  },
+  "clean": {
+    "text": "I spent ten years in the agency world. Here is why most proposal templates fail. They are too generic. You need one specific line that proves you know the client's pain.\n",
+    "score": 39.7,
+    "verdict": "FLAGGED",
+    "checks": {
+      "BURSTINESS": {
+        "score": 31.1,
+        "detail": "variation 0.37 across 4 sentences (want 0.55+)"
+      },
+      "SPECIFICITY": {
+        "score": 0.0,
+        "detail": "0 concrete markers, 0.0 per 100 words (want 4+)"
+      },
+      "SLOP DENSITY": {
+        "score": 100.0,
+        "detail": "0 stock terms, 0.0 per 100 words"
+      },
+      "FINGERPRINT": {
+        "score": 100.0,
+        "detail": "0 invisible, 0 em dash, 0 curly quote, 0 ellipsis, 0 hard space"
+      },
+      "VOICE": {
+        "score": 100.0,
+        "detail": "3.2 contractions, 9.7 personal pronouns per 100 words, 0 structural tell(s)"
+      }
+    }
+  },
+  "delta": 0.0
+}

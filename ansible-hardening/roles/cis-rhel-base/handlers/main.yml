@@ -1,0 +1,15 @@
+---
+# Handlers for cis-rhel-base role
+
+- name: Reload systemd
+  systemd:
+    daemon_reload: true
+
+- name: Update dconf
+  command: dconf update
+  changed_when: false
+
+- name: Restart yum-cron
+  service:
+    name: yum-cron
+    state: restarted

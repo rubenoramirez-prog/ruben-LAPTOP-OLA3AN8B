@@ -1,0 +1,87 @@
+---
+# Main site playbook - Enterprise RHEL Hardening
+# Author: Ruben Omar Ramírez Gutiérrez
+# Date: 2026-11-12
+# Description: Orchestrates CIS Benchmark hardening across RHEL infrastructure
+
+- name: CIS RHEL Hardening - Complete Suite
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    hardening_level: "level1"  # level1 (baseline) or level2 (strict)
+    backup_enabled: true
+    compliance_report: true
+
+  pre_tasks:
+    - name: Verify RHEL version compatibility
+      assert:
+        that:
+          - ansible_distribution == "RedHat" or ansible_distribution == "CentOS" or ansible_distribution == "Rocky"
+          - ansible_distribution_major_version in ["8", "9"]
+        fail_msg: "This playbook requires RHEL/CentOS/Rocky 8 or 9"
+        success_msg: "Compatible OS detected: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+      tags: always
+
+    - name: Create backup directory
+      file:
+        path: /var/backups/ansible-hardening
+        state: directory
+        mode: '0700'
+        owner: root
+        group: root
+      when: backup_enabled
+      tags: always
+
+    - name: Record pre-hardening state
+      shell: |
+        date > /var/backups/ansible-hardening/pre_hardening_{{ ansible_date_time.iso8601_basic_short }}.txt
+        uname -a >> /var/backups/ansible-hardening/pre_hardening_{{ ansible_date_time.iso8601_basic_short }}.txt
+      when: backup_enabled
+      tags: always
+
+  roles:
+    - role: cis-rhel-base
+      tags: ['base', 'cis']
+
+    - role: cis-filesystem
+      tags: ['filesystem', 'cis']
+
+    - role: cis-services
+      tags: ['services', 'cis']
+
+    - role: cis-network
+      tags: ['network', 'cis']
+
+    - role: cis-logging
+      tags: ['logging', 'cis']
+
+    - role: cis-access-control
+      tags: ['access', 'cis']
+
+  post_tasks:
+    - name: Record post-hardening state
+      shell: |
+        date > /var/backups/ansible-hardening/post_hardening_{{ ansible_date_time.iso8601_basic_short }}.txt
+        systemctl list-units --type=service --state=running >> /var/backups/ansible-hardening/post_hardening_{{ ansible_date_time.iso8601_basic_short }}.txt
+      when: backup_enabled
+      tags: always
+
+    - name: Generate compliance report
+      include_tasks: tasks/compliance_report.yml
+      when: compliance_report
+      tags: ['report']
+
+    - name: Display hardening summary
+      debug:
+        msg: |
+          ========================================
+          RHEL Hardening Complete
+          ========================================
+          Host: {{ ansible_hostname }}
+          Level: {{ hardening_level }}
+          Date: {{ ansible_date_time.iso8601 }}
+          Backup: {{ '/var/backups/ansible-hardening' if backup_enabled else 'disabled' }}
+          ========================================
+      tags: always

@@ -1,0 +1,24 @@
+---
+# CIS 1.1.24 - Disable automounting (autofs)
+
+- name: Check if autofs is installed
+  package_facts:
+    manager: auto
+  tags: ['automount']
+
+- name: Stop and disable autofs service
+  service:
+    name: autofs
+    enabled: false
+    state: stopped
+  when: "'autofs' in ansible_facts.packages"
+  failed_when: false
+  tags: ['automount']
+
+- name: Mask autofs service
+  systemd:
+    name: autofs
+    masked: true
+  when: "'autofs' in ansible_facts.packages"
+  failed_when: false
+  tags: ['automount']
