@@ -39,8 +39,11 @@
                 <p class="text-gray-400 text-sm mt-1">Gestión de citas y atención de clientes vía WhatsApp Cloud API</p>
             </div>
             <div class="flex items-center gap-3">
+                <button onclick="dispatchReminders()" class="px-4 py-2 bg-accentAmber/20 border border-accentAmber/40 hover:bg-accentAmber/30 text-accentAmber text-sm font-medium rounded-lg transition flex items-center gap-2">
+                    🔔 Enviar Recordatorios
+                </button>
                 <button onclick="loadData()" class="px-4 py-2 bg-cardBg border border-borderCol hover:border-accentBlue text-sm font-medium rounded-lg transition flex items-center gap-2">
-                    🔄 Actualizar Datos
+                    🔄 Actualizar
                 </button>
                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-mono font-medium bg-accentTeal/20 text-accentTeal border border-accentTeal/30">
                     ● Bot Activo
@@ -86,7 +89,7 @@
                             <th class="py-3 px-6">Servicio</th>
                             <th class="py-3 px-6">Fecha / Hora</th>
                             <th class="py-3 px-6">Precio</th>
-                            <th class="py-3 px-6">Estado</th>
+                            <th class="py-3 px-6">Estado / Recordatorio</th>
                             <th class="py-3 px-6 text-right">Acciones</th>
                         </tr>
                     </thead>
@@ -141,6 +144,10 @@
                     statusBadge = '<span class="px-2.5 py-1 rounded-full text-xs font-mono font-medium bg-red-500/20 text-red-400 border border-red-500/30">CANCELADA</span>';
                 }
 
+                let reminderBadge = app.reminder_sent === 1
+                    ? '<span class="ml-2 text-xs font-mono text-accentTeal" title="Recordatorio enviado">🔔 Enviado</span>'
+                    : '<span class="ml-2 text-xs font-mono text-gray-500" title="Pendiente de recordatorio">🔕 Pendiente</span>';
+
                 return `
                     <tr class="hover:bg-darkBg/50 transition">
                         <td class="py-4 px-6 font-mono text-accentBlue font-bold">#${app.id}</td>
@@ -149,7 +156,7 @@
                         <td class="py-4 px-6">${app.service_name}</td>
                         <td class="py-4 px-6 font-mono text-gray-300">${app.appointment_time}</td>
                         <td class="py-4 px-6 font-mono text-accentTeal">$${app.price_mxn} MXN</td>
-                        <td class="py-4 px-6">${statusBadge}</td>
+                        <td class="py-4 px-6">${statusBadge} ${reminderBadge}</td>
                         <td class="py-4 px-6 text-right space-x-2">
                             <button onclick="updateStatus(${app.id}, 'COMPLETED')" title="Marcar como Completada" class="p-1.5 bg-cardBg border border-borderCol hover:border-accentTeal rounded text-accentTeal transition">✅</button>
                             <button onclick="updateStatus(${app.id}, 'CANCELLED')" title="Cancelar Cita" class="p-1.5 bg-cardBg border border-borderCol hover:border-red-500 rounded text-red-400 transition">❌</button>
@@ -183,6 +190,23 @@
                 }
             } catch (err) {
                 console.error("Failed to update status:", err);
+            }
+        }
+
+        async function dispatchReminders() {
+            if (!confirm("¿Deseas enviar los recordatorios de WhatsApp a todas las citas confirmadas pendientes?")) return;
+            try {
+                const res = await fetch('/api/reminders/dispatch', { method: 'POST' });
+                const data = await res.json();
+                if (res.ok) {
+                    alert(`¡Recordatorios enviados con éxito! Se despacharon ${data.dispatched_count} mensaje(s).`);
+                    loadData();
+                } else {
+                    alert("Error al enviar recordatorios.");
+                }
+            } catch (err) {
+                console.error("Failed to dispatch reminders:", err);
+                alert("Error de conexión al enviar recordatorios.");
             }
         }
 

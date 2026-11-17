@@ -33,9 +33,16 @@ def init_db():
             appointment_time TEXT NOT NULL,
             status TEXT NOT NULL,
             created_at TEXT NOT NULL,
+            reminder_sent INTEGER DEFAULT 0,
             FOREIGN KEY (service_id) REFERENCES services(id)
         )
     """)
+
+    # Robust check for reminder_sent column in existing table
+    cursor.execute("PRAGMA table_info(appointments)")
+    columns = [col[1] for col in cursor.fetchall()]
+    if "reminder_sent" not in columns:
+        cursor.execute("ALTER TABLE appointments ADD COLUMN reminder_sent INTEGER DEFAULT 0")
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS sessions (
@@ -81,8 +88,8 @@ def save_appointment(app: Appointment) -> int:
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
-        INSERT INTO appointments (phone_number, client_name, service_id, appointment_time, status, created_at)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO appointments (phone_number, client_name, service_id, appointment_time, status, created_at, reminder_sent)
+        VALUES (?, ?, ?, ?, ?, ?, 0)
     """, (app.phone_number, app.client_name, app.service_id, app.appointment_time, app.status, app.created_at))
     conn.commit()
     app_id = cursor.lastrowid
