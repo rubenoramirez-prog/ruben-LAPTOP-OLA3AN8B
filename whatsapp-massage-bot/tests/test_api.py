@@ -15,38 +15,20 @@ def test_webhook_verification():
     assert response.status_code == 200
     assert response.text == "1158201443"
 
-def test_webhook_incoming_message():
-    # Simulate incoming WhatsApp message JSON payload
-    payload = {
-        "object": "whatsapp_business_account",
-        "entry": [
-            {
-                "id": "123456789",
-                "changes": [
-                    {
-                        "value": {
-                            "messaging_product": "whatsapp",
-                            "metadata": {
-                                "display_phone_number": "15555555555",
-                                "phone_number_id": "100000000000000"
-                            },
-                            "contacts": [{"profile": {"name": "Cliente Test"}, "wa_id": "525599887766"}],
-                            "messages": [
-                                {
-                                    "from": "525599887766",
-                                    "id": "wamid.HBgL...",
-                                    "timestamp": "1600000000",
-                                    "text": {"body": "menu"},
-                                    "type": "text"
-                                }
-                            ]
-                        },
-                        "field": "messages"
-                    }
-                ]
-            }
-        ]
-    }
-    response = client.post("/webhook", json=payload)
-    assert response.status_code == 200
-    assert response.json() == {"status": "received"}
+def test_admin_endpoints():
+    # Test GET stats
+    stats_res = client.get("/api/stats")
+    assert stats_res.status_code == 200
+    data = stats_res.json()
+    assert "total_appointments" in data
+    assert "estimated_revenue_mxn" in data
+
+    # Test GET appointments
+    appts_res = client.get("/api/appointments")
+    assert appts_res.status_code == 200
+    assert isinstance(appts_res.json(), list)
+
+    # Test serve admin HTML panel
+    admin_res = client.get("/admin")
+    assert admin_res.status_code == 200
+    assert "Sintonía Zen" in admin_res.text

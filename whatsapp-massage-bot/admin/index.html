@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sintonía Zen — Panel de Administración</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Oswald:wght@500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#0d1117',
+                        cardBg: '#161b22',
+                        borderCol: '#30363d',
+                        accentTeal: '#238636',
+                        accentAmber: '#d29922',
+                        accentBlue: '#58a6ff',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                        oswald: ['Oswald', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-darkBg text-gray-100 min-h-screen font-sans antialiased">
+    <div class="max-width mx-auto px-4 py-8 max-w-7xl">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-borderCol pb-6 mb-8 gap-4">
+            <div>
+                <h1 class="font-oswald text-3xl font-bold tracking-wide text-accentBlue flex items-center gap-2">
+                    🌿 Sintonía Zen <span class="text-sm font-sans font-normal px-3 py-1 bg-cardBg border border-borderCol rounded-full text-gray-400">Panel de Administración</span>
+                </h1>
+                <p class="text-gray-400 text-sm mt-1">Gestión de citas y atención de clientes vía WhatsApp Cloud API</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="loadData()" class="px-4 py-2 bg-cardBg border border-borderCol hover:border-accentBlue text-sm font-medium rounded-lg transition flex items-center gap-2">
+                    🔄 Actualizar Datos
+                </button>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-mono font-medium bg-accentTeal/20 text-accentTeal border border-accentTeal/30">
+                    ● Bot Activo
+                </span>
+            </div>
+        </header>
+
+        <!-- KPI Metrics Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-cardBg border border-borderCol rounded-xl p-6 shadow-sm">
+                <div class="text-gray-400 text-sm font-medium mb-1">Total Citas Registradas</div>
+                <div id="stat-total" class="font-mono text-3xl font-bold text-gray-100">0</div>
+                <div class="text-xs text-gray-500 mt-2">Histórico completo en SQLite</div>
+            </div>
+            <div class="bg-cardBg border border-borderCol rounded-xl p-6 shadow-sm">
+                <div class="text-gray-400 text-sm font-medium mb-1">Ingresos Estimados</div>
+                <div id="stat-revenue" class="font-mono text-3xl font-bold text-accentTeal">$0 MXN</div>
+                <div class="text-xs text-gray-500 mt-2">Excluyendo citas canceladas</div>
+            </div>
+            <div class="bg-cardBg border border-borderCol rounded-xl p-6 shadow-sm">
+                <div class="text-gray-400 text-sm font-medium mb-1">Citas Confirmadas</div>
+                <div id="stat-confirmed" class="font-mono text-3xl font-bold text-accentAmber">0</div>
+                <div class="text-xs text-gray-500 mt-2">Pendientes de atención</div>
+            </div>
+        </div>
+
+        <!-- Appointments Table Section -->
+        <div class="bg-cardBg border border-borderCol rounded-xl shadow-sm overflow-hidden">
+            <div class="px-6 py-5 border-b border-borderCol flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <h2 class="font-oswald text-xl font-semibold tracking-wide">📅 Listado de Citas & Clientes</h2>
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <input type="text" id="searchInput" placeholder="Buscar por cliente o teléfono..." onkeyup="filterTable()" class="bg-darkBg border border-borderCol rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-accentBlue w-full sm:w-64 font-mono">
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-[#21262d] text-gray-400 font-mono text-xs uppercase tracking-wider border-b border-borderCol">
+                            <th class="py-3 px-6">Folio</th>
+                            <th class="py-3 px-6">Cliente</th>
+                            <th class="py-3 px-6">Teléfono (WhatsApp)</th>
+                            <th class="py-3 px-6">Servicio</th>
+                            <th class="py-3 px-6">Fecha / Hora</th>
+                            <th class="py-3 px-6">Precio</th>
+                            <th class="py-3 px-6">Estado</th>
+                            <th class="py-3 px-6 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="appointmentsTableBody" class="divide-y divide-borderCol text-sm font-sans">
+                        <tr>
+                            <td colspan="8" class="py-8 text-center text-gray-500 font-mono">Cargando citas...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let appointmentsData = [];
+
+        async function loadData() {
+            try {
+                const [statsRes, apptsRes] = await Promise.all([
+                    fetch('/api/stats'),
+                    fetch('/api/appointments')
+                ]);
+
+                const stats = await statsRes.json();
+                appointmentsData = await apptsRes.json();
+
+                // Update stats
+                document.getElementById('stat-total').innerText = stats.total_appointments;
+                document.getElementById('stat-revenue').innerText = `$${stats.estimated_revenue_mxn.toLocaleString()} MXN`;
+                document.getElementById('stat-confirmed').innerText = stats.by_status['CONFIRMED'] || 0;
+
+                renderTable(appointmentsData);
+            } catch (err) {
+                console.error("Error loading admin data:", err);
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('appointmentsTableBody');
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-gray-500 font-mono">No hay citas registradas todavía.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = data.map(app => {
+                let statusBadge = '';
+                if (app.status === 'CONFIRMED') {
+                    statusBadge = '<span class="px-2.5 py-1 rounded-full text-xs font-mono font-medium bg-accentAmber/20 text-accentAmber border border-accentAmber/30">CONFIRMADA</span>';
+                } else if (app.status === 'COMPLETED') {
+                    statusBadge = '<span class="px-2.5 py-1 rounded-full text-xs font-mono font-medium bg-accentTeal/20 text-accentTeal border border-accentTeal/30">COMPLETADA</span>';
+                } else {
+                    statusBadge = '<span class="px-2.5 py-1 rounded-full text-xs font-mono font-medium bg-red-500/20 text-red-400 border border-red-500/30">CANCELADA</span>';
+                }
+
+                return `
+                    <tr class="hover:bg-darkBg/50 transition">
+                        <td class="py-4 px-6 font-mono text-accentBlue font-bold">#${app.id}</td>
+                        <td class="py-4 px-6 font-semibold text-gray-200">${app.client_name}</td>
+                        <td class="py-4 px-6 font-mono text-gray-400">📞 ${app.phone_number}</td>
+                        <td class="py-4 px-6">${app.service_name}</td>
+                        <td class="py-4 px-6 font-mono text-gray-300">${app.appointment_time}</td>
+                        <td class="py-4 px-6 font-mono text-accentTeal">$${app.price_mxn} MXN</td>
+                        <td class="py-4 px-6">${statusBadge}</td>
+                        <td class="py-4 px-6 text-right space-x-2">
+                            <button onclick="updateStatus(${app.id}, 'COMPLETED')" title="Marcar como Completada" class="p-1.5 bg-cardBg border border-borderCol hover:border-accentTeal rounded text-accentTeal transition">✅</button>
+                            <button onclick="updateStatus(${app.id}, 'CANCELLED')" title="Cancelar Cita" class="p-1.5 bg-cardBg border border-borderCol hover:border-red-500 rounded text-red-400 transition">❌</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterTable() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = appointmentsData.filter(app =>
+                app.client_name.toLowerCase().includes(query) ||
+                app.phone_number.includes(query) ||
+                app.service_name.toLowerCase().includes(query)
+            );
+            renderTable(filtered);
+        }
+
+        async function updateStatus(id, newStatus) {
+            try {
+                const res = await fetch(`/api/appointments/${id}/status`, {
+                    method: 'PATCH',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({status: newStatus})
+                });
+                if (res.ok) {
+                    loadData();
+                } else {
+                    alert("Error al actualizar el estado de la cita");
+                }
+            } catch (err) {
+                console.error("Failed to update status:", err);
+            }
+        }
+
+        // Initial load & auto-refresh every 10 seconds
+        loadData();
+        setInterval(loadData, 10000);
+    </script>
+</body>
+</html>

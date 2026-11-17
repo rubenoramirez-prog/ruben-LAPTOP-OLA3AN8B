@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request, HTTPException, Query
-from fastapi.responses import PlainTextResponse, JSONResponse
+from fastapi.responses import PlainTextResponse, JSONResponse, HTMLResponse
 import os
-from app.adapters.database import init_db
+from app.adapters.database import init_db, get_connection
 from app.application.booking_service import handle_incoming_message
 
 app = FastAPI(title="WhatsApp Holistic Clinic Bot", version="1.0.0")
@@ -54,6 +54,68 @@ async def receive_webhook(request: Request):
     except Exception as ex:
         print(f"[ERROR] Error processing webhook: {ex}")
         return JSONResponse(content={"status": "error", "detail": str(ex)}, status_code=500)
+
+# =============================================================================
+# Admin & Dashboard API Endpoints
+# =============================================================================
+
+@app.get("/api/appointments")
+def get_appointments():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT a.id, a.phone_number, a.client_name, a.service_id, s.name as service_name,
+               s.price_mxn, s.duration_mins, a.appointment_time, a.status, a.created_at
+        FROM appointments a
+        JOIN services s ON a.service_id = s.id
+        ORDER BY a.id DESC
+    """)
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+@app.patch("/api/appointments/{app_id}/status")
+async def update_appointment_status(app_id: int, request: Request):
+    body = await request.json()
+    new_status = body.get("status")
+    if new_status not in ["CONFIRMED", "COMPLETED", "CANCELLED"]:
+        raise HTTPException(status_code=400, detail="Invalid status")
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE appointments SET status = ? WHERE id = ?", (new_status, app_id))
+    conn.commit()
+    conn.close()
+    return {"status": "success", "updated_id": app_id, "new_status": new_status}
+
+@app.get("/api/stats")
+def get_stats():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT COUNT(*) as total FROM appointments")
+    total_appts = cursor.fetchone()["total"]
+
+    cursor.execute("SELECT SUM(s.price_mxn) as revenue FROM appointments a JOIN services s ON a.service_id = s.id WHERE a.status != 'CANCELLED'")
+    revenue = cursor.fetchone()["revenue"] or 0.0
+
+    cursor.execute("SELECT status, COUNT(*) as count FROM appointments GROUP BY status")
+    by_status = {row["status"]: row["count"] for row in cursor.fetchall()}
+
+    conn.close()
+    return {
+        "total_appointments": total_appts,
+        "estimated_revenue_mxn": revenue,
+        "by_status": by_status
+    }
+
+@app.get("/admin", response_class=HTMLResponse)
+def serve_admin_panel():
+    html_path = os.path.join(os.path.dirname(__file__), "admin", "index.html")
+    if os.path.exists(html_path):
+        with open(html_path, "r", encoding="utf-8") as f:
+            return f.read()
+    return HTMLResponse("<h3>Admin panel HTML not found. Please check whatsapp-massage-bot/admin/index.html</h3>", status_code=404)
 
 if __name__ == "__main__":
     import uvicorn
