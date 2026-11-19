@@ -353,6 +353,13 @@ DATOS DEL CORREDOR
             }
         }
 
+        function getRecentMonday(d = new Date()) {
+            const date = new Date(d);
+            const day = date.getDay();
+            const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+            return new Date(date.setDate(diff));
+        }
+
         async function createNewAthleteFromMarkdown() {
             const mdText = document.getElementById('md-profile-content').value.trim();
             if (!mdText) return alert("Pega el MD completo del perfil y plan del corredor.");
@@ -373,9 +380,10 @@ DATOS DEL CORREDOR
 
                 const memberId = name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
                 const birthYear = new Date().getFullYear() - age;
-                const today = new Date().toISOString().split('T')[0];
+                const today = new Date();
 
-                const baseStartDate = new Date(today);
+                const baseStartDate = getRecentMonday(today);
+                const baseStartDateStr = baseStartDate.toISOString().split('T')[0];
                 const endDateObj = new Date(baseStartDate);
                 endDateObj.setDate(endDateObj.getDate() + 84); // 12 weeks = 84 days
                 const endDate = endDateObj.toISOString().split('T')[0];
@@ -386,10 +394,10 @@ DATOS DEL CORREDOR
                     email: `${memberId}@runnersinsedad.com`,
                     birth_date: `${birthYear}-01-01`,
                     current_phase: "Base",
-                    start_date: today,
+                    start_date: baseStartDateStr,
                     end_date: endDate,
                     paid: false,
-                    metrics: [{ name: "Meta Objetivo", value: 5.0, unit: "km", recorded_at: today }],
+                    metrics: [{ name: "Meta Objetivo", value: 5.0, unit: "km", recorded_at: today.toISOString().split('T')[0] }],
                     workouts: []
                 };
 
