@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A Tu Marca - Panel del Coach (Gestión, Pagos y MD)</title>
+    <title>A Tu Marca - Panel del Coach (3 Módulos Oficiales)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Inter:wght@400;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <style>
@@ -35,24 +35,57 @@
 <body class="p-4 md:p-8">
     <div class="max-w-6xl mx-auto">
         <!-- Header -->
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b border-slate-800 pb-4 gap-4">
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 border-b border-slate-800 pb-4 gap-4">
             <div>
                 <h1 class="text-3xl font-bold text-white">A Tu Marca <span class="text-amber-400">| Panel de Coach</span></h1>
-                <p class="text-slate-400">Gestión de Atletas, Control de Pagos, Fechas y Modificación MD</p>
+                <p class="text-slate-400">Metodología Oficial · Gestión de Atletas y Suite de Entrenamiento (Adultos 35+)</p>
             </div>
             <div class="flex gap-3">
                 <a href="dashboard.html?id=runner-demo" target="_blank" class="bg-slate-800 hover:bg-slate-700 text-teal-300 px-4 py-2 rounded text-sm font-bold uppercase border border-teal-500/40 transition-colors">
                     Vista Atleta (Demo)
                 </a>
-                <a href="http://127.0.0.1:8000/planes-entreno/index.html" target="_blank" class="bg-slate-800 hover:bg-slate-700 text-amber-300 px-4 py-2 rounded text-sm font-bold uppercase border border-amber-500/40 transition-colors">
-                    Suite Planes
-                </a>
             </div>
         </header>
 
-        <!-- Main Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Left: Roster & Atletas -->
+        <!-- Module Navigation Tabs -->
+        <div class="flex flex-wrap gap-2 mb-8 bg-slate-900 p-2 rounded-xl border border-slate-700">
+            <button onclick="switchModule(1)" id="tab-module-1" class="flex-1 min-w-[200px] py-3 px-4 rounded-lg text-sm font-bold uppercase transition-all bg-amber-500 text-navy shadow">
+                👤 1. Crear Usuarios Nuevos
+            </button>
+            <button onclick="switchModule(2)" id="tab-module-2" class="flex-1 min-w-[200px] py-3 px-4 rounded-lg text-sm font-bold uppercase transition-all bg-slate-800 text-slate-300 hover:bg-slate-700">
+                ⚙️ 2. Modificar Planes & Roster
+            </button>
+            <button onclick="switchModule(3)" id="tab-module-3" class="flex-1 min-w-[200px] py-3 px-4 rounded-lg text-sm font-bold uppercase transition-all bg-slate-800 text-slate-300 hover:bg-slate-700">
+                📊 3. Suite de Planes
+            </button>
+        </div>
+
+        <!-- ================= MODULE 1: CREAR USUARIOS NUEVOS ================= -->
+        <div id="module-1" class="space-y-6">
+            <div class="card p-6 md:p-8 rounded-xl shadow-2xl border-t-4 border-amber-400">
+                <h2 class="text-2xl mb-2 text-amber-400">Módulo 1: Crear Nuevo Atleta desde Markdown</h2>
+                <p class="text-xs text-slate-400 mb-6">Pega el MD completo con los datos del corredor y su plan de 12 semanas. El sistema registrará automáticamente su perfil, programará todas las sesiones y configurará el estatus de pago pendiente.</p>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs text-slate-300 mb-2 font-bold uppercase">Contenido Markdown (Perfil y Plan 12 Semanas):</label>
+                        <textarea id="md-profile-content" rows="10" class="w-full bg-slate-900 border-2 border-amber-400/60 text-white p-4 rounded-lg metric-font text-xs shadow-inner" placeholder="# Plan 5K/10K · Nombre Atleta
+DATOS DEL CORREDOR
+- Nombre: ...
+- Edad: ...
+- Meta: 5K
+..."></textarea>
+                    </div>
+                    <button onclick="createNewAthleteFromMarkdown()" class="w-full bg-amber-500 hover:bg-amber-600 text-navy font-bold py-3.5 rounded-lg transition-colors uppercase text-sm shadow-lg">
+                        Crear Atleta y Sincronizar Plan de 12 Semanas
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= MODULE 2: MODIFICAR PLANES & ROSTER ================= -->
+        <div id="module-2" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left: Roster -->
             <div class="card p-6 rounded-xl shadow-xl lg:col-span-1">
                 <h2 class="text-xl mb-4 text-teal-400">Atletas Registrados</h2>
                 <div id="athletes-list" class="space-y-3 mb-6 max-h-[500px] overflow-y-auto pr-1">
@@ -63,36 +96,20 @@
                 </button>
             </div>
 
-            <!-- Right: Athlete Control & Markdown Importers -->
+            <!-- Right: Detailed Control & MD Week Modifier -->
             <div class="space-y-6 lg:col-span-2">
-                <!-- Selected Athlete Detailed View -->
+                <!-- Selected Athlete Detail -->
                 <div class="card p-6 rounded-xl shadow-xl">
                     <h2 id="selected-title" class="text-xl mb-4 text-amber-400">Selecciona un Atleta</h2>
                     <div id="athlete-detail" class="space-y-4 text-sm text-slate-300">
-                        <p class="text-slate-500">Haz clic en un atleta de la lista para gestionar sus pagos, fechas de plan y modificar sus entrenamientos.</p>
+                        <p class="text-slate-500">Haz clic en un atleta de la lista para gestionar sus pagos, fechas del plan, ver sus entrenamientos o eliminarlo.</p>
                     </div>
                 </div>
 
-                <!-- MD Type 1: Create New Athlete from Intake MD -->
-                <div class="card p-6 rounded-xl shadow-xl border-t-4 border-amber-400">
-                    <h2 class="text-xl mb-2 text-amber-400">1. Crear Nuevo Atleta (MD de Perfil)</h2>
-                    <p class="text-xs text-slate-400 mb-4">Pega el MD con los datos del corredor (Nombre, Edad, Meta, etc.) para crear su tablero de 12 semanas (por defecto con estatus de pago pendiente).</p>
-
-                    <div class="space-y-3">
-                        <textarea id="md-profile-content" rows="4" class="w-full bg-slate-900 border-2 border-amber-400/60 text-white p-3 rounded metric-font text-xs shadow-inner" placeholder="DATOS DEL CORREDOR
-- Nombre: Renata Ramirez
-- Edad: 16
-- Meta: 5K"></textarea>
-                        <button onclick="createNewAthleteFromMarkdown()" class="w-full bg-amber-500 hover:bg-amber-600 text-navy font-bold py-2.5 rounded transition-colors uppercase text-sm shadow">
-                            Crear Atleta Nuevo
-                        </button>
-                    </div>
-                </div>
-
-                <!-- MD Type 2: Modify / Update Weekly Plan (Detailed Format) -->
+                <!-- Update Weekly Plan -->
                 <div class="card p-6 rounded-xl shadow-xl border-t-4 border-teal-400">
-                    <h2 class="text-xl mb-2 text-teal-400">2. Modificar / Actualizar Plan Semanal (Formato Detallado)</h2>
-                    <p class="text-xs text-slate-400 mb-4">Selecciona un atleta arriba, configura sus fechas y pega el bloque semanal exacto (ej: <em>Semana 1 · Arranque con control</em> con tabla Día/Sesión/Detalle/Esfuerzo).</p>
+                    <h2 class="text-xl mb-2 text-teal-400">Actualizar Semana Individual (Formato Detallado)</h2>
+                    <p class="text-xs text-slate-400 mb-4">Selecciona un atleta arriba, configura sus fechas y pega el bloque de una semana (ej: <em>Semana 1</em> con su tabla).</p>
 
                     <div class="space-y-4">
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -111,19 +128,64 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs text-slate-400 mb-1">Bloque Semanal MD (Formato Detallado):</label>
-                            <textarea id="md-detailed-week" rows="8" class="w-full bg-slate-900 border-2 border-teal-400 text-white p-3 rounded metric-font text-xs shadow-inner" placeholder="Semana 1 · Arranque con control
-Asentar rutina y técnica. Carga de carrera aprox.: 106 min.
-
-Día    Sesión    Detalle exacto    Esfuerzo (1-10)
-Lunes    Ritmo controlado    Calentamiento (8'): 3' caminata...    Suave 4 / controlado 6
-Martes    Fuerza A    Rutina A de la sección 4 (15-20')...    4-5"></textarea>
+                            <label class="block text-xs text-slate-400 mb-1">Bloque Semanal MD:</label>
+                            <textarea id="md-detailed-week" rows="6" class="w-full bg-slate-900 border border-teal-400 text-white p-3 rounded metric-font text-xs shadow-inner" placeholder="**Semana 1: Primeros pasos**
+| Día | Sesión | Detalle | Esfuerzo |
+| --- | --- | --- | --- |
+| Lunes | Intervalos | ... | 5 |"></textarea>
                         </div>
 
                         <button onclick="updateDetailedWeeklyPlan()" class="w-full bg-teal-500 hover:bg-teal-600 text-navy font-bold py-3 rounded transition-colors uppercase text-sm shadow">
-                            Actualizar Semana en el Plan del Atleta
+                            Actualizar Semana en el Plan
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= MODULE 3: SUITE DE PLANES ================= -->
+        <div id="module-3" class="hidden space-y-6">
+            <div class="card p-6 md:p-8 rounded-xl shadow-2xl border-t-4 border-teal-400">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pb-4 border-b border-slate-800 gap-4">
+                    <div>
+                        <h2 class="text-2xl text-teal-400">Módulo 3: Suite de Planes de Entrenamiento</h2>
+                        <p class="text-slate-400 text-xs">Herramientas especializadas, calculadoras y documentación de la metodología A Tu Marca</p>
+                    </div>
+                    <a href="http://127.0.0.1:8000/planes-entreno/index.html" target="_blank" class="bg-teal-500 hover:bg-teal-600 text-navy font-bold px-4 py-2.5 rounded text-xs uppercase transition-colors">
+                        Abrir Suite Completa &rarr;
+                    </a>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <a href="http://127.0.0.1:8000/planes-entreno/cooper-vo2max.html" target="_blank" class="bg-navy p-5 rounded-lg border border-slate-700 hover:border-teal-400 transition-all group">
+                        <div class="text-2xl mb-2">⏱️</div>
+                        <h3 class="text-lg text-white group-hover:text-teal-300 transition-colors mb-1">Test de Cooper & VO2max</h3>
+                        <p class="text-xs text-slate-400">Calculadora de capacidad aeróbica y consumo máximo de oxígeno para corredores.</p>
+                    </a>
+
+                    <a href="http://127.0.0.1:8000/planes-entreno/plan-semanal.html" target="_blank" class="bg-navy p-5 rounded-lg border border-slate-700 hover:border-teal-400 transition-all group">
+                        <div class="text-2xl mb-2">📅</div>
+                        <h3 class="text-lg text-white group-hover:text-teal-300 transition-colors mb-1">Plan Semanal Estándar</h3>
+                        <p class="text-xs text-slate-400">Estructura base de entrenamientos por bloques para periodización.</p>
+                    </a>
+
+                    <a href="http://127.0.0.1:8000/planes-entreno/bitacora.html" target="_blank" class="bg-navy p-5 rounded-lg border border-slate-700 hover:border-teal-400 transition-all group">
+                        <div class="text-2xl mb-2">📝</div>
+                        <h3 class="text-lg text-white group-hover:text-teal-300 transition-colors mb-1">Bitácora de Atleta</h3>
+                        <p class="text-xs text-slate-400">Registro diario de sensaciones, RPE y cumplimiento de sesiones.</p>
+                    </a>
+
+                    <a href="http://127.0.0.1:8000/planes-entreno/ritmos-edad.html" target="_blank" class="bg-navy p-5 rounded-lg border border-slate-700 hover:border-teal-400 transition-all group">
+                        <div class="text-2xl mb-2">🏃‍♂️</div>
+                        <h3 class="text-lg text-white group-hover:text-teal-300 transition-colors mb-1">Ritmos por Edad & RPE</h3>
+                        <p class="text-xs text-slate-400">Guía de ritmos adaptados y escalas de esfuerzo percibido (Adultos 35+).</p>
+                    </a>
+
+                    <a href="http://127.0.0.1:8000/planes-entreno/README.md" target="_blank" class="bg-navy p-5 rounded-lg border border-slate-700 hover:border-teal-400 transition-all group">
+                        <div class="text-2xl mb-2">📚</div>
+                        <h3 class="text-lg text-white group-hover:text-teal-300 transition-colors mb-1">Documentación Técnica</h3>
+                        <p class="text-xs text-slate-400">Manuales metodológicos y especificaciones técnicas de A Tu Marca.</p>
+                    </a>
                 </div>
             </div>
         </div>
@@ -131,6 +193,25 @@ Martes    Fuerza A    Rutina A de la sección 4 (15-20')...    4-5"></textarea>
 
     <script>
         const API_BASE = "http://127.0.0.1:8000";
+
+        function switchModule(modNum) {
+            [1, 2, 3].forEach(m => {
+                const modEl = document.getElementById(`module-${m}`);
+                const tabEl = document.getElementById(`tab-module-${m}`);
+                if (modEl && tabEl) {
+                    if (m === modNum) {
+                        modEl.classList.remove('hidden');
+                        tabEl.className = 'flex-1 min-w-[200px] py-3 px-4 rounded-lg text-sm font-bold uppercase transition-all bg-amber-500 text-navy shadow';
+                    } else {
+                        modEl.classList.add('hidden');
+                        tabEl.className = 'flex-1 min-w-[200px] py-3 px-4 rounded-lg text-sm font-bold uppercase transition-all bg-slate-800 text-slate-300 hover:bg-slate-700';
+                    }
+                }
+            });
+            if (modNum === 2) {
+                loadAthletes();
+            }
+        }
 
         async function loadAthletes() {
             try {
@@ -179,6 +260,7 @@ Martes    Fuerza A    Rutina A de la sección 4 (15-20')...    4-5"></textarea>
 
                 const today = new Date().toISOString().split('T')[0];
                 document.getElementById('plan-start-date').value = m.start_date || today;
+                document.getElementById('plan-end-date').value = m.end_date || today;
 
                 const isPaid = m.paid !== false;
                 const paymentStatusHtml = isPaid
@@ -216,7 +298,7 @@ Martes    Fuerza A    Rutina A de la sección 4 (15-20')...    4-5"></textarea>
 
                     <h3 class="text-md font-semibold text-teal-400 mb-2">Entrenamientos Registrados (${m.workouts.length})</h3>
                     <div class="space-y-1.5 max-h-[180px] overflow-y-auto pr-1">
-                        ${m.workouts.length === 0 ? '<p class="text-slate-500 text-xs">Sin entrenamientos. Usa el bloque de abajo para actualizar la semana.</p>' : m.workouts.map(w => `
+                        ${m.workouts.length === 0 ? '<p class="text-slate-500 text-xs">Sin entrenamientos.</p>' : m.workouts.map(w => `
                             <div class="p-2 bg-navy rounded border border-slate-800 text-xs flex justify-between items-center">
                                 <div>
                                     <strong class="text-white">${w.date}</strong>: <span>${w.description.substring(0, 50)}...</span> (RPE: <span class="text-amber-400">${w.target_rpe}</span>)
@@ -255,7 +337,7 @@ Martes    Fuerza A    Rutina A de la sección 4 (15-20')...    4-5"></textarea>
         }
 
         async function deleteAthlete(memberId) {
-            if (!confirm(`¿Estás seguro de eliminar al atleta ${memberId}? Se borrarán sus entrenamientos y métricas de forma permanente.`)) return;
+            if (!confirm(`¿Estás seguro de eliminar al atleta ${memberId}? Se borrarán sus entrenamientos de forma permanente.`)) return;
             try {
                 const res = await fetch(`${API_BASE}/members/${memberId}`, {
                     method: 'DELETE'
@@ -306,7 +388,7 @@ Martes    Fuerza A    Rutina A de la sección 4 (15-20')...    4-5"></textarea>
                     current_phase: "Base",
                     start_date: today,
                     end_date: endDate,
-                    paid: false, // Por defecto pendiente de pago al crear desde MD
+                    paid: false,
                     metrics: [{ name: "Meta Objetivo", value: 5.0, unit: "km", recorded_at: today }],
                     workouts: []
                 };
@@ -317,11 +399,6 @@ Martes    Fuerza A    Rutina A de la sección 4 (15-20')...    4-5"></textarea>
                     body: JSON.stringify(payload)
                 });
 
-                if (!res.ok) {
-                    // If member already exists, we can proceed to update workouts
-                }
-
-                // Parse all 12 weeks from the same MD text and assign workouts
                 const lines = mdText.split('\n');
                 let currentWeek = 1;
                 let updatedCount = 0;
@@ -409,7 +486,7 @@ Martes    Fuerza A    Rutina A de la sección 4 (15-20')...    4-5"></textarea>
                 }
 
                 alert(`¡Atleta "${name}" creado con éxito! Se sincronizaron ${updatedCount} sesiones de entrenamiento (12 semanas). Estatus de pago: Pendiente.`);
-                loadAthletes();
+                switchModule(2);
                 selectAthlete(memberId);
             } catch (err) {
                 alert("Error: " + err.message);
@@ -421,9 +498,9 @@ Martes    Fuerza A    Rutina A de la sección 4 (15-20')...    4-5"></textarea>
             const startDateStr = document.getElementById('plan-start-date').value;
             const mdText = document.getElementById('md-detailed-week').value.trim();
 
-            if (!memberId) return alert("Selecciona un atleta de la lista primero.");
+            if (!memberId) return alert("Selecciona un atleta de la lista en el Módulo 2 primero.");
             if (!startDateStr) return alert("Define la fecha de inicio del plan.");
-            if (!mdText) return alert("Pega el bloque semanal o plan completo en formato MD.");
+            if (!mdText) return alert("Pega el bloque semanal en formato MD.");
 
             try {
                 const lines = mdText.split('\n');
@@ -445,8 +522,7 @@ Martes    Fuerza A    Rutina A de la sección 4 (15-20')...    4-5"></textarea>
 
                 for (let line of lines) {
                     line = line.trim();
-
-                    // Check for week header
+                    if (line.toLowerCase().includes('semanas ') || line.toLowerCase().includes('bloque ')) continue;
                     const weekMatch = line.match(/Semana\s+(\d+)/i);
                     if (weekMatch) {
                         currentWeek = parseInt(weekMatch[1]);
@@ -454,12 +530,10 @@ Martes    Fuerza A    Rutina A de la sección 4 (15-20')...    4-5"></textarea>
                         continue;
                     }
 
-                    // Check for markdown table row
                     if (line.startsWith('|')) {
                         const cols = line.split('|').map(c => c.trim()).filter(c => c !== '');
                         if (cols.length >= 3) {
                             const dayRaw = cols[0].toLowerCase();
-                            // Skip header rows
                             if (dayRaw.includes('día') || dayRaw.includes('---')) continue;
 
                             const sessionType = cols[1];
@@ -469,7 +543,6 @@ Martes    Fuerza A    Rutina A de la sección 4 (15-20')...    4-5"></textarea>
                             const rpeMatch = effortRaw.match(/(\d+)/);
                             const targetRpe = rpeMatch ? parseInt(rpeMatch[1]) : 5;
 
-                            // Handle ranges like "Viernes a Domingo" or single days
                             let daysToProcess = [];
                             if (dayRaw.includes(' a ')) {
                                 const rangeParts = dayRaw.split(' a ').map(p => p.trim());
@@ -481,7 +554,6 @@ Martes    Fuerza A    Rutina A de la sección 4 (15-20')...    4-5"></textarea>
                                     }
                                 }
                             } else {
-                                // Match single day
                                 for (const [dName, off] of Object.entries(dayOffsets)) {
                                     if (dayRaw.includes(dName)) {
                                         daysToProcess.push(off);
@@ -521,24 +593,20 @@ Martes    Fuerza A    Rutina A de la sección 4 (15-20')...    4-5"></textarea>
                     }
                 }
 
-                // Automatically update plan end date based on max week found
                 const endDateObj = new Date(baseStartDate);
                 endDateObj.setDate(endDateObj.getDate() + (maxWeekFound * 7));
-                const endDateStr = endDateObj.toISOString().split('T')[0];
-                document.getElementById('plan-end-date').value = endDateStr;
+                document.getElementById('plan-end-date').value = endDateObj.toISOString().split('T')[0];
 
                 if (updatedCount > 0) {
-                    alert(`¡Plan actualizado con éxito! Se sincronizaron ${updatedCount} sesiones (hasta la Semana ${maxWeekFound}).`);
+                    alert(`¡Plan actualizado con éxito (${updatedCount} sesiones sincronizadas)!`);
                     selectAthlete(memberId);
                 } else {
-                    alert("No se pudieron extraer filas de tabla Markdown válidas. Asegúrate de que el formato contenga tablas Markdown (| Día | Sesión | ...) y encabezados de semana.");
+                    alert("No se pudieron extraer filas de tabla Markdown válidas.");
                 }
             } catch (err) {
                 alert("Error al actualizar plan detallado: " + err.message);
             }
         }
-
-        loadAthletes();
     </script>
 </body>
 </html>
