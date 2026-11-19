@@ -45,6 +45,7 @@ class Member:
     start_date: Optional[date] = None
     end_date: Optional[date] = None
     paid: bool = True
+    methodology_markdown: Optional[str] = None
     metrics: List[Metric] = field(default_factory=list)
     workouts: List[Workout] = field(default_factory=list)
 

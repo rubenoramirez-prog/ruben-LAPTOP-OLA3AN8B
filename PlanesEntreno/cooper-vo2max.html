@@ -4,48 +4,16 @@
 <style>
 /* Layout: Single-column flow, card-based results, persistent history strip */
 :root {
-  --navy: #1e3a5f;
-  --charcoal: #2a2a2a;
+  --navy: #0a192f;
+  --charcoal: #112240;
   --amber: #f59e0b;
   --teal: #14b8a6;
   --slate: #64748b;
-  --bg: #f8fafc;
-  --surface: #ffffff;
-  --text: #1e293b;
-  --text-muted: #64748b;
-  --border: #e2e8f0;
-
-  color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --navy: #2e5a8f;
-    --charcoal: #1a1a1a;
-    --amber: #fbbf24;
-    --teal: #2dd4bf;
-    --slate: #94a3b8;
-    --bg: #0f172a;
-    --surface: #1e293b;
-    --text: #f1f5f9;
-    --text-muted: #94a3b8;
-    --border: #334155;
-
-    color-scheme: dark;
-  }
-}
-
-:root[data-theme="dark"] {
-  --navy: #2e5a8f;
-  --charcoal: #1a1a1a;
-  --amber: #fbbf24;
-  --teal: #2dd4bf;
-  --slate: #94a3b8;
-  --bg: #0f172a;
-  --surface: #1e293b;
-  --text: #f1f5f9;
+  --bg: #0b1329;
+  --surface: #112240;
+  --text: #f8fafc;
   --text-muted: #94a3b8;
-  --border: #334155;
+  --border: #233554;
 
   color-scheme: dark;
 }
@@ -331,6 +299,14 @@ footer strong {
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap">
 
 <div class="container">
+  <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-800">
+    <div>
+      <span class="text-xs font-bold uppercase text-amber-400 font-['Oswald']">A Tu Marca · Suite de Planes</span>
+    </div>
+    <a href="index.html" class="bg-slate-800 hover:bg-slate-700 text-teal-300 px-4 py-2 rounded text-xs font-bold uppercase border border-teal-500/40 transition-colors shadow no-underline">
+      ← Volver a Suite de Planes
+    </a>
+  </div>
   <h1>Test de Cooper + VO2max</h1>
   <p class="subtitle">Calcula tu capacidad aeróbica y zonas de entrenamiento ideales</p>
 

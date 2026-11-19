@@ -1,0 +1,15 @@
+{
+  "name": "Runners Sin Edad",
+  "short_name": "RunnersSE",
+  "start_url": "/dashboard.html",
+  "display": "standalone",
+  "background_color": "#0a192f",
+  "theme_color": "#14b8a6",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2965/2965567.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

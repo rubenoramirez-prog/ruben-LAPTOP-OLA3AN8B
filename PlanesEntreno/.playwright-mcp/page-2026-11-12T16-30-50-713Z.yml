@@ -1,0 +1,52 @@
+- generic [active] [ref=f1e1]:
+  - generic [ref=f1e2]:
+    - heading "Generador de Plan Semanal" [level=1] [ref=f1e3]
+    - paragraph [ref=f1e4]: Crea planes personalizados segÃºn periodizaciÃ³n y disponibilidad
+    - generic [ref=f1e8]:
+      - generic [ref=f1e9]:
+        - generic [ref=f1e10]: Fase de PeriodizaciÃ³n
+        - combobox "Fase de PeriodizaciÃ³n" [ref=f1e11]:
+          - option "Selecciona una fase..." [selected]
+          - option "Base - Resistencia AerÃ³bica"
+          - option "Fuerza - Potencia y Cuestas"
+          - option "Velocidad - Ritmo y Tempo"
+          - option "Taper - Descarga Pre-Carrera"
+      - generic [ref=f1e12]:
+        - generic [ref=f1e13]: Nivel de Experiencia
+        - combobox "Nivel de Experiencia" [ref=f1e14]:
+          - option "Selecciona nivel..." [selected]
+          - option "Principiante (0-6 meses)"
+          - option "Intermedio (6-18 meses)"
+          - option "Avanzado (18+ meses)"
+      - generic [ref=f1e15]:
+        - generic [ref=f1e16]: Kilometraje Semanal Objetivo (km)
+        - spinbutton "Kilometraje Semanal Objetivo (km)" [ref=f1e17]
+      - generic [ref=f1e18]:
+        - generic [ref=f1e19]: DÃas Disponibles para Entrenar
+        - generic [ref=f1e20]:
+          - generic [ref=f1e21]:
+            - checkbox "Lunes" [ref=f1e22] [cursor=pointer]
+            - generic [ref=f1e23] [cursor=pointer]: Lunes
+          - generic [ref=f1e24]:
+            - checkbox "Martes" [ref=f1e25] [cursor=pointer]
+            - generic [ref=f1e26] [cursor=pointer]: Martes
+          - generic [ref=f1e27]:
+            - checkbox "MiÃ©rcoles" [ref=f1e28] [cursor=pointer]
+            - generic [ref=f1e29] [cursor=pointer]: MiÃ©rcoles
+          - generic [ref=f1e30]:
+            - checkbox "Jueves" [ref=f1e31] [cursor=pointer]
+            - generic [ref=f1e32] [cursor=pointer]: Jueves
+          - generic [ref=f1e33]:
+            - checkbox "Viernes" [ref=f1e34] [cursor=pointer]
+            - generic [ref=f1e35] [cursor=pointer]: Viernes
+          - generic [ref=f1e36]:
+            - checkbox "SÃ¡bado" [checked] [ref=f1e37] [cursor=pointer]
+            - generic [ref=f1e38] [cursor=pointer]: SÃ¡bado
+          - generic [ref=f1e39]:
+            - checkbox "Domingo" [checked] [ref=f1e40] [cursor=pointer]
+            - generic [ref=f1e41] [cursor=pointer]: Domingo
+      - button "GENERAR PLAN" [ref=f1e42] [cursor=pointer]
+      - generic [ref=f1e43]: ðŸ’¡ Los planes se adaptan a tu fase de periodizaciÃ³n y dÃas disponibles
+  - contentinfo [ref=f1e45]:
+    - strong [ref=f1e46]: A Tu Marca
+    - text: â€” Coaching para corredores 35+ por Ruben RamÃrez

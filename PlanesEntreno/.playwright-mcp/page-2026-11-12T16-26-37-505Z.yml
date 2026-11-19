@@ -1,0 +1,87 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e4]: A TU MARCA
+    - generic [ref=e5]: Herramientas de Coaching Profesional
+    - paragraph [ref=e6]: Suite completa de herramientas para corredores 35+. Basadas en periodizaciÃ³n, diagnÃ³stico fisiolÃ³gico y seguimiento de progreso con mÃ©tricas cientÃficas.
+  - generic [ref=e7]:
+    - 'link "ðŸƒ Test de Cooper VO2max DiagnÃ³stico AerÃ³bico Calcula tu capacidad aerÃ³bica con el test de 12 minutos. ObtÃ©n tu VO2max estimado, categorÃa de fitness ajustada por edad/gÃ©nero, y zonas de entrenamiento personalizadas. VO2max Calculator Age/Gender Categories Training Zones Test History" [ref=e8] [cursor=pointer]':
+      - /url: cooper-vo2max.html
+      - generic [ref=e9]:
+        - generic [ref=e10]: "ðŸ\x8fƒ"
+        - generic [ref=e11]:
+          - heading "Test de Cooper VO2max" [level=2] [ref=e12]
+          - generic [ref=e13]: DiagnÃ³stico AerÃ³bico
+      - paragraph [ref=e14]: Calcula tu capacidad aerÃ³bica con el test de 12 minutos. ObtÃ©n tu VO2max estimado, categorÃa de fitness ajustada por edad/gÃ©nero, y zonas de entrenamiento personalizadas.
+      - generic [ref=e15]:
+        - generic [ref=e16]: VO2max Calculator
+        - generic [ref=e17]: Age/Gender Categories
+        - generic [ref=e18]: Training Zones
+        - generic [ref=e19]: Test History
+    - link "ðŸ“… Generador de Plan Semanal PeriodizaciÃ³n Genera planes de entrenamiento semanales basados en periodizaciÃ³n (Base, Fuerza, Velocidad, Taper). Adaptado a tus dÃas disponibles, nivel y objetivos de kilometraje. 4 Fases 3 Niveles RPE Control Export JSON" [ref=e20] [cursor=pointer]:
+      - /url: plan-semanal.html
+      - generic [ref=e21]:
+        - generic [ref=e22]: ðŸ“…
+        - generic [ref=e23]:
+          - heading "Generador de Plan Semanal" [level=2] [ref=e24]
+          - generic [ref=e25]: PeriodizaciÃ³n
+      - paragraph [ref=e26]: Genera planes de entrenamiento semanales basados en periodizaciÃ³n (Base, Fuerza, Velocidad, Taper). Adaptado a tus dÃas disponibles, nivel y objetivos de kilometraje.
+      - generic [ref=e27]:
+        - generic [ref=e28]: 4 Fases
+        - generic [ref=e29]: 3 Niveles
+        - generic [ref=e30]: RPE Control
+        - generic [ref=e31]: Export JSON
+    - link "ðŸ“Š BitÃ¡cora de Entrenamiento Seguimiento y AnÃ¡lisis Registra y analiza tu progreso con grÃ¡ficos visuales. EstadÃsticas semanales, volumen acumulado, mÃ©tricas de esfuerzo (RPE/FC), y exportaciÃ³n completa de datos. Chart.js Graphs Weekly Stats RPE Tracking Import/Export" [ref=e32] [cursor=pointer]:
+      - /url: bitacora.html
+      - generic [ref=e33]:
+        - generic [ref=e34]: ðŸ“Š
+        - generic [ref=e35]:
+          - heading "BitÃ¡cora de Entrenamiento" [level=2] [ref=e36]
+          - generic [ref=e37]: Seguimiento y AnÃ¡lisis
+      - paragraph [ref=e38]: Registra y analiza tu progreso con grÃ¡ficos visuales. EstadÃsticas semanales, volumen acumulado, mÃ©tricas de esfuerzo (RPE/FC), y exportaciÃ³n completa de datos.
+      - generic [ref=e39]:
+        - generic [ref=e40]: Chart.js Graphs
+        - generic [ref=e41]: Weekly Stats
+        - generic [ref=e42]: RPE Tracking
+        - generic [ref=e43]: Import/Export
+    - 'link "â±ï¸ Calculadora Ritmos por Edad Objetivos Realistas Calcula ritmos de carrera ajustados por edad usando age grading (WMA). PredicciÃ³n de tiempos para 5K, 10K y 21K con zonas de entrenamiento y frecuencia cardÃaca personalizadas. Age Grading Race Prediction HR Zones Training Paces" [ref=e44] [cursor=pointer]':
+      - /url: ritmos-edad.html
+      - generic [ref=e45]:
+        - generic [ref=e46]: "â\x8f±ï¸\x8f"
+        - generic [ref=e47]:
+          - heading "Calculadora Ritmos por Edad" [level=2] [ref=e48]
+          - generic [ref=e49]: Objetivos Realistas
+      - paragraph [ref=e50]: Calcula ritmos de carrera ajustados por edad usando age grading (WMA). PredicciÃ³n de tiempos para 5K, 10K y 21K con zonas de entrenamiento y frecuencia cardÃaca personalizadas.
+      - generic [ref=e51]:
+        - generic [ref=e52]: Age Grading
+        - generic [ref=e53]: Race Prediction
+        - generic [ref=e54]: HR Zones
+        - generic [ref=e55]: Training Paces
+  - generic [ref=e56]:
+    - heading "MetodologÃa A Tu Marca" [level=2] [ref=e57]
+    - generic [ref=e58]:
+      - generic [ref=e59]:
+        - paragraph [ref=e60]:
+          - strong [ref=e61]: A Tu Marca
+          - text: es una metodologÃa de coaching especializada en corredores adultos 35+ que comienzan desde cero o regresan al running tras aÃ±os de inactividad.
+        - paragraph [ref=e62]:
+          - text: Nuestra aproximaciÃ³n combina
+          - strong [ref=e63]: periodizaciÃ³n estructurada
+          - text: (Base â†’ Fuerza â†’ Velocidad â†’ Taper),
+          - strong [ref=e64]: diagnÃ³stico fisiolÃ³gico
+          - text: (Test de Cooper, VO2max, zonas de FC), y
+          - strong [ref=e65]: control de carga
+          - text: mediante RPE (Rate of Perceived Exertion) para prevenir lesiones y maximizar adaptaciones sostenibles.
+        - paragraph [ref=e66]: Estas herramientas digitales son el complemento prÃ¡ctico del coaching personalizado, diseÃ±adas para autonomÃa del corredor con seguimiento profesional.
+      - generic [ref=e67]:
+        - generic [ref=e68]: Pilares del Sistema
+        - list [ref=e69]:
+          - listitem [ref=e70]: â†’ PeriodizaciÃ³n en 4 fases
+          - listitem [ref=e71]: â†’ DiagnÃ³stico VO2max (Cooper)
+          - listitem [ref=e72]: â†’ Control de carga (RPE)
+          - listitem [ref=e73]: â†’ Age grading realista
+          - listitem [ref=e74]: â†’ PrevenciÃ³n de lesiones
+          - listitem [ref=e75]: â†’ Seguimiento basado en datos
+  - contentinfo [ref=e76]:
+    - generic [ref=e77]: Coach Ruben RamÃrez
+    - generic [ref=e78]: Ingeniero en ComputaciÃ³n (UNAM) â€¢ Coach Certificado de Running
+    - generic [ref=e79]: "Especialidad: Corredores 35+ â€¢ MetodologÃa: A Tu Marca â€¢ Enfoque: PrevenciÃ³n y ProgresiÃ³n Sostenible"

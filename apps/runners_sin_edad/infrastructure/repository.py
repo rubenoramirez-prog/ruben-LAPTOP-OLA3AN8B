@@ -23,10 +23,11 @@ class SQLiteMemberRepository(MemberRepository):
                     current_phase TEXT NOT NULL,
                     start_date TEXT,
                     end_date TEXT,
-                    paid INTEGER DEFAULT 1
+                    paid INTEGER DEFAULT 1,
+                    methodology_markdown TEXT
                 )
             """)
-            # Migration check for existing databases without start_date/end_date/paid
+            # Migration check for existing databases without start_date/end_date/paid/methodology_markdown
             cursor = conn.cursor()
             cursor.execute("PRAGMA table_info(members)")
             columns = [col[1] for col in cursor.fetchall()]
@@ -36,6 +37,8 @@ class SQLiteMemberRepository(MemberRepository):
                 conn.execute("ALTER TABLE members ADD COLUMN end_date TEXT")
             if "paid" not in columns:
                 conn.execute("ALTER TABLE members ADD COLUMN paid INTEGER DEFAULT 1")
+            if "methodology_markdown" not in columns:
+                conn.execute("ALTER TABLE members ADD COLUMN methodology_markdown TEXT")
 
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS workouts (
@@ -61,6 +64,45 @@ class SQLiteMemberRepository(MemberRepository):
                     FOREIGN KEY (member_id) REFERENCES members(id)
                 )
             """)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS audit_logs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp TEXT NOT NULL,
+                    username TEXT NOT NULL,
+                    action TEXT NOT NULL,
+                    details TEXT
+                )
+            """)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS payments (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    member_id TEXT NOT NULL,
+                    amount REAL NOT NULL,
+                    status TEXT NOT NULL,
+                    recorded_at TEXT NOT NULL,
+                    receipt_ref TEXT,
+                    FOREIGN KEY (member_id) REFERENCES members(id)
+                )
+            """)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS coach_users (
+                    username TEXT PRIMARY KEY,
+                    password_hash TEXT NOT NULL,
+                    role TEXT NOT NULL
+                )
+            """)
+            # Insert default coach if not exists (password: atumarca2026)
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM coach_users WHERE username = 'coach'")
+            if cursor.fetchone()[0] == 0:
+                conn.execute(
+                    "INSERT INTO coach_users (username, password_hash, role) VALUES (?, ?, ?)",
+                    ("coach", "atumarca2026", "admin")
+                )
+                conn.execute(
+                    "INSERT INTO coach_users (username, password_hash, role) VALUES (?, ?, ?)",
+                    ("ruben", "atumarca2026", "admin")
+                )
             conn.commit()
 
     def save(self, member: Member) -> None:
@@ -70,8 +112,8 @@ class SQLiteMemberRepository(MemberRepository):
 
             # Save Member
             conn.execute(
-                "INSERT OR REPLACE INTO members (id, name, email, birth_date, current_phase, start_date, end_date, paid) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                (member.id, member.name, member.email, member.birth_date.isoformat(), member.current_phase.value, s_date, e_date, 1 if member.paid else 0)
+                "INSERT OR REPLACE INTO members (id, name, email, birth_date, current_phase, start_date, end_date, paid, methodology_markdown) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (member.id, member.name, member.email, member.birth_date.isoformat(), member.current_phase.value, s_date, e_date, 1 if member.paid else 0, member.methodology_markdown)
             )
 
             # Save Workouts
@@ -101,6 +143,7 @@ class SQLiteMemberRepository(MemberRepository):
             s_date = date.fromisoformat(row["start_date"]) if row["start_date"] else None
             e_date = date.fromisoformat(row["end_date"]) if row["end_date"] else None
             is_paid = bool(row["paid"]) if "paid" in row.keys() and row["paid"] is not None else True
+            meth_md = row["methodology_markdown"] if "methodology_markdown" in row.keys() else None
 
             member = Member(
                 id=row["id"],
@@ -110,7 +153,8 @@ class SQLiteMemberRepository(MemberRepository):
                 current_phase=TrainingPhase(row["current_phase"]),
                 start_date=s_date,
                 end_date=e_date,
-                paid=is_paid
+                paid=is_paid,
+                methodology_markdown=meth_md
             )
 
             # Load Workouts

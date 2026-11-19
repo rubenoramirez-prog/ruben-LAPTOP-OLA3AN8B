@@ -1,0 +1,26 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - heading "Test de Cooper + VO2max" [level=1] [ref=e3]
+    - paragraph [ref=e4]: Calcula tu capacidad aerÃ³bica y zonas de entrenamiento ideales
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - generic [ref=e9]: Distancia recorrida (metros)
+          - spinbutton "Distancia recorrida (metros)" [ref=e10]
+        - generic [ref=e11]:
+          - generic [ref=e12]: Edad (aÃ±os)
+          - spinbutton "Edad (aÃ±os)" [ref=e13]
+      - generic [ref=e14]:
+        - generic [ref=e15]:
+          - generic [ref=e16]: GÃ©nero
+          - combobox "GÃ©nero" [ref=e17]:
+            - option "Selecciona..." [selected]
+            - option "Hombre"
+            - option "Mujer"
+        - generic [ref=e18]:
+          - generic [ref=e19]: Peso (kg) - opcional
+          - spinbutton "Peso (kg) - opcional" [ref=e20]
+      - button "CALCULAR VO2MAX" [ref=e21] [cursor=pointer]
+  - contentinfo [ref=e22]:
+    - strong [ref=e23]: A Tu Marca
+    - text: â€” Coaching para corredores 35+ por Ruben RamÃrez

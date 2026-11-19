@@ -1,434 +1,568 @@
-<title>Generador Plan Semanal</title>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador Plan Semanal — A Tu Marca</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap">
 <style>
-/* Layout: Two-column input/output, stacked on mobile, with export controls */
-:root {
-  --navy: #1e3a5f;
-  --charcoal: #2a2a2a;
-  --amber: #f59e0b;
-  --teal: #14b8a6;
-  --slate: #64748b;
-  --bg: #f8fafc;
-  --surface: #ffffff;
-  --text: #1e293b;
-  --text-muted: #64748b;
-  --border: #e2e8f0;
-
-  color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --navy: #2e5a8f;
-    --charcoal: #1a1a1a;
-    --amber: #fbbf24;
-    --teal: #2dd4bf;
-    --slate: #94a3b8;
-    --bg: #0f172a;
-    --surface: #1e293b;
-    --text: #f1f5f9;
+  :root {
+    --navy: #0a192f;
+    --charcoal: #112240;
+    --amber: #f59e0b;
+    --teal: #14b8a6;
+    --slate: #64748b;
+    --bg: #0b1329;
+    --surface: #112240;
+    --text: #f8fafc;
     --text-muted: #94a3b8;
-    --border: #334155;
-
+    --border: #233554;
     color-scheme: dark;
   }
-}
 
-:root[data-theme="dark"] {
-  --navy: #2e5a8f;
-  --charcoal: #1a1a1a;
-  --amber: #fbbf24;
-  --teal: #2dd4bf;
-  --slate: #94a3b8;
-  --bg: #0f172a;
-  --surface: #1e293b;
-  --text: #f1f5f9;
-  --text-muted: #94a3b8;
-  --border: #334155;
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
 
-  color-scheme: dark;
-}
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 24px;
+  }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+  h1, h2, h3 {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    line-height: 1.2;
+  }
 
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  line-height: 1.6;
-  padding-left: max(16px, env(safe-area-inset-left, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 24px;
-}
+  h1 {
+    font-size: 2.2rem;
+    color: var(--amber);
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+  }
 
-h1, h2, h3 {
-  font-family: 'Oswald', sans-serif;
-  font-weight: 600;
-  line-height: 1.2;
-  text-wrap: balance;
-}
+  .subtitle {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+  }
 
-h1 {
-  font-size: 2rem;
-  color: var(--navy);
-  margin-bottom: 8px;
-}
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
 
-.subtitle {
-  font-size: 0.95rem;
-  color: var(--text-muted);
-  margin-bottom: 32px;
-}
+  /* Format Tabs */
+  .format-tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 12px;
+  }
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-}
+  .tab-btn {
+    background: var(--surface);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
 
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 24px;
-}
+  .tab-btn.active {
+    background: var(--teal);
+    color: var(--navy);
+    border-color: var(--teal);
+    font-weight: bold;
+  }
 
-.layout {
-  display: grid;
-  gap: 24px;
-}
+  .format-container {
+    display: none;
+  }
 
-@media (min-width: 768px) {
+  .format-container.active {
+    display: block;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
   .layout {
-    grid-template-columns: 380px 1fr;
+    display: grid;
+    gap: 24px;
   }
-}
 
-label {
-  display: block;
-  font-weight: 500;
-  margin-bottom: 8px;
-  color: var(--text);
-  font-size: 0.9rem;
-}
+  @media (min-width: 768px) {
+    .layout {
+      grid-template-columns: 400px 1fr;
+    }
+  }
 
-input, select {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 1rem;
-  background: var(--bg);
-  color: var(--text);
-  font-family: inherit;
-}
+  label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--text);
+    font-size: 0.9rem;
+  }
 
-input:focus, select:focus {
-  outline: 2px solid var(--teal);
-  outline-offset: 2px;
-}
+  input, select, textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: #0a192f;
+    color: var(--text);
+    font-family: inherit;
+  }
 
-.form-group {
-  margin-bottom: 20px;
-}
+  textarea {
+    resize: vertical;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+  }
 
-.checkbox-group {
-  display: grid;
-  gap: 8px;
-  margin-top: 8px;
-}
+  input:focus, select:focus, textarea:focus {
+    outline: 2px solid var(--teal);
+    outline-offset: 2px;
+  }
 
-.checkbox-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px;
-  background: var(--bg);
-  border-radius: 6px;
-}
+  .form-group {
+    margin-bottom: 16px;
+  }
 
-.checkbox-item input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-  margin: 0;
-  cursor: pointer;
-}
+  .checkbox-group {
+    display: grid;
+    gap: 8px;
+    margin-top: 8px;
+  }
 
-.checkbox-item label {
-  margin: 0;
-  cursor: pointer;
-  font-weight: 400;
-}
+  .checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    background: #0a192f;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
 
-button {
-  background: var(--navy);
-  color: white;
-  border: none;
-  padding: 14px 28px;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  width: 100%;
-  font-family: 'Oswald', sans-serif;
-  letter-spacing: 0.5px;
-  transition: background 0.2s;
-}
+  .checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    cursor: pointer;
+    accent-color: var(--teal);
+  }
 
-button:hover {
-  background: var(--teal);
-}
+  .checkbox-item label {
+    margin: 0;
+    cursor: pointer;
+    font-weight: 400;
+  }
 
-button:active {
-  transform: scale(0.98);
-}
+  button {
+    background: var(--teal);
+    color: var(--navy);
+    border: none;
+    padding: 14px 28px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    font-family: 'Oswald', sans-serif;
+    letter-spacing: 0.5px;
+    transition: all 0.2s;
+  }
 
-.btn-secondary {
-  background: transparent;
-  color: var(--navy);
-  border: 1px solid var(--border);
-}
+  button:hover {
+    background: #2dd4bf;
+    transform: translateY(-1px);
+  }
 
-.btn-secondary:hover {
-  background: var(--border);
-  color: var(--text);
-}
+  .btn-secondary {
+    background: transparent;
+    color: var(--teal);
+    border: 1px solid var(--teal);
+  }
 
-.phase-badge {
-  display: inline-block;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 16px;
-}
+  .btn-secondary:hover {
+    background: rgba(20, 184, 166, 0.1);
+  }
 
-.phase-base { background: var(--teal); color: white; }
-.phase-fuerza { background: var(--amber); color: white; }
-.phase-velocidad { background: #ef4444; color: white; }
-.phase-taper { background: #8b5cf6; color: white; }
+  .phase-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+    background: var(--teal);
+    color: var(--navy);
+  }
 
-.week-plan {
-  display: none;
-}
+  .week-plan {
+    display: none;
+  }
 
-.week-plan.visible {
-  display: block;
-}
+  .week-plan.visible {
+    display: block;
+  }
 
-.week-title {
-  font-family: 'Oswald', sans-serif;
-  font-size: 1.3rem;
-  color: var(--navy);
-  margin-bottom: 20px;
-}
+  .week-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.4rem;
+    color: var(--amber);
+    margin-bottom: 16px;
+  }
 
-.day-card {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 12px;
-}
+  .day-card {
+    background: #0a192f;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
 
-.day-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
+  .day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
 
-.day-name {
-  font-weight: 700;
-  font-size: 1.1rem;
-  color: var(--navy);
-}
+  .day-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--amber);
+    font-family: 'Oswald', sans-serif;
+  }
 
-.day-type {
-  font-size: 0.85rem;
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
+  .day-type {
+    font-size: 0.8rem;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
 
-.type-rest { background: var(--slate); color: white; }
-.type-easy { background: var(--teal); color: white; }
-.type-tempo { background: var(--amber); color: white; }
-.type-interval { background: #ef4444; color: white; }
-.type-long { background: var(--navy); color: white; }
-.type-strength { background: #8b5cf6; color: white; }
+  .type-rest { background: var(--slate); color: white; }
+  .type-easy { background: var(--teal); color: var(--navy); }
+  .type-tempo { background: var(--amber); color: var(--navy); }
+  .type-interval { background: #ef4444; color: white; }
+  .type-long { background: #3b82f6; color: white; }
+  .type-strength { background: #8b5cf6; color: white; }
 
-.day-details {
-  display: grid;
-  gap: 8px;
-  font-size: 0.9rem;
-}
+  .day-details {
+    display: grid;
+    gap: 6px;
+    font-size: 0.9rem;
+  }
 
-.detail-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+  .detail-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
 
-.detail-label {
-  color: var(--text-muted);
-  min-width: 80px;
-}
+  .detail-label {
+    color: var(--text-muted);
+    min-width: 80px;
+  }
 
-.detail-value {
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 600;
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-}
+  .detail-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    color: var(--text);
+  }
 
-.day-description {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  line-height: 1.5;
-}
+  .day-description {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
 
-.export-controls {
-  display: grid;
-  gap: 12px;
-  margin-top: 24px;
-}
-
-@media (min-width: 640px) {
   .export-controls {
-    grid-template-columns: 1fr 1fr;
+    display: grid;
+    gap: 12px;
+    margin-top: 24px;
   }
-}
 
-.info-box {
-  background: var(--bg);
-  border-left: 3px solid var(--teal);
-  padding: 12px 16px;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  margin-top: 16px;
-}
+  @media (min-width: 640px) {
+    .export-controls {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
 
-footer {
-  margin-top: 48px;
-  padding-top: 24px;
-  border-top: 1px solid var(--border);
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 0.85rem;
-}
+  .info-box {
+    background: #0a192f;
+    border-left: 3px solid var(--teal);
+    padding: 12px 16px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 16px;
+  }
 
-footer strong {
-  color: var(--navy);
-  font-weight: 600;
-}
+  /* Markdown Preview Styling */
+  .md-preview {
+    font-family: 'Inter', sans-serif;
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .md-preview h1, .md-preview h2, .md-preview h3 {
+    color: var(--amber);
+    margin-top: 16px;
+    margin-bottom: 8px;
+  }
+  .md-preview table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 0.9rem;
+  }
+  .md-preview th, .md-preview td {
+    border: 1px solid var(--border);
+    padding: 10px;
+    text-align: left;
+  }
+  .md-preview th {
+    background: #071020;
+    color: var(--amber);
+    font-family: 'Oswald', sans-serif;
+  }
+  .md-preview td {
+    background: #0a192f;
+  }
+  .md-preview ul, .md-preview ol {
+    padding-left: 20px;
+    margin: 10px 0;
+  }
+  .md-preview li {
+    margin-bottom: 6px;
+  }
+
+  footer {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+
+  footer strong {
+    color: var(--amber);
+    font-weight: 600;
+  }
 </style>
-
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap">
+</head>
+<body>
 
 <div class="container">
-  <h1>Generador de Plan Semanal</h1>
-  <p class="subtitle">Crea planes personalizados según periodización y disponibilidad</p>
-
-  <div class="layout">
+  <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-800">
     <div>
-      <div class="card">
-        <form id="planForm">
-          <div class="form-group">
-            <label for="phase">Fase de Periodización</label>
-            <select id="phase" required>
-              <option value="">Selecciona una fase...</option>
-              <option value="base">Base - Resistencia Aeróbica</option>
-              <option value="fuerza">Fuerza - Potencia y Cuestas</option>
-              <option value="velocidad">Velocidad - Ritmo y Tempo</option>
-              <option value="taper">Taper - Descarga Pre-Carrera</option>
-            </select>
-          </div>
+      <span class="text-xs font-bold uppercase text-amber-400 font-['Oswald']">A Tu Marca · Suite de Planes</span>
+    </div>
+  </div>
+  <h1>Generador de Plan Semanal</h1>
+  <p class="subtitle">A Tu Marca — Coaching y Periodización de Running (35+ y Principiantes)</p>
 
-          <div class="form-group">
-            <label for="level">Nivel de Experiencia</label>
-            <select id="level" required>
-              <option value="">Selecciona nivel...</option>
-              <option value="beginner">Principiante (0-6 meses)</option>
-              <option value="intermediate">Intermedio (6-18 meses)</option>
-              <option value="advanced">Avanzado (18+ meses)</option>
-            </select>
-          </div>
 
-          <div class="form-group">
-            <label for="weeklyKm">Kilometraje Semanal Objetivo (km)</label>
-            <input type="number" id="weeklyKm" min="15" max="100" step="5" required placeholder="30">
-          </div>
+  <!-- FORMATO 1: Generador Rápido Clásico -->
+  <div id="format-1" class="format-container active">
+    <div class="layout">
+      <div>
+        <div class="card">
+          <form id="planForm">
+            <div class="form-group">
+              <label for="athleteName">Nombre Completo del Atleta</label>
+              <input type="text" id="athleteName" required placeholder="Ej. Renata Ramírez" style="width:100%; padding:10px; background:var(--navy); border:1px solid var(--border); color:var(--text); border-radius:6px;">
+            </div>
 
-          <div class="form-group">
-            <label>Días Disponibles para Entrenar</label>
-            <div class="checkbox-group">
-              <div class="checkbox-item">
-                <input type="checkbox" id="day1" value="Lunes">
-                <label for="day1">Lunes</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="form-group">
+                <label for="athleteAge">Edad</label>
+                <input type="number" id="athleteAge" min="15" max="90" required placeholder="35" style="width:100%; padding:10px; background:var(--navy); border:1px solid var(--border); color:var(--text); border-radius:6px;">
               </div>
-              <div class="checkbox-item">
-                <input type="checkbox" id="day2" value="Martes">
-                <label for="day2">Martes</label>
-              </div>
-              <div class="checkbox-item">
-                <input type="checkbox" id="day3" value="Miércoles">
-                <label for="day3">Miércoles</label>
-              </div>
-              <div class="checkbox-item">
-                <input type="checkbox" id="day4" value="Jueves">
-                <label for="day4">Jueves</label>
-              </div>
-              <div class="checkbox-item">
-                <input type="checkbox" id="day5" value="Viernes">
-                <label for="day5">Viernes</label>
-              </div>
-              <div class="checkbox-item">
-                <input type="checkbox" id="day6" value="Sábado" checked>
-                <label for="day6">Sábado</label>
-              </div>
-              <div class="checkbox-item">
-                <input type="checkbox" id="day7" value="Domingo" checked>
-                <label for="day7">Domingo</label>
+              <div class="form-group">
+                <label for="athleteGoal">Meta / Objetivo Principal</label>
+                <select id="athleteGoal" required style="width:100%; padding:10px; background:var(--navy); border:1px solid var(--border); color:var(--text); border-radius:6px;">
+                  <option value="">Selecciona meta...</option>
+                  <option value="5K">5K</option>
+                  <option value="10K">10K</option>
+                  <option value="21K">Medio Maratón (21K)</option>
+                  <option value="42K">Maratón (42K)</option>
+                  <option value="Salud y Condición">Salud y Condición Física</option>
+                </select>
               </div>
             </div>
-          </div>
 
-          <button type="submit">GENERAR PLAN</button>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="form-group">
+                <label for="athleteWeight">Peso (kg)</label>
+                <input type="number" id="athleteWeight" step="0.5" placeholder="55.5" style="width:100%; padding:10px; background:var(--navy); border:1px solid var(--border); color:var(--text); border-radius:6px;">
+              </div>
+              <div class="form-group">
+                <label for="athleteHeight">Estatura (cm)</label>
+                <input type="number" id="athleteHeight" placeholder="165" style="width:100%; padding:10px; background:var(--navy); border:1px solid var(--border); color:var(--text); border-radius:6px;">
+              </div>
+            </div>
 
-          <div class="info-box">
-            💡 Los planes se adaptan a tu fase de periodización y días disponibles
-          </div>
-        </form>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="form-group">
+                <label for="athleteTargetDate">Fecha Objetivo / Carrera</label>
+                <input type="text" id="athleteTargetDate" placeholder="Ej. 15 de Diciembre / No indicado" style="width:100%; padding:10px; background:var(--navy); border:1px solid var(--border); color:var(--text); border-radius:6px;">
+              </div>
+              <div class="form-group">
+                <label for="athleteBestTime">Mejor Marca Reciente</label>
+                <input type="text" id="athleteBestTime" placeholder="Ej. 25 min en 5K / No se" style="width:100%; padding:10px; background:var(--navy); border:1px solid var(--border); color:var(--text); border-radius:6px;">
+              </div>
+            </div>
+
+            <!-- Cooper Test Section -->
+            <div style="background: #071020; border: 1px solid var(--teal); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+              <label style="color: var(--teal); font-family: 'Oswald', sans-serif; font-size: 0.95rem; margin-bottom: 6px;">Test de Cooper (12 min) & VO2max</label>
+              <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px;">Ingresa metros recorridos en 12 minutos para estimar VO2max y nivel aeróbico.</p>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="number" id="cooperMeters" placeholder="Metros (ej. 2400)" style="flex:1; padding:10px; background:var(--navy); border:1px solid var(--border); color:var(--text); border-radius:6px; font-size:0.85rem;" min="500" max="5000">
+                <button type="button" onclick="calculateCooper()" style="width: auto; padding: 10px 16px; font-size: 0.8rem; background: var(--teal); color: var(--navy); border-radius: 6px;">Calcular</button>
+              </div>
+              <div id="cooperResult" style="font-size: 0.8rem; color: var(--amber); margin-top: 8px; font-family: 'JetBrains Mono', monospace; display: none;"></div>
+            </div>
+
+            <div class="form-group">
+              <label for="level">Nivel y Experiencia Actual</label>
+              <select id="level" required style="width:100%; padding:10px; background:var(--navy); border:1px solid var(--border); color:var(--text); border-radius:6px;">
+                <option value="">Selecciona experiencia...</option>
+                <option value="beginner">Principiante (Corro menos de 20 min seguidos)</option>
+                <option value="intermediate">Intermedio (6-18 meses corriendo continuo)</option>
+                <option value="advanced">Avanzado (18+ meses, rodajes estructurados)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="weeklyKm">Kilometraje Semanal Objetivo (km)</label>
+              <input type="number" id="weeklyKm" min="15" max="100" step="5" required placeholder="30">
+            </div>
+
+            <div class="form-group">
+              <label>Días Disponibles para Entrenar</label>
+              <div class="checkbox-group">
+                <div class="checkbox-item"><input type="checkbox" id="day1" value="Lunes" checked><label for="day1">Lunes</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="day2" value="Martes" checked><label for="day2">Martes</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="day3" value="Miércoles" checked><label for="day3">Miércoles</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="day4" value="Jueves" checked><label for="day4">Jueves</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="day5" value="Viernes"><label for="day5">Viernes</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="day6" value="Sábado"><label for="day6">Sábado</label></div>
+                <div class="checkbox-item"><input type="checkbox" id="day7" value="Domingo"><label for="day7">Domingo</label></div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="athleteSessionTime">Tiempo por Sesión</label>
+              <select id="athleteSessionTime" required style="width:100%; padding:10px; background:var(--navy); border:1px solid var(--border); color:var(--text); border-radius:6px;">
+                <option value="30 a 45 min">30 a 45 min</option>
+                <option value="45 a 60 min" selected>45 a 60 min</option>
+                <option value="60 a 90 min">60 a 90 min</option>
+                <option value="90+ min">90+ min (Avanzado)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="athleteTerrainTime">Terreno y Horario Habitual</label>
+              <select id="athleteTerrainTime" required style="width:100%; padding:10px; background:var(--navy); border:1px solid var(--border); color:var(--text); border-radius:6px;">
+                <option value="Asfalto / Mañana" selected>Asfalto / Mañana</option>
+                <option value="Asfalto / Tarde">Asfalto / Tarde</option>
+                <option value="Pista / Mañana">Pista / Mañana</option>
+                <option value="Pista / Tarde">Pista / Tarde</option>
+                <option value="Mixto (Asfalto y Terracería) / Mañana">Mixto (Asfalto y Terracería) / Mañana</option>
+                <option value="Mixto (Asfalto y Terracería) / Tarde">Mixto (Asfalto y Terracería) / Tarde</option>
+                <option value="Treadmill (Caminadora) / Interior">Treadmill (Caminadora) / Interior</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="athleteEquipment">Equipo / Acceso a Pesas o Ligas</label>
+              <select id="athleteEquipment" required style="width:100%; padding:10px; background:var(--navy); border:1px solid var(--border); color:var(--text); border-radius:6px;">
+                <option value="Nada / Sin acceso a equipo" selected>Nada / Sin acceso a equipo (Peso corporal)</option>
+                <option value="Ligas de resistencia">Ligas de resistencia</option>
+                <option value="Mancuernas ligeras / En casa">Mancuernas ligeras / En casa</option>
+                <option value="Gimnasio completo">Gimnasio completo (Pesas y máquinas)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="athleteInjuries">Lesiones o Molestias Actuales / Pasadas</label>
+              <select id="athleteInjuries" required style="width:100%; padding:10px; background:var(--navy); border:1px solid var(--border); color:var(--text); border-radius:6px;">
+                <option value="Ninguna" selected>Ninguna</option>
+                <option value="Molestia leve en rodilla / Tendón rotuliano">Molestia leve en rodilla / Tendón rotuliano</option>
+                <option value="Fascitis plantar leve">Fascitis plantar leve</option>
+                <option value="Molestia lumbar ocasional">Molestia lumbar ocasional</option>
+                <option value="Recuperación de lesión pasada (controlada)">Recuperación de lesión pasada (controlada)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="athleteMedical">Condiciones Médicas Declaradas</label>
+              <select id="athleteMedical" required style="width:100%; padding:10px; background:var(--navy); border:1px solid var(--border); color:var(--text); border-radius:6px;">
+                <option value="Ninguna" selected>Ninguna</option>
+                <option value="Hipertensión controlada">Hipertensión controlada</option>
+                <option value="Asma leve / Controlada">Asma leve / Controlada</option>
+                <option value="Diabetes tipo 2 controlada">Diabetes tipo 2 controlada</option>
+                <option value="Otra condición médica controlada">Otra condición médica controlada</option>
+              </select>
+            </div>
+
+            <button type="submit">GENERAR PLAN 12 SEMANAS (ESTILO GOOGLE FORM)</button>
+
+            <div class="info-box">
+              💡 Basado en el cuestionario oficial de admisión de "A Tu Marca" — Coach Ruben Ramírez.
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
 
-    <div>
-      <div id="weekPlan" class="week-plan card">
-        <div id="phaseBadge"></div>
-        <h2 class="week-title">Tu Plan de la Semana</h2>
-        <div id="planContent"></div>
+      <div>
+        <div id="weekPlan" class="week-plan card">
+          <div id="phaseBadge"></div>
+          <h2 class="week-title">Tu Plan de la Semana</h2>
+          <div id="planContent"></div>
 
-        <div class="export-controls">
-          <button id="exportJSON" class="btn-secondary">📥 Exportar JSON</button>
-          <button id="copyPlan" class="btn-secondary">📋 Copiar Plan</button>
+          <div class="export-controls">
+            <button id="exportJSON" class="btn-secondary">📥 Exportar JSON</button>
+            <button id="copyPlan" class="btn-secondary">📋 Copiar Plan</button>
+          </div>
         </div>
       </div>
     </div>
   </div>
+
 </div>
 
 <footer>
@@ -436,250 +570,352 @@ footer strong {
 </footer>
 
 <script>
-(function() {
-  'use strict';
 
-  const form = document.getElementById('planForm');
-  const weekPlan = document.getElementById('weekPlan');
-  const planContent = document.getElementById('planContent');
-  const phaseBadge = document.getElementById('phaseBadge');
-  const exportJSONBtn = document.getElementById('exportJSON');
-  const copyPlanBtn = document.getElementById('copyPlan');
+  // Format 1 logic (Classic Generator)
+  (function() {
+    'use strict';
 
-  let currentPlan = null;
+    const form = document.getElementById('planForm');
+    const weekPlan = document.getElementById('weekPlan');
+    const planContent = document.getElementById('planContent');
+    const phaseBadge = document.getElementById('phaseBadge');
+    const exportJSONBtn = document.getElementById('exportJSON');
+    const copyPlanBtn = document.getElementById('copyPlan');
 
-  const sessionTemplates = {
-    base: {
-      beginner: [
-        { type: 'easy', name: 'Carrera Fácil', duration: 30, rpe: 5, description: 'Ritmo conversacional cómodo, sin presión en el tiempo' },
-        { type: 'easy', name: 'Carrera Fácil', duration: 35, rpe: 5, description: 'Mantén el esfuerzo bajo, disfruta el movimiento' },
-        { type: 'long', name: 'Carrera Larga', duration: 50, rpe: 6, description: 'Aumenta resistencia aeróbica, ritmo controlado' },
-        { type: 'easy', name: 'Carrera Fácil', duration: 30, rpe: 5, description: 'Recuperación activa, ritmo relajado' }
-      ],
-      intermediate: [
-        { type: 'easy', name: 'Carrera Base', duration: 45, rpe: 5, description: 'Zona 2, construir base aeróbica' },
-        { type: 'tempo', name: 'Tempo Suave', duration: 40, rpe: 7, description: '20 min calentamiento + 15 min tempo + 5 min vuelta a calma' },
-        { type: 'easy', name: 'Carrera Fácil', duration: 40, rpe: 5, description: 'Ritmo conversacional, recuperación activa' },
-        { type: 'long', name: 'Carrera Larga', duration: 75, rpe: 6, description: 'Construir resistencia, mantener ritmo uniforme' }
-      ],
-      advanced: [
-        { type: 'easy', name: 'Carrera Base', duration: 60, rpe: 5, description: 'Zona 2 aeróbica, ritmo sostenido' },
-        { type: 'tempo', name: 'Tempo Moderado', duration: 50, rpe: 7, description: '15 min calentamiento + 25 min tempo + 10 min vuelta a calma' },
-        { type: 'easy', name: 'Carrera Fácil', duration: 45, rpe: 5, description: 'Recuperación activa entre sesiones clave' },
-        { type: 'long', name: 'Carrera Larga', duration: 90, rpe: 6, description: 'Resistencia aeróbica, mantener conversación' }
-      ]
-    },
-    fuerza: {
-      beginner: [
-        { type: 'easy', name: 'Carrera Fácil', duration: 30, rpe: 5, description: 'Calentamiento general, ritmo cómodo' },
-        { type: 'strength', name: 'Cuestas Suaves', duration: 35, rpe: 7, description: '15 min calentamiento + 6x30seg cuesta + 5 min vuelta a calma' },
-        { type: 'easy', name: 'Carrera Fácil', duration: 30, rpe: 5, description: 'Recuperación, ritmo muy cómodo' },
-        { type: 'long', name: 'Carrera Larga', duration: 50, rpe: 6, description: 'Volumen en terreno plano' }
-      ],
-      intermediate: [
-        { type: 'easy', name: 'Carrera Fácil', duration: 40, rpe: 5, description: 'Preparación para sesión de fuerza' },
-        { type: 'strength', name: 'Cuestas Moderadas', duration: 45, rpe: 8, description: '15 min calentamiento + 8x45seg cuesta + 10 min vuelta a calma' },
-        { type: 'easy', name: 'Carrera Recuperación', duration: 35, rpe: 4, description: 'Muy suave, regeneración muscular' },
-        { type: 'long', name: 'Carrera Larga', duration: 70, rpe: 6, description: 'Resistencia con ligeros cambios de ritmo' }
-      ],
-      advanced: [
-        { type: 'easy', name: 'Carrera Base', duration: 50, rpe: 5, description: 'Preparación muscular activa' },
-        { type: 'strength', name: 'Cuestas Intensas', duration: 55, rpe: 8, description: '20 min calentamiento + 10x60seg cuesta fuerte + 15 min vuelta a calma' },
-        { type: 'easy', name: 'Carrera Recuperación', duration: 40, rpe: 4, description: 'Recuperación completa, sin presión' },
-        { type: 'long', name: 'Carrera Larga', duration: 85, rpe: 6, description: 'Volumen con progresión final opcional' }
-      ]
-    },
-    velocidad: {
-      beginner: [
-        { type: 'easy', name: 'Carrera Fácil', duration: 30, rpe: 5, description: 'Preparación ligera' },
-        { type: 'interval', name: 'Intervalos Cortos', duration: 35, rpe: 8, description: '15 min calentamiento + 6x400m rápido (rec 90seg) + 5 min vuelta a calma' },
-        { type: 'easy', name: 'Carrera Fácil', duration: 30, rpe: 5, description: 'Recuperación activa' },
-        { type: 'tempo', name: 'Tempo Controlado', duration: 40, rpe: 7, description: '15 min calentamiento + 15 min tempo + 10 min vuelta a calma' }
-      ],
-      intermediate: [
-        { type: 'easy', name: 'Carrera Fácil', duration: 40, rpe: 5, description: 'Base aeróbica' },
-        { type: 'interval', name: 'Intervalos Medios', duration: 45, rpe: 8, description: '15 min calentamiento + 8x800m (rec 2min) + 10 min vuelta a calma' },
-        { type: 'easy', name: 'Carrera Recuperación', duration: 35, rpe: 4, description: 'Regeneración suave' },
-        { type: 'tempo', name: 'Tempo Sostenido', duration: 50, rpe: 7, description: '15 min calentamiento + 25 min tempo + 10 min vuelta a calma' }
-      ],
-      advanced: [
-        { type: 'easy', name: 'Carrera Base', duration: 50, rpe: 5, description: 'Preparación neuromuscular' },
-        { type: 'interval', name: 'Intervalos Largos', duration: 55, rpe: 9, description: '20 min calentamiento + 6x1200m (rec 2min) + 15 min vuelta a calma' },
-        { type: 'easy', name: 'Carrera Recuperación', duration: 40, rpe: 4, description: 'Recuperación completa' },
-        { type: 'tempo', name: 'Tempo Extendido', duration: 60, rpe: 7, description: '15 min calentamiento + 35 min tempo + 10 min vuelta a calma' }
-      ]
-    },
-    taper: {
-      beginner: [
-        { type: 'easy', name: 'Carrera Fácil', duration: 25, rpe: 4, description: 'Mantener piernas frescas' },
-        { type: 'easy', name: 'Carrera Suave + Aceleraciones', duration: 30, rpe: 5, description: '20 min fácil + 4x100m progresivos + 5 min vuelta a calma' },
-        { type: 'rest', name: 'Descanso o Caminata', duration: 0, rpe: 0, description: 'Descanso completo o caminata ligera 20 min' },
-        { type: 'easy', name: 'Carrera Muy Suave', duration: 20, rpe: 4, description: 'Mantener activación, sin fatiga' }
-      ],
-      intermediate: [
-        { type: 'easy', name: 'Carrera Fácil', duration: 30, rpe: 4, description: 'Reducción de volumen, frescura muscular' },
-        { type: 'tempo', name: 'Tempo Corto', duration: 35, rpe: 6, description: '15 min calentamiento + 10 min tempo + 10 min vuelta a calma' },
-        { type: 'rest', name: 'Descanso Activo', duration: 0, rpe: 0, description: 'Descanso o movilidad/estiramiento' },
-        { type: 'easy', name: 'Carrera Muy Suave', duration: 25, rpe: 4, description: 'Mantener activación sin acumular fatiga' }
-      ],
-      advanced: [
-        { type: 'easy', name: 'Carrera Fácil', duration: 35, rpe: 4, description: 'Descarga controlada' },
-        { type: 'interval', name: 'Intervalos Cortos', duration: 40, rpe: 7, description: '15 min calentamiento + 4x600m controlados + 10 min vuelta a calma' },
-        { type: 'rest', name: 'Descanso', duration: 0, rpe: 0, description: 'Descanso completo' },
-        { type: 'easy', name: 'Carrera Activación', duration: 30, rpe: 4, description: 'Activación neuromuscular, sin fatiga' }
-      ]
+    let currentPlan = null;
+
+    const sessionTemplates = {
+      base: {
+        beginner: [
+          { type: 'easy', name: 'Carrera Fácil', duration: 30, rpe: 5, description: 'Ritmo conversacional cómodo, sin presión en el tiempo' },
+          { type: 'easy', name: 'Carrera Fácil', duration: 35, rpe: 5, description: 'Mantén el esfuerzo bajo, disfruta el movimiento' },
+          { type: 'long', name: 'Carrera Larga', duration: 50, rpe: 6, description: 'Aumenta resistencia aeróbica, ritmo controlado' },
+          { type: 'easy', name: 'Carrera Fácil', duration: 30, rpe: 5, description: 'Recuperación activa, ritmo relajado' }
+        ],
+        intermediate: [
+          { type: 'easy', name: 'Carrera Base', duration: 45, rpe: 5, description: 'Zona 2, construir base aeróbica' },
+          { type: 'tempo', name: 'Tempo Suave', duration: 40, rpe: 7, description: '20 min calentamiento + 15 min tempo + 5 min vuelta a calma' },
+          { type: 'easy', name: 'Carrera Fácil', duration: 40, rpe: 5, description: 'Ritmo conversacional, recuperación activa' },
+          { type: 'long', name: 'Carrera Larga', duration: 75, rpe: 6, description: 'Construir resistencia, mantener ritmo uniforme' }
+        ],
+        advanced: [
+          { type: 'easy', name: 'Carrera Base', duration: 60, rpe: 5, description: 'Zona 2 aeróbica, ritmo sostenido' },
+          { type: 'tempo', name: 'Tempo Moderado', duration: 50, rpe: 7, description: '15 min calentamiento + 25 min tempo + 10 min vuelta a calma' },
+          { type: 'easy', name: 'Carrera Fácil', duration: 45, rpe: 5, description: 'Recuperación activa entre sesiones clave' },
+          { type: 'long', name: 'Carrera Larga', duration: 90, rpe: 6, description: 'Resistencia aeróbica, mantener conversación' }
+        ]
+      },
+      fuerza: {
+        beginner: [
+          { type: 'easy', name: 'Carrera Fácil', duration: 30, rpe: 5, description: 'Calentamiento general, ritmo cómodo' },
+          { type: 'strength', name: 'Cuestas Suaves', duration: 35, rpe: 7, description: '15 min calentamiento + 6x30seg cuesta + 5 min vuelta a calma' },
+          { type: 'easy', name: 'Carrera Fácil', duration: 30, rpe: 5, description: 'Recuperación, ritmo muy cómodo' },
+          { type: 'long', name: 'Carrera Larga', duration: 50, rpe: 6, description: 'Volumen en terreno plano' }
+        ],
+        intermediate: [
+          { type: 'easy', name: 'Carrera Fácil', duration: 40, rpe: 5, description: 'Preparación para sesión de fuerza' },
+          { type: 'strength', name: 'Cuestas Moderadas', duration: 45, rpe: 8, description: '15 min calentamiento + 8x45seg cuesta + 10 min vuelta a calma' },
+          { type: 'easy', name: 'Carrera Recuperación', duration: 35, rpe: 4, description: 'Muy suave, regeneración muscular' },
+          { type: 'long', name: 'Carrera Larga', duration: 70, rpe: 6, description: 'Resistencia con ligeros cambios de ritmo' }
+        ],
+        advanced: [
+          { type: 'easy', name: 'Carrera Base', duration: 50, rpe: 5, description: 'Preparación muscular activa' },
+          { type: 'strength', name: 'Cuestas Intensas', duration: 55, rpe: 8, description: '20 min calentamiento + 10x60seg cuesta fuerte + 15 min vuelta a calma' },
+          { type: 'easy', name: 'Carrera Recuperación', duration: 40, rpe: 4, description: 'Recuperación completa, sin presión' },
+          { type: 'long', name: 'Carrera Larga', duration: 85, rpe: 6, description: 'Volumen con progresión final opcional' }
+        ]
+      },
+      velocidad: {
+        beginner: [
+          { type: 'easy', name: 'Carrera Fácil', duration: 30, rpe: 5, description: 'Preparación ligera' },
+          { type: 'interval', name: 'Intervalos Cortos', duration: 35, rpe: 8, description: '15 min calentamiento + 6x400m rápido (rec 90seg) + 5 min vuelta a calma' },
+          { type: 'easy', name: 'Carrera Fácil', duration: 30, rpe: 5, description: 'Recuperación activa' },
+          { type: 'tempo', name: 'Tempo Controlado', duration: 40, rpe: 7, description: '15 min calentamiento + 15 min tempo + 10 min vuelta a calma' }
+        ],
+        intermediate: [
+          { type: 'easy', name: 'Carrera Fácil', duration: 40, rpe: 5, description: 'Base aeróbica' },
+          { type: 'interval', name: 'Intervalos Medios', duration: 45, rpe: 8, description: '15 min calentamiento + 8x800m (rec 2min) + 10 min vuelta a calma' },
+          { type: 'easy', name: 'Carrera Recuperación', duration: 35, rpe: 4, description: 'Regeneración suave' },
+          { type: 'tempo', name: 'Tempo Sostenido', duration: 50, rpe: 7, description: '15 min calentamiento + 25 min tempo + 10 min vuelta a calma' }
+        ],
+        advanced: [
+          { type: 'easy', name: 'Carrera Base', duration: 50, rpe: 5, description: 'Preparación neuromuscular' },
+          { type: 'interval', name: 'Intervalos Largos', duration: 55, rpe: 9, description: '20 min calentamiento + 6x1200m (rec 2min) + 15 min vuelta a calma' },
+          { type: 'easy', name: 'Carrera Recuperación', duration: 40, rpe: 4, description: 'Recuperación completa' },
+          { type: 'tempo', name: 'Tempo Extendido', duration: 60, rpe: 7, description: '15 min calentamiento + 35 min tempo + 10 min vuelta a calma' }
+        ]
+      },
+      taper: {
+        beginner: [
+          { type: 'easy', name: 'Carrera Fácil', duration: 25, rpe: 4, description: 'Mantener piernas frescas' },
+          { type: 'easy', name: 'Carrera Suave + Aceleraciones', duration: 30, rpe: 5, description: '20 min fácil + 4x100m progresivos + 5 min vuelta a calma' },
+          { type: 'rest', name: 'Descanso o Caminata', duration: 0, rpe: 0, description: 'Descanso completo o caminata ligera 20 min' },
+          { type: 'easy', name: 'Carrera Muy Suave', duration: 20, rpe: 4, description: 'Mantener activación, sin fatiga' }
+        ],
+        intermediate: [
+          { type: 'easy', name: 'Carrera Fácil', duration: 30, rpe: 4, description: 'Reducción de volumen, frescura muscular' },
+          { type: 'tempo', name: 'Tempo Corto', duration: 35, rpe: 6, description: '15 min calentamiento + 10 min tempo + 10 min vuelta a calma' },
+          { type: 'rest', name: 'Descanso Activo', duration: 0, rpe: 0, description: 'Descanso o movilidad/estiramiento' },
+          { type: 'easy', name: 'Carrera Muy Suave', duration: 25, rpe: 4, description: 'Mantener activación sin acumular fatiga' }
+        ],
+        advanced: [
+          { type: 'easy', name: 'Carrera Fácil', duration: 35, rpe: 4, description: 'Descarga controlada' },
+          { type: 'interval', name: 'Intervalos Cortos', duration: 40, rpe: 7, description: '15 min calentamiento + 4x600m controlados + 10 min vuelta a calma' },
+          { type: 'rest', name: 'Descanso', duration: 0, rpe: 0, description: 'Descanso completo' },
+          { type: 'easy', name: 'Carrera Activación', duration: 30, rpe: 4, description: 'Activación neuromuscular, sin fatiga' }
+        ]
+      }
+    };
+
+    const phaseNames = {
+      base: 'Base - Resistencia Aeróbica',
+      fuerza: 'Fuerza - Potencia y Cuestas',
+      velocidad: 'Velocidad - Ritmo y Tempo',
+      taper: 'Taper - Descarga'
+    };
+
+    function getAvailableDays() {
+      const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+      return days.filter((_, idx) => document.getElementById(`day${idx + 1}`).checked);
     }
-  };
 
-  const phaseNames = {
-    base: 'Base - Resistencia Aeróbica',
-    fuerza: 'Fuerza - Potencia y Cuestas',
-    velocidad: 'Velocidad - Ritmo y Tempo',
-    taper: 'Taper - Descarga'
-  };
+    function generatePlan(phase, level, weeklyKm, availableDays, athleteInfo) {
+      const templates = sessionTemplates[phase][level];
+      const numSessions = Math.min(availableDays.length, templates.length);
+      const selectedSessions = templates.slice(0, numSessions);
 
-  function getAvailableDays() {
-    const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-    return days.filter((_, idx) => document.getElementById(`day${idx + 1}`).checked);
-  }
+      const totalTemplateDuration = selectedSessions.reduce((sum, s) => sum + s.duration, 0);
+      const kmPerMinute = totalTemplateDuration > 0 ? weeklyKm / totalTemplateDuration : 0;
 
-  function generatePlan(phase, level, weeklyKm, availableDays) {
-    const templates = sessionTemplates[phase][level];
-    const numSessions = Math.min(availableDays.length, templates.length);
-    const selectedSessions = templates.slice(0, numSessions);
+      const allDays = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+      const plan = allDays.map(day => {
+        const dayIndex = availableDays.indexOf(day);
+        if (dayIndex === -1 || dayIndex >= selectedSessions.length) {
+          return {
+            day,
+            type: 'rest',
+            name: 'Descanso',
+            duration: 0,
+            distance: 0,
+            rpe: 0,
+            description: 'Día de recuperación completa o actividad alternativa'
+          };
+        }
 
-    // Distribute weekly km across sessions
-    const totalTemplateDuration = selectedSessions.reduce((sum, s) => sum + s.duration, 0);
-    const kmPerMinute = weeklyKm / totalTemplateDuration;
+        const session = selectedSessions[dayIndex];
+        const distance = Math.round(session.duration * kmPerMinute * 10) / 10;
 
-    const allDays = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-    const plan = allDays.map(day => {
-      const dayIndex = availableDays.indexOf(day);
-      if (dayIndex === -1 || dayIndex >= selectedSessions.length) {
         return {
           day,
-          type: 'rest',
-          name: 'Descanso',
-          duration: 0,
-          distance: 0,
-          rpe: 0,
-          description: 'Día de recuperación completa o actividad alternativa (yoga, bici suave)'
+          type: session.type,
+          name: session.name,
+          duration: session.duration,
+          distance,
+          rpe: session.rpe,
+          description: session.description
         };
-      }
-
-      const session = selectedSessions[dayIndex];
-      const distance = Math.round(session.duration * kmPerMinute * 10) / 10;
+      });
 
       return {
-        day,
-        type: session.type,
-        name: session.name,
-        duration: session.duration,
-        distance,
-        rpe: session.rpe,
-        description: session.description
+        athlete: athleteInfo,
+        phase,
+        phaseName: phaseNames[phase],
+        level,
+        weeklyKm,
+        generatedAt: new Date().toISOString(),
+        days: plan
       };
-    });
-
-    return {
-      phase,
-      phaseName: phaseNames[phase],
-      level,
-      weeklyKm,
-      generatedAt: new Date().toISOString(),
-      days: plan
-    };
-  }
-
-  function renderPlan(plan) {
-    phaseBadge.innerHTML = `<span class="phase-badge phase-${plan.phase}">${plan.phaseName}</span>`;
-
-    planContent.innerHTML = plan.days.map(day => `
-      <div class="day-card">
-        <div class="day-header">
-          <div class="day-name">${day.day}</div>
-          <div class="day-type type-${day.type}">${day.name}</div>
-        </div>
-        <div class="day-details">
-          ${day.duration > 0 ? `
-            <div class="detail-row">
-              <span class="detail-label">Duración:</span>
-              <span class="detail-value">${day.duration} min</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Distancia:</span>
-              <span class="detail-value">~${day.distance} km</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">RPE:</span>
-              <span class="detail-value">${day.rpe}/10</span>
-            </div>
-          ` : ''}
-        </div>
-        <div class="day-description">${day.description}</div>
-      </div>
-    `).join('');
-
-    weekPlan.classList.add('visible');
-    weekPlan.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  form.addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    const phase = document.getElementById('phase').value;
-    const level = document.getElementById('level').value;
-    const weeklyKm = parseFloat(document.getElementById('weeklyKm').value);
-    const availableDays = getAvailableDays();
-
-    if (availableDays.length === 0) {
-      alert('Selecciona al menos un día disponible para entrenar');
-      return;
     }
 
-    currentPlan = generatePlan(phase, level, weeklyKm, availableDays);
-    renderPlan(currentPlan);
-  });
+    function renderPlan(plan) {
+      phaseBadge.innerHTML = `
+        <div style="background:var(--navy); padding:16px; border-radius:8px; border:1px solid var(--border); margin-bottom:16px;">
+          <h3 style="color:var(--amber); font-family:'Oswald',sans-serif; margin-bottom:6px;">👤 Atleta: ${plan.athlete.name} (${plan.athlete.age} años)</h3>
+          <p style="font-size:0.9rem; color:var(--text-muted); margin:0 0 8px 0;">Meta: <strong>${plan.athlete.goal}</strong> | Peso: ${plan.athlete.weight || '-'} kg | Estatura: ${plan.athlete.height || '-'} cm | Lesiones: ${plan.athlete.injuries || 'Ninguna'}</p>
+          <span class="phase-badge">${plan.phaseName} — Objetivo: ${plan.weeklyKm} km/sem</span>
+        </div>
+      `;
 
-  exportJSONBtn.addEventListener('click', function() {
-    if (!currentPlan) return;
+      planContent.innerHTML = plan.days.map(day => `
+        <div class="day-card">
+          <div class="day-header">
+            <div class="day-name">${day.day}</div>
+            <div class="day-type type-${day.type}">${day.name}</div>
+          </div>
+          <div class="day-details">
+            ${day.duration > 0 ? `
+              <div class="detail-row">
+                <span class="detail-label">Duración:</span>
+                <span class="detail-value">${day.duration} min</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Distancia:</span>
+                <span class="detail-value">~${day.distance} km</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">RPE:</span>
+                <span class="detail-value">${day.rpe}/10</span>
+              </div>
+            ` : ''}
+          </div>
+          <div class="day-description">${day.description}</div>
+        </div>
+      `).join('');
 
-    const dataStr = JSON.stringify(currentPlan, null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `plan-semana-${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  });
+      weekPlan.classList.add('visible');
+      weekPlan.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 
-  copyPlanBtn.addEventListener('click', function() {
-    if (!currentPlan) return;
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
 
-    const text = `PLAN SEMANAL - ${currentPlan.phaseName}\n` +
-      `Kilometraje objetivo: ${currentPlan.weeklyKm} km\n\n` +
-      currentPlan.days.map(day =>
-        `${day.day}: ${day.name}\n` +
-        (day.duration > 0 ? `  • ${day.duration} min | ~${day.distance} km | RPE ${day.rpe}/10\n` : '') +
-        `  • ${day.description}\n`
-      ).join('\n');
+      const athlete = {
+        name: document.getElementById('athleteName').value || 'Corredor A Tu Marca',
+        age: document.getElementById('athleteAge').value || 'No indicada',
+        goal: document.getElementById('athleteGoal').value || '5K',
+        weight: document.getElementById('athleteWeight').value || 'No indicado',
+        height: document.getElementById('athleteHeight').value || 'No indicado',
+        targetDate: document.getElementById('athleteTargetDate').value || 'No indicado',
+        experience: document.getElementById('level').options[document.getElementById('level').selectedIndex].text,
+        bestTime: document.getElementById('athleteBestTime').value || 'No se',
+        weeklyKm: document.getElementById('weeklyKm').value || '30',
+        sessionTime: document.getElementById('athleteSessionTime').value || '45 a 60 min',
+        terrainTime: document.getElementById('athleteTerrainTime').value || 'Mixto, Tarde',
+        equipment: document.getElementById('athleteEquipment').value || 'Nada',
+        injuries: document.getElementById('athleteInjuries').value || 'Ninguna',
+        medical: document.getElementById('athleteMedical').value || 'Ninguna'
+      };
 
-    navigator.clipboard.writeText(text).then(() => {
-      const originalText = copyPlanBtn.textContent;
-      copyPlanBtn.textContent = '✓ Copiado';
-      setTimeout(() => {
-        copyPlanBtn.textContent = originalText;
-      }, 2000);
-    }).catch(err => {
-      // Fallback: select text manually
-      const textArea = document.createElement('textarea');
-      textArea.value = text;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
+      const markdownPlan = `# Plan ${athlete.goal} · ${athlete.name}
+DATOS DEL CORREDOR
+- Nombre: ${athlete.name}
+- Edad: ${athlete.age}
+- Peso / Estatura: ${athlete.weight} kg / ${athlete.height} cm
+- Meta: ${athlete.goal}
+- Fecha objetivo o carrera (si existe): ${athlete.targetDate}
+- Experiencia actual: ${athlete.experience}
+- Días por semana disponibles para entrenar: ${getAvailableDays().length}
+- Días específicos preferidos: ${getAvailableDays().join(', ')}
+- Tiempo por sesión: ${athlete.sessionTime}
+- Mejor marca reciente (si la conoce): ${athlete.bestTime}
+- Lesiones o molestias actuales o pasadas: ${athlete.injuries}
+- Condiciones médicas declaradas: ${athlete.medical}
+- Terreno y horario habitual: ${athlete.terrainTime}
+- Equipo disponible: ${athlete.equipment}
+- Acceso a pesas o ligas: ${athlete.equipment.toLowerCase().includes('pesa') || athlete.equipment.toLowerCase().includes('liga') ? 'Sí' : 'No'}
+
+## 1. Tu punto de partida
+
+Eres un corredor con enfoque en tu meta de **${athlete.goal}**, y vamos a construir tu resistencia de forma progresiva y segura bajo la periodización de Coach Ruben Ramírez. *Supuestos:* Enfocaremos estas 12 semanas en desarrollar la capacidad aeróbica y fuerza específica para completar ${athlete.goal} con éxito, adaptándonos a tu disponibilidad de ${getAvailableDays().length} días por semana.
+
+## 2. Cómo vas a entrenar
+
+Nos guiaremos por tus sensaciones usando una escala de esfuerzo del 1 al 10. En los intervalos suaves y caminatas el esfuerzo será de **3 a 4**; en los bloques de trote suave será de **5 a 6**, donde debes pasar la "prueba del habla" (poder decir una frase completa sin ahogarte). Si sientes que te falta el aire, baja el ritmo de inmediato.
+
+## 3. Calendario semanal (Estructura de 12 Semanas en 3 Bloques)
+
+### Bloque 1: Adaptación y despertar aeróbico (Semanas 1 a 4)
+- **Semana 1-2:** Introducción progresiva con intervalos de caminata/trote (CaCo) y rutinas de blindaje articular.
+- **Semana 3-4:** Incremento gradual del tiempo de trote continuo y prueba de control de 15 minutos.
+
+### Bloque 2: Construcción de resistencia (Semanas 5 a 8)
+- **Semana 5-6:** Alargamiento de bloques de carrera continua y consolidación del volumen semanal objetivo (${athlete.weeklyKm} km).
+- **Semana 7-8:** Pico de resistencia media y test de control de 25 minutos.
+
+### Bloque 3: Consolidación ${athlete.goal} (Semanas 9 a 12)
+- **Semana 9-10:** Rodajes continuos y cambios de ritmo controlados.
+- **Semana 11-12:** Pico de volumen y **Prueba Final / Día de Carrera de ${athlete.goal}**.
+
+*(Nota: Al exportar o copiar el plan obtienes el formato completo detallado por sesión para las 12 semanas).*
+
+## 4. Fuerza y movilidad
+Realiza rutinas en casa enfocadas en blindaje de rodillas, estabilidad de cadera y fortalecimiento del core dos veces por semana al terminar tus sesiones de carrera.
+
+## 5. Hidratación, sueño y alimentación general
+- Mantén una hidratación constante con agua natural durante todo el día.
+- Duerme entre 7 y 9 horas diarias para asegurar una correcta recuperación muscular.
+- Realiza una comida ligera rica en carbohidratos complejos 90 minutos antes de entrenar.
+
+## 6. Señales de alto: cuándo parar y consultar
+Detén el entrenamiento ante dolor agudo en articulaciones, mareos, opresión en el pecho o falta de aire anormal.
+
+## 7. Día de carrera o prueba final
+Aplica tu estrategia de salida conservadora, controla tu respiración los primeros 10 minutos y regula tu esfuerzo de forma progresiva hasta cruzar la meta.
+
+## 8. Tu siguiente paso
+Al terminar las 12 semanas y tu prueba de ${athlete.goal}, tómate 4-5 días de descarga y evaluaremos tu siguiente objetivo (velocidad o mayor distancia).
+
+---
+Nota final: "Este plan es una guía general de entrenamiento y no sustituye la valoración de un profesional de la salud."
+`;
+
+      currentPlan = { athlete, markdown: markdownPlan };
+
+      phaseBadge.innerHTML = `
+        <div style="background:var(--navy); padding:16px; border-radius:8px; border:1px solid var(--border); margin-bottom:16px;">
+          <h3 style="color:var(--amber); font-family:'Oswald',sans-serif; margin-bottom:6px;">👤 Atleta: ${athlete.name} (${athlete.age} años)</h3>
+          <p style="font-size:0.9rem; color:var(--text-muted); margin:0 0 8px 0;">Meta: <strong>${athlete.goal}</strong> | Nivel: ${athlete.experience} | Lesiones: ${athlete.injuries}</p>
+          <span class="phase-badge">Plan de 12 Semanas Generado — ${athlete.weeklyKm} km/sem</span>
+        </div>
+      `;
+
+      planContent.innerHTML = `<div style="background:#071020; padding:20px; border-radius:8px; font-family:'JetBrains Mono',monospace; font-size:0.85rem; white-space:pre-wrap; color:#f8fafc; overflow-x:auto; max-height:600px; overflow-y:auto;">${markdownPlan}</div>`;
+
+      weekPlan.classList.add('visible');
+      weekPlan.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
-  });
-})();
+
+    exportJSONBtn.addEventListener('click', function() {
+      if (!currentPlan) return;
+
+      const dataStr = JSON.stringify(currentPlan, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `plan-12-semanas-${currentPlan.athlete.name.toLowerCase().replace(/\s+/g, '-')}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    copyPlanBtn.addEventListener('click', function() {
+      if (!currentPlan) return;
+
+      navigator.clipboard.writeText(currentPlan.markdown).then(() => {
+        const originalText = copyPlanBtn.textContent;
+        copyPlanBtn.textContent = '✓ Markdown Copiado';
+        setTimeout(() => {
+          copyPlanBtn.textContent = originalText;
+        }, 2000);
+      });
+    });
+
+    window.calculateCooper = function() {
+      const metersInput = document.getElementById('cooperMeters');
+      const meters = parseFloat(metersInput.value);
+      if (isNaN(meters) || meters <= 0) {
+        alert("Ingresa una distancia válida en metros (ej. 2400)");
+        return;
+      }
+      const vo2max = ((meters - 504.9) / 44.99).toFixed(1);
+      let cat = "Excelente";
+      if (vo2max < 35) cat = "Bajo / Principiante";
+      else if (vo2max < 45) cat = "Promedio / Intermedio";
+      else if (vo2max < 55) cat = "Bueno / Avanzado";
+
+      const resEl = document.getElementById('cooperResult');
+      resEl.style.display = 'block';
+      resEl.innerHTML = `VO2max estimado: <strong>${vo2max} ml/kg/min</strong> (${cat})`;
+
+      const levelSelect = document.getElementById('level');
+      if (levelSelect) {
+        if (vo2max < 38) levelSelect.value = "beginner";
+        else if (vo2max < 50) levelSelect.value = "intermediate";
+        else levelSelect.value = "advanced";
+      }
+    };
+  })();
 </script>
+
+</body>
+</html>

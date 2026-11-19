@@ -73,6 +73,24 @@
         </div>
     </div>
 
+    <!-- Cycle Window Restriction Overlay (15th to 14th) -->
+    <div id="cycle-window-overlay" class="fixed inset-0 bg-navy/95 z-40 hidden flex items-center justify-center p-4">
+        <div class="card p-8 rounded-xl shadow-2xl max-w-lg w-full text-center border-2 border-amber-500/60">
+            <div class="text-5xl mb-3">📅</div>
+            <h2 class="text-3xl mb-2 text-amber-400">Ventana de Ciclo Fuera de Rango</h2>
+            <p class="text-slate-300 text-sm mb-6 leading-relaxed">
+                El tablero de entrenamiento está disponible únicamente del <strong class="text-teal-300">15 de cada mes al 14 del mes siguiente</strong> según la metodología oficial A Tu Marca.
+            </p>
+            <div class="bg-slate-900 p-4 rounded-lg border border-slate-800 text-xs text-slate-400 mb-6 text-left space-y-1">
+                <p>• <strong class="text-white">Regla de Visibilidad:</strong> Del 15 al 14 del ciclo mensual.</p>
+                <p>• <strong class="text-white">Estado:</strong> Fuera de la ventana activa o pendiente de apertura.</p>
+            </div>
+            <button onclick="location.reload()" class="w-full bg-teal-500 hover:bg-teal-600 text-navy font-bold py-3 rounded text-xs uppercase transition-colors">
+                Verificar de Nuevo
+            </button>
+        </div>
+    </div>
+
     <!-- Payment Block Overlay -->
     <div id="payment-block-overlay" class="fixed inset-0 bg-navy/95 z-40 hidden flex items-center justify-center p-4">
         <div class="card p-8 rounded-xl shadow-2xl max-w-lg w-full text-center border-2 border-red-500/60">
@@ -128,58 +146,110 @@
             <p id="phase-desc" class="text-sm text-slate-300 mt-2 italic text-center">Fase 1: Construcción de Base Aeróbica.</p>
         </section>
 
-        <!-- Main Grid: Today + Metrics & Chart -->
+        <!-- Main Grid: Today (smaller) + Metrics & Chart (larger) -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
 
-            <!-- Today's Workout -->
-            <div class="md:col-span-2 card p-6 rounded-xl shadow-xl">
-                <h3 class="text-2xl mb-4 text-teal-400 flex items-center justify-between">
-                    <span>Entrenamiento de Hoy</span>
-                    <span id="workout-phase-tag" class="text-xs bg-slate-800 px-3 py-1 rounded text-teal-300">Sesión Activa</span>
-                </h3>
-                <div id="workout-card" class="space-y-4">
-                    <div class="bg-navy p-5 rounded-lg border border-slate-700">
-                        <p id="workout-desc" class="text-lg font-medium leading-relaxed">Cargando sesión...</p>
-                        <div class="flex flex-wrap justify-between items-center mt-4 pt-3 border-t border-slate-800">
-                            <span class="text-xs uppercase text-slate-400">RPE Objetivo: <span id="target-rpe" class="metric-font text-amber-400 font-bold text-base">--</span></span>
-                            <span id="workout-status" class="text-xs px-3 py-1 rounded bg-slate-800 text-slate-300 font-bold">Pendiente</span>
+            <!-- Today's Workout (Smaller Window) -->
+            <div class="md:col-span-1 card p-5 rounded-xl shadow-xl flex flex-col justify-between">
+                <div>
+                    <h3 class="text-xl mb-3 text-teal-400 flex items-center justify-between">
+                        <span>Entrenamiento de Hoy</span>
+                        <span id="workout-phase-tag" class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-teal-300">Hoy</span>
+                    </h3>
+                    <div id="workout-card" class="space-y-3">
+                        <div class="bg-slate-900 p-4 rounded-lg border border-slate-700">
+                            <p id="workout-desc" class="text-sm font-medium leading-relaxed text-white">Cargando sesión...</p>
+                            <div class="flex flex-wrap justify-between items-center mt-3 pt-2 border-t border-slate-800 text-xs">
+                                <span class="text-slate-400">RPE Objetivo: <span id="target-rpe" class="metric-font text-amber-400 font-bold">--</span></span>
+                                <span id="workout-status" class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">Pendiente</span>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Completion Form -->
-                    <div id="completion-form" class="pt-2 hidden">
-                        <p class="text-sm mb-2 text-slate-300 font-semibold">¿Cómo sentiste la sesión? (RPE Real 1-10 y notas)</p>
-                        <div class="flex flex-col sm:flex-row gap-3">
-                            <input type="number" id="actual-rpe" min="1" max="10" class="bg-navy border border-slate-700 text-white p-2 rounded w-full sm:w-28 metric-font" placeholder="RPE (1-10)">
-                            <input type="text" id="workout-notes" class="bg-navy border border-slate-700 text-white p-2 rounded flex-1 text-sm" placeholder="Notas breves (opcional)">
-                            <button onclick="submitWorkout()" class="bg-teal-500 hover:bg-teal-600 text-navy font-bold py-2 px-6 rounded transition-colors uppercase text-sm">
-                                Registrar
-                            </button>
+                        <!-- Completion Form with Checkbox & Visible Text Boxes -->
+                        <div id="completion-form" class="pt-1 hidden space-y-2">
+                            <div class="flex items-center gap-2 bg-slate-900 p-2.5 rounded border border-slate-800">
+                                <input type="checkbox" id="today-checkbox" onchange="toggleTodayWorkout(this.checked)" class="w-4 h-4 accent-teal-400 cursor-pointer">
+                                <label for="today-checkbox" class="text-xs text-teal-300 font-bold cursor-pointer">✅ Entrenamiento realizado</label>
+                            </div>
+                            <div class="space-y-2">
+                                <input type="number" id="actual-rpe" min="1" max="10" class="bg-slate-900 border-2 border-slate-600 text-white placeholder-slate-400 p-2 rounded w-full metric-font text-sm" placeholder="RPE Real (1-10)">
+                                <input type="text" id="workout-notes" class="bg-slate-900 border-2 border-slate-600 text-white placeholder-slate-400 p-2 rounded w-full text-sm" placeholder="Notas breves (opcional)">
+                                <button onclick="submitWorkout()" class="w-full bg-teal-500 hover:bg-teal-600 text-navy font-bold py-2 px-4 rounded transition-colors uppercase text-xs">
+                                    Registrar Sesión
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Diagnostics & Progress Chart -->
-            <div class="card p-6 rounded-xl shadow-xl flex flex-col justify-between">
+            <!-- Diagnostics & Progress Chart (Larger Window) -->
+            <div class="md:col-span-2 card p-6 rounded-xl shadow-xl flex flex-col justify-between">
                 <div>
-                    <h3 class="text-xl mb-3 text-amber-400">Métricas y Avances</h3>
-                    <div id="metrics-list" class="space-y-2 mb-4">
+                    <h3 class="text-2xl mb-3 text-amber-400 font-bold">Métricas y Avances</h3>
+                    <div id="metrics-list" class="grid grid-cols-2 gap-2 mb-4">
                         <!-- Metric items injected here -->
                     </div>
-                    <!-- Progress Chart Canvas -->
-                    <div class="bg-navy p-3 rounded-lg border border-slate-800">
-                        <p class="text-[11px] text-slate-400 uppercase mb-1 font-bold">Progreso de Sesiones (Sem 1-12)</p>
-                        <div class="relative h-40">
+                    <!-- Progress Chart Canvas (Larger) -->
+                    <div class="bg-slate-900 p-4 rounded-lg border border-slate-800">
+                        <p class="text-xs text-slate-300 uppercase mb-2 font-bold">Progreso de Sesiones (Semanas 1 a 12)</p>
+                        <div class="relative h-64">
                             <canvas id="progressChart"></canvas>
                         </div>
                     </div>
                 </div>
-                <div class="space-y-2 mt-4 hidden">
-                </div>
             </div>
 
         </div>
+
+        <!-- AI Assistant & Physiological Analytics (VO2max, Training Load, Race Predictions) -->
+        <section class="card p-6 md:p-8 rounded-xl shadow-2xl mb-12 border-t-4 border-amber-400">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b border-slate-800 gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold text-amber-400">Analítica Fisiológica & Asistente IA</h2>
+                    <p class="text-slate-400 text-sm">Monitoreo de VO2max, estado de fatiga y recomendaciones automáticas de entrenamiento</p>
+                </div>
+                <button onclick="fetchAiFeedback()" class="bg-amber-500 hover:bg-amber-600 text-navy px-4 py-2.5 rounded-lg text-xs font-bold uppercase transition-colors shadow">
+                    🤖 Generar Feedback Semanal IA
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- VO2max History Chart -->
+                <div class="bg-slate-900 p-5 rounded-lg border border-slate-800">
+                    <h3 class="text-lg text-teal-400 mb-2">Evolución de VO2max & Prueba de Cooper</h3>
+                    <div class="relative h-48">
+                        <canvas id="vo2Chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Training Load & Race Predictor -->
+                <div class="bg-slate-900 p-5 rounded-lg border border-slate-800 space-y-4">
+                    <h3 class="text-lg text-teal-400 mb-1">Estado de Carga y Fatiga</h3>
+                    <div id="load-status-box" class="bg-navy p-3 rounded border border-slate-700 text-xs text-slate-300">
+                        Cargando estado de fatiga...
+                    </div>
+
+                    <h3 class="text-lg text-teal-400 mt-2 mb-1">Predicciones de Carrera (IA)</h3>
+                    <div class="grid grid-cols-2 gap-3 text-center">
+                        <div class="bg-navy p-3 rounded border border-slate-700">
+                            <span class="text-xs text-slate-400 block uppercase">Pronóstico 5K</span>
+                            <span id="pred-5k" class="text-lg font-bold text-amber-400 metric-font">--:--</span>
+                        </div>
+                        <div class="bg-navy p-3 rounded border border-slate-700">
+                            <span class="text-xs text-slate-400 block uppercase">Pronóstico 10K</span>
+                            <span id="pred-10k" class="text-lg font-bold text-amber-400 metric-font">--:--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Feedback Output Box -->
+            <div id="ai-feedback-container" class="mt-6 bg-slate-900 p-5 rounded-lg border border-amber-500/40 hidden">
+                <h4 class="text-sm font-bold text-amber-300 uppercase mb-2">💡 Mensaje y Recomendación del Coach (IA):</h4>
+                <p id="ai-feedback-text" class="text-xs text-slate-200 leading-relaxed italic"></p>
+            </div>
+        </section>
 
         <!-- 12-WEEK MASTER PLAN & TRACKING CONTAINER -->
         <section class="card p-6 md:p-8 rounded-xl shadow-2xl mb-12 border-t-4 border-teal-400">
@@ -237,7 +307,8 @@
             <h2 class="text-3xl font-bold text-white mb-2">Guía Metodológica · Los 8 Puntos Clave</h2>
             <p class="text-slate-400 text-sm mb-6">Fundamentos del plan oficial de 12 semanas (Metodología A Tu Marca)</p>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <!-- Points 1-3 in compact grid -->
+            <div id="methodology-points-1-3" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mb-6">
                 <div class="bg-navy p-4 rounded-lg border border-slate-800">
                     <strong class="text-teal-400 block mb-1">1. Tu Punto de Partida</strong>
                     <p class="text-slate-300 text-xs leading-relaxed">Nivel 1 (menos de 20 min continuos). Enfoque en base aeróbica para 5K sin equipo, terreno mixto y consideración de altitud de Pachuca.</p>
@@ -250,26 +321,10 @@
                     <strong class="text-teal-400 block mb-1">3. Calendario Semanal</strong>
                     <p class="text-slate-300 text-xs leading-relaxed">3 bloques periodizados: Adaptación (1-4), Construcción de resistencia (5-8) y Consolidación 5K (9-12).</p>
                 </div>
-                <div class="bg-navy p-4 rounded-lg border border-slate-800">
-                    <strong class="text-amber-400 block mb-1">4. Fuerza y Movilidad</strong>
-                    <p class="text-slate-300 text-xs leading-relaxed">Rutina 1 (Piernas y estabilidad - blindaje articular) y Rutina 2 (Core y postura) al terminar sesiones de lunes y miércoles.</p>
-                </div>
-                <div class="bg-navy p-4 rounded-lg border border-slate-800">
-                    <strong class="text-teal-400 block mb-1">5. Hidratación, Sueño y Alimentación</strong>
-                    <p class="text-slate-300 text-xs leading-relaxed">Agua constante, 8-9 horas de sueño nocturno (fundamental), comida ligera previa (60-90 min antes) y evitar pesados.</p>
-                </div>
-                <div class="bg-navy p-4 rounded-lg border border-slate-800">
-                    <strong class="text-amber-400 block mb-1">6. Señales de Alto</strong>
-                    <p class="text-slate-300 text-xs leading-relaxed">Detenerse ante dolor agudo/punzante, mareos, opresión en el pecho, falta de aire anormal o cojera persistente.</p>
-                </div>
-                <div class="bg-navy p-4 rounded-lg border border-slate-800">
-                    <strong class="text-teal-400 block mb-1">7. Día de Carrera o Prueba Final</strong>
-                    <p class="text-slate-300 text-xs leading-relaxed">Jueves de Semana 12. Calentamiento de 8 min, salida conservadora, control de respiración y ritmo sostenido en 5K.</p>
-                </div>
-                <div class="bg-navy p-4 rounded-lg border border-slate-800">
-                    <strong class="text-amber-400 block mb-1">8. Tu Siguiente Paso</strong>
-                    <p class="text-slate-300 text-xs leading-relaxed">4-5 días de descanso activo post-meta, luego evaluar siguiente objetivo (velocidad 5K o construcción hacia 10K).</p>
-                </div>
+            </div>
+
+            <!-- Points 4-8 Fully Detailed -->
+            <div id="dynamic-methodology-content" class="space-y-6 text-sm">
             </div>
         </section>
     </div>
@@ -287,6 +342,27 @@
         const urlParams = new URLSearchParams(window.location.search);
         const urlMemberId = urlParams.get('id');
 
+        function checkCycleVisibility() {
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = now.getMonth();
+            const d = now.getDate();
+
+            let cycleStart, cycleEnd;
+            if (d >= 15) {
+                cycleStart = new Date(y, m, 15);
+                cycleEnd = new Date(y, m + 1, 14, 23, 59, 59);
+            } else {
+                cycleStart = new Date(y, m - 1, 15);
+                cycleEnd = new Date(y, m, 14, 23, 59, 59);
+            }
+
+            if (now < cycleStart || now > cycleEnd) {
+                return false;
+            }
+            return true;
+        }
+
         async function login() {
             const id = urlMemberId || document.getElementById('member-id-input').value.trim();
             if (!id) return alert("Por favor ingresa tu ID de miembro");
@@ -298,6 +374,12 @@
                 const member = await response.json();
                 CURRENT_MEMBER_ID = id;
                 currentMemberData = member;
+
+                if (!checkCycleVisibility()) {
+                    document.getElementById('login-overlay').style.display = 'none';
+                    document.getElementById('cycle-window-overlay').classList.remove('hidden');
+                    return;
+                }
 
                 if (member.paid === false) {
                     document.getElementById('login-overlay').style.display = 'none';
@@ -313,6 +395,7 @@
                 }
 
                 renderDashboard(member);
+                loadAdvancedAnalytics(id);
             } catch (err) {
                 alert(err.message);
                 if (urlMemberId) {
@@ -331,28 +414,106 @@
             });
         }
 
+        function getActiveCycleWorkouts(workouts) {
+            if (!workouts) return [];
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = now.getMonth();
+            const d = now.getDate();
+
+            let cycleStart, cycleEnd;
+            if (d >= 15) {
+                cycleStart = new Date(y, m, 15);
+                cycleEnd = new Date(y, m + 1, 14, 23, 59, 59);
+            } else {
+                cycleStart = new Date(y, m - 1, 15);
+                cycleEnd = new Date(y, m, 14, 23, 59, 59);
+            }
+
+            return workouts.filter(w => {
+                const wDate = new Date(w.date + 'T00:00:00');
+                return wDate >= cycleStart && wDate <= cycleEnd;
+            });
+        }
+
+        function renderMarkdown(text) {
+            if (!text) return '';
+
+            const sections = text.split(/(?=##\s+)/);
+
+            return sections.map(sec => {
+                sec = sec.trim();
+                if (!sec) return '';
+
+                const lines = sec.split('\n');
+                let title = lines[0].replace(/^##\s*/, '').trim();
+                let bodyLines = lines.slice(1);
+
+                let bodyHtml = bodyLines.map(line => {
+                    line = line.trim();
+                    if (!line) return '';
+                    if (line.startsWith('- ')) {
+                        let content = line.substring(2)
+                            .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-bold">$1</strong>')
+                            .replace(/_(.*?)_/g, '<em class="text-slate-300 underline">$1</em>');
+                        return `<li class="text-xs text-slate-300 ml-4 mb-1.5">${content}</li>`;
+                    } else if (line.startsWith('### ')) {
+                        let subTitle = line.replace(/^###\s*/, '').trim();
+                        return `<h4 class="text-xs font-bold text-teal-300 mt-3 mb-1 uppercase">${subTitle}</h4>`;
+                    } else {
+                        let content = line
+                            .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-bold">$1</strong>')
+                            .replace(/_(.*?)_/g, '<em class="text-slate-300 underline">$1</em>');
+                        return `<p class="text-slate-300 text-xs leading-relaxed mb-2">${content}</p>`;
+                    }
+                }).join('\n');
+
+                return `
+                    <div class="bg-navy p-6 rounded-lg border border-slate-800 space-y-3">
+                        <strong class="text-amber-400 text-base block font-['Oswald'] uppercase tracking-wide">${title}</strong>
+                        <div class="space-y-2">${bodyHtml}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
         function renderDashboard(member) {
             document.getElementById('current-date').innerText = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
             document.getElementById('member-name').innerText = `Atleta: ${member.name}`;
 
-            if (member.start_date && member.end_date) {
-                document.getElementById('plan-dates-badge').innerText = `Plan: ${member.start_date} → ${member.end_date}`;
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = now.getMonth();
+            const d = now.getDate();
+            let cStart, cEnd;
+            if (d >= 15) {
+                cStart = new Date(y, m, 15);
+                cEnd = new Date(y, m + 1, 14);
             } else {
-                document.getElementById('plan-dates-badge').innerText = `Plan de 12 Semanas (A Tu Marca)`;
+                cStart = new Date(y, m - 1, 15);
+                cEnd = new Date(y, m, 14);
             }
+            const fmt = (dt) => dt.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+            document.getElementById('plan-dates-badge').innerText = `Ciclo Mensual Pagado (15-14): ${fmt(cStart)} → ${fmt(cEnd)}`;
 
             renderPhase(member.current_phase);
             renderMetrics(member.metrics);
-            renderProgressChart(member.workouts);
+
+            if (member.methodology_markdown) {
+                renderMethodology(member.methodology_markdown);
+            }
+
+            const activeWorkouts = getActiveCycleWorkouts(member.workouts);
+            renderProgressChart(activeWorkouts);
 
             const todayStr = new Date().toISOString().split('T')[0];
-            const todayWorkout = member.workouts.find(w => w.date === todayStr);
+            const todayWorkout = activeWorkouts.find(w => w.date === todayStr);
 
             if (todayWorkout) {
                 CURRENT_WORKOUT_ID = todayWorkout.id;
                 renderWorkout(todayWorkout);
             } else {
-                document.getElementById('workout-desc').innerText = "Hoy no hay sesión programada según el plan oficial (o es día de descanso/recuperación). Consulta tu calendario de 12 semanas abajo.";
+                document.getElementById('workout-desc').innerText = "Hoy no hay sesión programada en el ciclo mensual activo (o es día de descanso). Consulta tu calendario abajo.";
                 document.getElementById('target-rpe').innerText = "--";
                 document.getElementById('workout-status').innerText = "Descanso / Sin sesión hoy";
                 document.getElementById('workout-status').className = "text-xs px-3 py-1 rounded bg-slate-800 text-slate-400 font-bold";
@@ -455,17 +616,161 @@
             });
         }
 
+        function formatMarkdownText(text) {
+            if (!text) return '';
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-bold">$1</strong>')
+                .replace(/_(.*?)_/g, '<span class="underline text-teal-300">$1</span>')
+                .replace(/\n/g, '<br>');
+        }
+
+        function renderMethodology(text) {
+            if (!text) return;
+
+            const sections = text.split(/(?=##\s+)/).map(s => s.trim()).filter(Boolean);
+
+            let p1Text = "", p2Text = "", p3Text = "";
+            let detailedHtml = "";
+            let detailedIdx = 0;
+
+            sections.forEach((sec) => {
+                const lines = sec.split('\n');
+                const titleLine = lines[0].replace(/^##\s*/, '').trim();
+                const bodyText = lines.slice(1).join('\n').trim();
+
+                if (titleLine.startsWith('1.') || titleLine.toLowerCase().includes('punto de partida')) {
+                    p1Text = bodyText;
+                } else if (titleLine.startsWith('2.') || titleLine.toLowerCase().includes('cómo vas a entrenar') || titleLine.toLowerCase().includes('como vas a entrenar')) {
+                    p2Text = bodyText;
+                } else if (titleLine.startsWith('3.') || titleLine.toLowerCase().includes('calendario semanal')) {
+                    p3Text = bodyText;
+                } else {
+                    detailedHtml += renderDetailedCard(titleLine, bodyText, detailedIdx);
+                    detailedIdx++;
+                }
+            });
+
+            const gridEl = document.getElementById('methodology-points-1-3');
+            if (gridEl) {
+                const p1Node = gridEl.children[0]?.querySelector('p');
+                const p2Node = gridEl.children[1]?.querySelector('p');
+                const p3Node = gridEl.children[2]?.querySelector('p');
+
+                if (p1Node && p1Text) p1Node.innerHTML = formatMarkdownText(p1Text);
+                if (p2Node && p2Text) p2Node.innerHTML = formatMarkdownText(p2Text);
+                if (p3Node) {
+                    p3Node.innerHTML = '<em class="text-teal-400 font-medium">Plan mostrado en la sección anterior</em>';
+                }
+            }
+
+            const methContainer = document.getElementById('dynamic-methodology-content');
+            if (methContainer && detailedHtml) {
+                methContainer.innerHTML = detailedHtml;
+            }
+        }
+
+        function renderDetailedCard(title, bodyText, index) {
+            const bodyLines = bodyText.split('\n');
+            let bodyHtml = '';
+            let inList = false;
+
+            for (let i = 0; i < bodyLines.length; i++) {
+                let line = bodyLines[i].trim();
+                if (!line) continue;
+
+                if (line.startsWith('* ') || line.startsWith('- ')) {
+                    if (!inList) {
+                        bodyHtml += '<ul class="list-disc pl-5 text-xs text-slate-300 space-y-1.5 leading-relaxed my-2">';
+                        inList = true;
+                    }
+                    let content = line.substring(2)
+                        .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-bold">$1</strong>')
+                        .replace(/_(.*?)_/g, '<em class="text-slate-300 underline">$1</em>');
+                    bodyHtml += `<li>${content}</li>`;
+                } else {
+                    if (inList) {
+                        bodyHtml += '</ul>';
+                        inList = false;
+                    }
+
+                    if (line.startsWith('**Rutina') || (line.startsWith('**') && line.endsWith('**') && line.length < 60)) {
+                        let subTitle = line.replace(/\*\*/g, '');
+                        bodyHtml += `<div class="bg-slate-900 p-3.5 rounded-lg border border-slate-700/80 my-3"><span class="text-teal-300 font-bold text-xs uppercase tracking-wide block mb-1">${subTitle}</span>`;
+                    } else {
+                        let content = line
+                            .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-bold">$1</strong>')
+                            .replace(/_(.*?)_/g, '<em class="text-slate-300 underline">$1</em>');
+                        bodyHtml += `<p class="text-slate-300 text-xs leading-relaxed mb-2">${content}</p>`;
+                    }
+                }
+            }
+            if (inList) {
+                bodyHtml += '</ul>';
+            }
+
+            const titleColor = (index % 2 === 0) ? 'text-amber-400' : 'text-teal-400';
+
+            return `
+                <div class="bg-navy p-6 rounded-lg border border-slate-800 space-y-3 shadow-lg">
+                    <strong class="${titleColor} text-base block font-['Oswald'] uppercase tracking-wide border-b border-slate-800 pb-2">${title}</strong>
+                    <div class="space-y-2">${bodyHtml}</div>
+                </div>
+            `;
+        }
+
+        function renderMarkdown(text) {
+            if (!text) return '';
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '<strong class="text-teal-300 font-bold">$1</strong>')
+                .replace(/_(.*?)_/g, '<em class="text-slate-300 underline">$1</em>')
+                .replace(/\n/g, '<br>');
+        }
+
         function renderWorkout(workout) {
-            document.getElementById('workout-desc').innerText = workout.description;
+            document.getElementById('workout-desc').innerHTML = renderMarkdown(workout.description);
             document.getElementById('target-rpe').innerText = workout.target_rpe;
+            const todayCb = document.getElementById('today-checkbox');
+            if (todayCb) todayCb.checked = workout.completed;
 
             if (workout.completed) {
                 document.getElementById('workout-status').innerText = "Completado";
-                document.getElementById('workout-status').className = "text-xs px-3 py-1 rounded bg-green-900 text-green-300 font-bold";
-                document.getElementById('completion-form').classList.add('hidden');
+                document.getElementById('workout-status').className = "text-xs px-2 py-0.5 rounded bg-green-900 text-green-300 font-bold";
             } else {
                 document.getElementById('workout-status').innerText = "Pendiente";
-                document.getElementById('completion-form').classList.remove('hidden');
+                document.getElementById('workout-status').className = "text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-bold";
+            }
+            document.getElementById('completion-form').classList.remove('hidden');
+        }
+
+        async function toggleTodayWorkout(checked) {
+            if (!CURRENT_WORKOUT_ID) return;
+            const rpe = checked ? (document.getElementById('actual-rpe').value || 5) : 5;
+            const notes = document.getElementById('workout-notes').value || (checked ? 'Completado desde hoy' : 'Pendiente');
+            await toggleWorkoutStatus(CURRENT_WORKOUT_ID, checked, parseInt(rpe), notes);
+        }
+
+        async function toggleWorkoutStatus(workoutId, completed, rpeVal = 5, notesVal = 'Actualizado desde calendario') {
+            if (!CURRENT_MEMBER_ID) return;
+            try {
+                const response = await fetch(`${API_BASE}/members/${CURRENT_MEMBER_ID}/workouts/${workoutId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        rpe: completed ? (rpeVal || 5) : 5,
+                        notes: notesVal
+                    })
+                });
+                if (response.ok) {
+                    const memberRes = await fetch(`${API_BASE}/members/${CURRENT_MEMBER_ID}`);
+                    if (memberRes.ok) {
+                        currentMemberData = await memberRes.json();
+                        renderDashboard(currentMemberData);
+                    }
+                } else {
+                    alert("Error al actualizar el estado del entrenamiento.");
+                }
+            } catch (err) {
+                alert("Error de conexión con el servidor.");
             }
         }
 
@@ -524,7 +829,8 @@
                 `;
 
                 b.weeks.forEach(w => {
-                    const weekWorkouts = currentMemberData.workouts.filter(wk => wk.id && wk.id.startsWith(`s${w}-`));
+                    const activeWks = getActiveCycleWorkouts(currentMemberData.workouts);
+                    const weekWorkouts = activeWks.filter(wk => wk.id && wk.id.startsWith(`s${w}-`));
                     const completedCount = weekWorkouts.filter(wk => wk.completed).length;
 
                     html += `
@@ -555,12 +861,13 @@
                             html += `
                                 <tr class="hover:bg-slate-800/40 transition-colors">
                                     <td class="p-2 font-semibold text-teal-300 metric-font">${wk.date}</td>
-                                    <td class="p-2 text-slate-200">${wk.description}</td>
+                                    <td class="p-2 text-slate-200">${renderMarkdown(wk.description)}</td>
                                     <td class="p-2 text-center metric-font font-bold text-amber-400">${wk.target_rpe}</td>
                                     <td class="p-2 text-center">
-                                        <span class="px-2 py-0.5 rounded ${wk.completed ? 'bg-green-900 text-green-300 font-bold' : 'bg-slate-800 text-slate-400'}">
-                                            ${wk.completed ? '✓' : 'Pendiente'}
-                                        </span>
+                                        <label class="flex items-center justify-center gap-1.5 cursor-pointer">
+                                            <input type="checkbox" ${wk.completed ? 'checked' : ''} onchange="toggleWorkoutStatus('${wk.id}', this.checked)" class="w-4 h-4 accent-teal-400 cursor-pointer">
+                                            <span class="text-[11px] ${wk.completed ? 'text-green-300 font-bold' : 'text-slate-400'}">${wk.completed ? 'Realizado' : 'Pendiente'}</span>
+                                        </label>
                                     </td>
                                 </tr>
                             `;
@@ -587,7 +894,8 @@
             selectorsContainer.innerHTML = selectorsHtml;
 
             const detailContainer = document.getElementById('week-detail-container');
-            const weekWorkouts = currentMemberData.workouts.filter(w => w.id && w.id.startsWith(`s${activeWeekNumber}-`));
+            const activeWksWeekly = getActiveCycleWorkouts(currentMemberData.workouts);
+            const weekWorkouts = activeWksWeekly.filter(w => w.id && w.id.startsWith(`s${activeWeekNumber}-`));
 
             let html = `
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-3 border-b border-slate-800 gap-2">
@@ -619,12 +927,13 @@
                     html += `
                         <tr class="hover:bg-slate-800/50 transition-colors">
                             <td class="p-3 font-semibold text-teal-300 metric-font">${w.date}</td>
-                            <td class="p-3 text-slate-200">${w.description}</td>
+                            <td class="p-3 text-slate-200">${renderMarkdown(w.description)}</td>
                             <td class="p-3 text-center metric-font font-bold text-amber-400">${w.target_rpe}</td>
                             <td class="p-3 text-center">
-                                <span class="px-2.5 py-1 rounded text-xs ${w.completed ? 'bg-green-900 text-green-300 font-bold' : 'bg-slate-800 text-slate-400'}">
-                                    ${w.completed ? `Completado (RPE: ${w.actual_rpe})` : 'Pendiente'}
-                                </span>
+                                <label class="flex items-center justify-center gap-2 cursor-pointer">
+                                    <input type="checkbox" ${w.completed ? 'checked' : ''} onchange="toggleWorkoutStatus('${w.id}', this.checked)" class="w-4 h-4 accent-teal-400 cursor-pointer">
+                                    <span class="text-xs ${w.completed ? 'text-green-300 font-bold' : 'text-slate-400'}">${w.completed ? `Realizado (RPE: ${w.actual_rpe || '-'})` : 'Pendiente'}</span>
+                                </label>
                             </td>
                         </tr>
                     `;
@@ -753,6 +1062,68 @@
             a.href = url;
             a.download = `atleta_${CURRENT_MEMBER_ID}_12_weeks_progress.json`;
             a.click();
+        }
+
+        let vo2ChartInstance = null;
+
+        async function loadAdvancedAnalytics(memberId) {
+            try {
+                const res = await fetch(`${API_BASE}/api/members/${memberId}/analytics`);
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('load-status-box').innerHTML = `• <strong class="text-white">Estado de Carga:</strong> <span class="text-teal-300 font-bold">${data.load_status}</span><br>• <strong class="text-white">Adherencia:</strong> ${data.compliance_rate.toFixed(0)}%`;
+                    document.getElementById('pred-5k').innerText = data.predictions["5k"];
+                    document.getElementById('pred-10k').innerText = data.predictions["10k"];
+
+                    renderVo2Chart(data.vo2_history);
+                }
+            } catch (err) {
+                console.error("Error loading analytics:", err);
+            }
+        }
+
+        function renderVo2Chart(history) {
+            const ctx = document.getElementById('vo2Chart');
+            if (!ctx) return;
+            if (vo2ChartInstance) vo2ChartInstance.destroy();
+
+            vo2ChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: history.map(h => h.date),
+                    datasets: [{
+                        label: 'VO2max (ml/kg/min)',
+                        data: history.map(h => h.vo2max),
+                        borderColor: '#14b8a6',
+                        backgroundColor: 'rgba(20, 184, 166, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: '#8892b0', font: { size: 10 } }, grid: { color: '#233554' } },
+                        y: { ticks: { color: '#8892b0', font: { size: 10 } }, grid: { color: '#233554' } }
+                    }
+                }
+            });
+        }
+
+        async function fetchAiFeedback() {
+            if (!CURRENT_MEMBER_ID) return;
+            try {
+                const res = await fetch(`${API_BASE}/api/members/${CURRENT_MEMBER_ID}/feedback`, { method: 'POST' });
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('ai-feedback-text').innerText = data.feedback;
+                    document.getElementById('ai-feedback-container').classList.remove('hidden');
+                }
+            } catch (err) {
+                alert("Error al generar feedback de IA");
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {

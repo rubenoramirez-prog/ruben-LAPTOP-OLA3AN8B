@@ -1,0 +1,64 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - heading "Test de Cooper + VO2max" [level=1] [ref=e3]
+    - paragraph [ref=e4]: Calcula tu capacidad aerÃ³bica y zonas de entrenamiento ideales
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - generic [ref=e9]: Distancia recorrida (metros)
+          - spinbutton "Distancia recorrida (metros)" [ref=e10]: "2400"
+        - generic [ref=e11]:
+          - generic [ref=e12]: Edad (aÃ±os)
+          - spinbutton "Edad (aÃ±os)" [ref=e13]: "40"
+      - generic [ref=e14]:
+        - generic [ref=e15]:
+          - generic [ref=e16]: GÃ©nero
+          - combobox "GÃ©nero" [ref=e17]:
+            - option "Selecciona..."
+            - option "Hombre" [selected]
+            - option "Mujer"
+        - generic [ref=e18]:
+          - generic [ref=e19]: Peso (kg) - opcional
+          - spinbutton "Peso (kg) - opcional" [ref=e20]: "75"
+      - button "CALCULAR VO2MAX" [active] [ref=e21] [cursor=pointer]
+    - generic [ref=e24]:
+      - generic [ref=e25]:
+        - generic [ref=e26]: VO2max Estimado
+        - generic [ref=e27]: "42.4"
+      - generic [ref=e28]:
+        - generic [ref=e29]: CategorÃa de Fitness
+        - generic [ref=e30]: Bueno
+      - generic [ref=e31]:
+        - heading "Zonas de Entrenamiento Recomendadas" [level=3] [ref=e32]
+        - generic [ref=e33]:
+          - generic [ref=e34]: RecuperaciÃ³n
+          - generic [ref=e35]: 60-70% VO2max â€¢ RegeneraciÃ³n activa
+          - generic [ref=e36]: 7:15
+        - generic [ref=e37]:
+          - generic [ref=e38]: Base
+          - generic [ref=e39]: 70-80% VO2max â€¢ Resistencia aerÃ³bica
+          - generic [ref=e40]: 6:15
+        - generic [ref=e41]:
+          - generic [ref=e42]: Tempo
+          - generic [ref=e43]: 80-90% VO2max â€¢ Umbral anaerÃ³bico
+          - generic [ref=e44]: 5:30
+        - generic [ref=e45]:
+          - generic [ref=e46]: Intervalo
+          - generic [ref=e47]: 90-95% VO2max â€¢ Potencia aerÃ³bica
+          - generic [ref=e48]: 4:45
+        - generic [ref=e49]:
+          - generic [ref=e50]: Sprint
+          - generic [ref=e51]: 95-100% VO2max â€¢ Velocidad mÃ¡xima
+          - generic [ref=e52]: 4:15
+    - generic [ref=e53]:
+      - generic [ref=e54]:
+        - generic [ref=e55]: Historial de Pruebas
+        - button "Limpiar" [ref=e56] [cursor=pointer]
+      - generic [ref=e58]:
+        - generic [ref=e59]: 12 nov
+        - generic [ref=e60]: 2400m
+        - generic [ref=e61]: "42.4"
+        - generic [ref=e62]: Bueno
+  - contentinfo [ref=e22]:
+    - strong [ref=e23]: A Tu Marca
+    - text: â€” Coaching para corredores 35+ por Ruben RamÃrez
