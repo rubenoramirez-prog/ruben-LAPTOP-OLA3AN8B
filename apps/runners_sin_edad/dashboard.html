@@ -191,19 +191,25 @@
         <section class="card p-6 md:p-8 rounded-xl shadow-2xl mb-12 border-t-4 border-teal-400">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b border-slate-800 gap-4">
                 <div>
-                    <h2 class="text-3xl font-bold text-white">Plan y Seguimiento de 12 Semanas</h2>
-                    <p class="text-slate-400 text-sm">Visualización por Semana, Mes o Ciclo Completo (A Tu Marca)</p>
+                    <h2 class="text-3xl font-bold text-white">3. Calendario Semanal y Plan de 12 Semanas</h2>
+                    <p class="text-slate-400 text-sm">Visualización organizada por Bloques, Semanas, Mes o Ciclo Completo (A Tu Marca)</p>
                 </div>
                 <!-- View Mode Selector -->
-                <div class="flex gap-2 bg-slate-900 p-1.5 rounded-lg border border-slate-700">
-                    <button onclick="setViewMode('week')" class="px-3 py-1.5 rounded text-xs font-bold uppercase transition-all bg-teal-500 text-navy" id="mode-week">Por Semana</button>
+                <div class="flex gap-2 bg-slate-900 p-1.5 rounded-lg border border-slate-700 flex-wrap">
+                    <button onclick="setViewMode('block')" class="px-3 py-1.5 rounded text-xs font-bold uppercase transition-all bg-teal-500 text-navy" id="mode-block">Por Bloques</button>
+                    <button onclick="setViewMode('week')" class="px-3 py-1.5 rounded text-xs font-bold uppercase transition-all bg-slate-800 text-slate-300 hover:bg-slate-700" id="mode-week">Por Semana</button>
                     <button onclick="setViewMode('month')" class="px-3 py-1.5 rounded text-xs font-bold uppercase transition-all bg-slate-800 text-slate-300 hover:bg-slate-700" id="mode-month">Por Mes</button>
                     <button onclick="setViewMode('year')" class="px-3 py-1.5 rounded text-xs font-bold uppercase transition-all bg-slate-800 text-slate-300 hover:bg-slate-700" id="mode-year">Ciclo 12 Semanas</button>
                 </div>
             </div>
 
+            <!-- BLOCK VIEW MODE (Default) -->
+            <div id="view-block-container">
+                <!-- Populated dynamically -->
+            </div>
+
             <!-- WEEKLY VIEW MODE -->
-            <div id="view-week-container">
+            <div id="view-week-container" class="hidden">
                 <div class="flex gap-1.5 overflow-x-auto pb-3 mb-4" id="week-selectors">
                     <!-- Injected via JS -->
                 </div>
@@ -281,7 +287,7 @@
         let currentMemberData = null;
         let activeWeekNumber = 1;
         let activeMonthNumber = 1;
-        let currentViewMode = 'week';
+        let currentViewMode = 'block';
         let progressChartInstance = null;
 
         const urlParams = new URLSearchParams(window.location.search);
@@ -466,7 +472,7 @@
 
         function setViewMode(mode) {
             currentViewMode = mode;
-            ['week', 'month', 'year'].forEach(m => {
+            ['block', 'week', 'month', 'year'].forEach(m => {
                 const btn = document.getElementById(`mode-${m}`);
                 const container = document.getElementById(`view-${m}-container`);
                 if (btn && container) {
@@ -485,13 +491,90 @@
         function renderTrackingViews() {
             if (!currentMemberData) return;
 
-            if (currentViewMode === 'week') {
+            if (currentViewMode === 'block') {
+                renderBlockView();
+            } else if (currentViewMode === 'week') {
                 renderWeeklyView();
             } else if (currentViewMode === 'month') {
                 renderMonthlyView();
             } else if (currentViewMode === 'year') {
                 renderFullCycleView();
             }
+        }
+
+        function renderBlockView() {
+            const container = document.getElementById('view-block-container');
+            const blocks = [
+                { id: 1, title: "Bloque 1: Adaptación y despertar aeróbico", weeks: [1, 2, 3, 4], desc: "Construcción de resistencia desde la base y adaptación articular." },
+                { id: 2, title: "Bloque 2: Construcción de resistencia", weeks: [5, 6, 7, 8], desc: "Extendiendo el tiempo de trote y reduciendo pausas de caminata." },
+                { id: 3, title: "Bloque 3: Consolidación 5K", weeks: [9, 10, 11, 12], desc: "Trote continuo, volumen máximo y prueba final 5K." }
+            ];
+
+            let html = `<div class="space-y-8">`;
+            blocks.forEach(b => {
+                html += `
+                    <div class="card p-5 rounded-xl bg-navy border border-slate-700">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-3 border-b border-slate-800 gap-2">
+                            <div>
+                                <h3 class="text-xl text-amber-400 font-bold">${b.title}</h3>
+                                <p class="text-xs text-slate-400">${b.desc}</p>
+                            </div>
+                            <span class="text-xs bg-teal-950 text-teal-300 border border-teal-500/40 px-3 py-1 rounded font-bold uppercase">Semanas ${b.weeks[0]} a ${b.weeks[3]}</span>
+                        </div>
+                        <div class="space-y-6">
+                `;
+
+                b.weeks.forEach(w => {
+                    const weekWorkouts = currentMemberData.workouts.filter(wk => wk.id && wk.id.startsWith(`s${w}-`));
+                    const completedCount = weekWorkouts.filter(wk => wk.completed).length;
+
+                    html += `
+                        <div class="bg-slate-900/80 p-4 rounded-lg border border-slate-800">
+                            <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-800">
+                                <h4 class="text-md font-bold text-teal-300">Semana ${w}</h4>
+                                <span class="text-xs metric-font text-slate-400">${completedCount} / ${weekWorkouts.length} completadas</span>
+                            </div>
+                    `;
+
+                    if (weekWorkouts.length === 0) {
+                        html += `<p class="text-xs text-slate-500 italic py-2">Sin entrenamientos registrados para esta semana.</p>`;
+                    } else {
+                        html += `
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse text-xs">
+                                    <thead>
+                                        <tr class="border-b border-slate-800 text-slate-400 uppercase">
+                                            <th class="p-2">Fecha</th>
+                                            <th class="p-2">Sesión / Detalle</th>
+                                            <th class="p-2 text-center">RPE</th>
+                                            <th class="p-2 text-center">Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-800">
+                        `;
+                        weekWorkouts.forEach(wk => {
+                            html += `
+                                <tr class="hover:bg-slate-800/40 transition-colors">
+                                    <td class="p-2 font-semibold text-teal-300 metric-font">${wk.date}</td>
+                                    <td class="p-2 text-slate-200">${wk.description}</td>
+                                    <td class="p-2 text-center metric-font font-bold text-amber-400">${wk.target_rpe}</td>
+                                    <td class="p-2 text-center">
+                                        <span class="px-2 py-0.5 rounded ${wk.completed ? 'bg-green-900 text-green-300 font-bold' : 'bg-slate-800 text-slate-400'}">
+                                            ${wk.completed ? '✓' : 'Pendiente'}
+                                        </span>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        html += `</tbody></table></div>`;
+                    }
+                    html += `</div>`;
+                });
+
+                html += `</div></div>`;
+            });
+            html += `</div>`;
+            container.innerHTML = html;
         }
 
         function renderWeeklyView() {
