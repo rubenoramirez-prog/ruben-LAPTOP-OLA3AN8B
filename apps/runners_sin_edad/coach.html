@@ -338,6 +338,7 @@ Martes    Fuerza A    Rutina A de la sección 4 (15-20')...    4-5"></textarea>
 
                 for (let line of lines) {
                     line = line.trim();
+                    if (line.toLowerCase().includes('semanas ') || line.toLowerCase().includes('bloque ')) continue;
                     const weekMatch = line.match(/Semana\s+(\d+)/i);
                     if (weekMatch) {
                         currentWeek = parseInt(weekMatch[1]);
