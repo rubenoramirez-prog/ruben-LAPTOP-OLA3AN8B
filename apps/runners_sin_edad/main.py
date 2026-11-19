@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware # Added for CORS
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 try:
@@ -676,6 +677,16 @@ def serve_dashboard():
         raise HTTPException(status_code=404, detail="Dashboard not found")
     return FileResponse(dashboard_path)
 
+@app.get("/manifest.json")
+def serve_manifest():
+    p = os.path.join(PROJECT_ROOT, "apps", "runners_sin_edad", "manifest.json")
+    return FileResponse(p, media_type="application/json")
+
+@app.get("/sw.js")
+def serve_sw():
+    p = os.path.join(PROJECT_ROOT, "apps", "runners_sin_edad", "sw.js")
+    return FileResponse(p, media_type="application/javascript")
+
 @app.get("/planes-entreno/{file_name}")
 def serve_planes_entreno(file_name: str):
     allowed_files = {
@@ -694,3 +705,8 @@ def serve_planes_entreno(file_name: str):
         raise HTTPException(status_code=404, detail="File not found")
 
     return FileResponse(file_path)
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("apps.runners_sin_edad.main:app", host="0.0.0.0", port=port)
