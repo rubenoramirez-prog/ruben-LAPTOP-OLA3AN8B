@@ -175,13 +175,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="space-y-2 mt-4">
-                    <button onclick="exportData()" class="w-full text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded transition-colors uppercase font-bold border border-slate-700">
-                        Exportar Progreso JSON
-                    </button>
-                    <a href="http://127.0.0.1:8000/planes-entreno/index.html" target="_blank" class="block w-full text-center text-xs text-teal-300 hover:text-teal-100 transition-colors uppercase font-bold border border-teal-500/50 rounded py-2.5 bg-teal-950/30">
-                        Abrir Suite de Planes
-                    </a>
+                <div class="space-y-2 mt-4 hidden">
                 </div>
             </div>
 
@@ -351,12 +345,17 @@
             renderMetrics(member.metrics);
             renderProgressChart(member.workouts);
 
-            const pendingWorkout = member.workouts.find(w => !w.completed) || member.workouts[0];
-            if (pendingWorkout) {
-                CURRENT_WORKOUT_ID = pendingWorkout.id;
-                renderWorkout(pendingWorkout);
+            const todayStr = new Date().toISOString().split('T')[0];
+            const todayWorkout = member.workouts.find(w => w.date === todayStr);
+
+            if (todayWorkout) {
+                CURRENT_WORKOUT_ID = todayWorkout.id;
+                renderWorkout(todayWorkout);
             } else {
-                document.getElementById('workout-desc').innerText = "¡Todas las sesiones registradas! Consulta tu plan maestro abajo.";
+                document.getElementById('workout-desc').innerText = "Hoy no hay sesión programada según el plan oficial (o es día de descanso/recuperación). Consulta tu calendario de 12 semanas abajo.";
+                document.getElementById('target-rpe').innerText = "--";
+                document.getElementById('workout-status').innerText = "Descanso / Sin sesión hoy";
+                document.getElementById('workout-status').className = "text-xs px-3 py-1 rounded bg-slate-800 text-slate-400 font-bold";
                 document.getElementById('completion-form').classList.add('hidden');
             }
 
