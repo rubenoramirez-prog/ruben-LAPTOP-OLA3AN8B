@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A Tu Marca - Panel del Coach</title>
+    <title>A Tu Marca - Panel del Coach (Gestión, Pagos y MD)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Inter:wght@400;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <style>
         :root {
             --navy: #0a192f;
             --charcoal: #112240;
-            --amber: #ffbf00;
-            --teal: #00ced1;
+            --amber: #f59e0b;
+            --teal: #14b8a6;
             --slate: #8892b0;
         }
         body {
@@ -35,14 +35,14 @@
 <body class="p-4 md:p-8">
     <div class="max-w-6xl mx-auto">
         <!-- Header -->
-        <header class="flex justify-between items-center mb-8 border-b border-slate-800 pb-4">
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b border-slate-800 pb-4 gap-4">
             <div>
                 <h1 class="text-3xl font-bold text-white">A Tu Marca <span class="text-amber-400">| Panel de Coach</span></h1>
-                <p class="text-slate-400">Gestión de Atletas, Control de Métricas e Importación Markdown</p>
+                <p class="text-slate-400">Gestión de Atletas, Control de Pagos, Fechas y Modificación MD</p>
             </div>
             <div class="flex gap-3">
-                <a href="dashboard.html" class="bg-slate-800 hover:bg-slate-700 text-teal-300 px-4 py-2 rounded text-sm font-bold uppercase border border-teal-500/40 transition-colors">
-                    Vista Atleta
+                <a href="dashboard.html?id=runner-demo" target="_blank" class="bg-slate-800 hover:bg-slate-700 text-teal-300 px-4 py-2 rounded text-sm font-bold uppercase border border-teal-500/40 transition-colors">
+                    Vista Atleta (Demo)
                 </a>
                 <a href="http://127.0.0.1:8000/planes-entreno/index.html" target="_blank" class="bg-slate-800 hover:bg-slate-700 text-amber-300 px-4 py-2 rounded text-sm font-bold uppercase border border-amber-500/40 transition-colors">
                     Suite Planes
@@ -55,36 +55,73 @@
             <!-- Left: Roster & Atletas -->
             <div class="card p-6 rounded-xl shadow-xl lg:col-span-1">
                 <h2 class="text-xl mb-4 text-teal-400">Atletas Registrados</h2>
-                <div id="athletes-list" class="space-y-3 mb-6 max-h-[400px] overflow-y-auto pr-1">
+                <div id="athletes-list" class="space-y-3 mb-6 max-h-[500px] overflow-y-auto pr-1">
                     <p class="text-sm text-slate-500">Cargando atletas...</p>
                 </div>
-                <button onclick="loadAthletes()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded text-xs font-bold uppercase border border-slate-700 transition-colors">
+                <button onclick="loadAthletes()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded text-xs font-bold uppercase border border-slate-700 transition-colors">
                     Actualizar Lista
                 </button>
             </div>
 
-            <!-- Right: Athlete Control & Markdown Plan Importer -->
+            <!-- Right: Athlete Control & Markdown Importers -->
             <div class="space-y-6 lg:col-span-2">
                 <!-- Selected Athlete Detailed View -->
                 <div class="card p-6 rounded-xl shadow-xl">
                     <h2 id="selected-title" class="text-xl mb-4 text-amber-400">Selecciona un Atleta</h2>
                     <div id="athlete-detail" class="space-y-4 text-sm text-slate-300">
-                        <p class="text-slate-500">Haz clic en un atleta de la lista para ver su control completo, fases, métricas y entrenamientos.</p>
+                        <p class="text-slate-500">Haz clic en un atleta de la lista para gestionar sus pagos, fechas de plan y modificar sus entrenamientos.</p>
                     </div>
                 </div>
 
-                <!-- Markdown Plan Importer & Creator -->
-                <div class="card p-6 rounded-xl shadow-xl">
-                    <h2 class="text-xl mb-3 text-teal-400">Cargar / Crear Plan mediante Markdown</h2>
-                    <p class="text-xs text-slate-400 mb-4">Pega el contenido Markdown del plan (ej: `# Atleta: Juan | Fase: Fuerza | ID: m-1` seguido de sesiones en viñetas o tablas) para asignarlo o crearlo masivamente.</p>
+                <!-- MD Type 1: Create New Athlete from Intake MD -->
+                <div class="card p-6 rounded-xl shadow-xl border-t-4 border-amber-400">
+                    <h2 class="text-xl mb-2 text-amber-400">1. Crear Nuevo Atleta (MD de Perfil)</h2>
+                    <p class="text-xs text-slate-400 mb-4">Pega el MD con los datos del corredor (Nombre, Edad, Meta, etc.) para crear su tablero de 12 semanas (por defecto con estatus de pago pendiente).</p>
 
                     <div class="space-y-3">
-                        <input type="text" id="md-member-id" placeholder="ID del Atleta (ej: runner-001)" class="w-full bg-slate-900 border-2 border-teal-400 text-white p-3 rounded metric-font text-sm font-bold shadow-inner">
-                        <textarea id="md-content" rows="6" class="w-full bg-slate-900 border-2 border-teal-400 text-white p-3 rounded metric-font text-sm shadow-inner" placeholder="# Plan Semanal
-- [w-201] 2026-11-15 | Rodaje 10k Zona 2 | Target RPE: 6
-- [w-202] 2026-11-17 | Series 5x1000m | Target RPE: 8"></textarea>
-                        <button onclick="importMarkdownPlan()" class="w-full bg-teal-500 hover:bg-teal-600 text-navy font-bold py-3 rounded transition-colors uppercase text-sm">
-                            Procesar e Importar Plan MD
+                        <textarea id="md-profile-content" rows="4" class="w-full bg-slate-900 border-2 border-amber-400/60 text-white p-3 rounded metric-font text-xs shadow-inner" placeholder="DATOS DEL CORREDOR
+- Nombre: Renata Ramirez
+- Edad: 16
+- Meta: 5K"></textarea>
+                        <button onclick="createNewAthleteFromMarkdown()" class="w-full bg-amber-500 hover:bg-amber-600 text-navy font-bold py-2.5 rounded transition-colors uppercase text-sm shadow">
+                            Crear Atleta Nuevo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- MD Type 2: Modify / Update Weekly Plan (Detailed Format) -->
+                <div class="card p-6 rounded-xl shadow-xl border-t-4 border-teal-400">
+                    <h2 class="text-xl mb-2 text-teal-400">2. Modificar / Actualizar Plan Semanal (Formato Detallado)</h2>
+                    <p class="text-xs text-slate-400 mb-4">Selecciona un atleta arriba, configura sus fechas y pega el bloque semanal exacto (ej: <em>Semana 1 · Arranque con control</em> con tabla Día/Sesión/Detalle/Esfuerzo).</p>
+
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">ID Atleta:</label>
+                                <input type="text" id="target-member-id" readonly class="w-full bg-slate-900 border border-slate-700 text-teal-300 p-2 rounded metric-font text-sm font-bold" placeholder="Selecciona arriba">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Fecha Inicio Plan (Lunes Sem 1):</label>
+                                <input type="date" id="plan-start-date" class="w-full bg-slate-900 border border-slate-700 text-white p-2 rounded text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Fecha Fin Plan (Sem 12):</label>
+                                <input type="date" id="plan-end-date" class="w-full bg-slate-900 border border-slate-700 text-white p-2 rounded text-sm">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Bloque Semanal MD (Formato Detallado):</label>
+                            <textarea id="md-detailed-week" rows="8" class="w-full bg-slate-900 border-2 border-teal-400 text-white p-3 rounded metric-font text-xs shadow-inner" placeholder="Semana 1 · Arranque con control
+Asentar rutina y técnica. Carga de carrera aprox.: 106 min.
+
+Día    Sesión    Detalle exacto    Esfuerzo (1-10)
+Lunes    Ritmo controlado    Calentamiento (8'): 3' caminata...    Suave 4 / controlado 6
+Martes    Fuerza A    Rutina A de la sección 4 (15-20')...    4-5"></textarea>
+                        </div>
+
+                        <button onclick="updateDetailedWeeklyPlan()" class="w-full bg-teal-500 hover:bg-teal-600 text-navy font-bold py-3 rounded transition-colors uppercase text-sm shadow">
+                            Actualizar Semana en el Plan del Atleta
                         </button>
                     </div>
                 </div>
@@ -107,18 +144,25 @@
                     return;
                 }
 
-                container.innerHTML = members.map(m => `
-                    <div onclick="selectAthlete('${m.id}')" class="p-3 bg-navy rounded border border-slate-800 hover:border-teal-500 cursor-pointer transition-colors">
-                        <div class="flex justify-between items-center">
-                            <span class="font-bold text-white">${m.name}</span>
-                            <span class="text-xs px-2 py-0.5 rounded bg-slate-800 text-teal-300 metric-font">${m.id}</span>
+                container.innerHTML = members.map(m => {
+                    const isPaid = m.paid !== false;
+                    const paymentBadge = isPaid
+                        ? '<span class="text-[10px] px-2 py-0.5 rounded bg-green-900 text-green-300 font-bold">Pagado</span>'
+                        : '<span class="text-[10px] px-2 py-0.5 rounded bg-red-900 text-red-300 font-bold">Pago Pendiente</span>';
+
+                    return `
+                        <div onclick="selectAthlete('${m.id}')" class="p-3 bg-navy rounded border border-slate-800 hover:border-teal-500 cursor-pointer transition-colors">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="font-bold text-white">${m.name}</span>
+                                ${paymentBadge}
+                            </div>
+                            <div class="text-xs text-slate-400 flex justify-between">
+                                <span>Fase: <strong class="text-amber-400">${m.current_phase}</strong></span>
+                                <span class="metric-font text-teal-300">${m.id}</span>
+                            </div>
                         </div>
-                        <div class="text-xs text-slate-400 mt-1 flex justify-between">
-                            <span>Fase: <strong class="text-amber-400">${m.current_phase}</strong></span>
-                            <span>Sesiones: ${m.workouts ? m.workouts.length : 0}</span>
-                        </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             } catch (err) {
                 console.error(err);
             }
@@ -130,42 +174,64 @@
                 if (!res.ok) throw new Error("Atleta no encontrado");
                 const m = await res.json();
 
-                document.getElementById('md-member-id').value = m.id;
+                document.getElementById('target-member-id').value = m.id;
                 document.getElementById('selected-title').innerText = `Control de Atleta: ${m.name} (${m.id})`;
+
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('plan-start-date').value = m.start_date || today;
+
+                const isPaid = m.paid !== false;
+                const paymentStatusHtml = isPaid
+                    ? `<span class="bg-green-900 text-green-300 px-3 py-1 rounded text-xs font-bold">Al Corriente (Pagado)</span> <button onclick="togglePayment('${m.id}', false)" class="ml-2 text-xs bg-red-800 hover:bg-red-700 text-white px-2.5 py-1 rounded font-bold uppercase transition-colors">Marcar Pendiente</button>`
+                    : `<span class="bg-red-900 text-red-300 px-3 py-1 rounded text-xs font-bold">Pago Pendiente (Bloqueado)</span> <button onclick="togglePayment('${m.id}', true)" class="ml-2 text-xs bg-green-700 hover:bg-green-600 text-white px-2.5 py-1 rounded font-bold uppercase transition-colors">Marcar Pagado</button>`;
 
                 const detail = document.getElementById('athlete-detail');
                 detail.innerHTML = `
-                    <div class="grid grid-cols-2 gap-4 bg-navy p-4 rounded-lg border border-slate-700 mb-4">
-                        <div>
-                            <p class="text-xs text-slate-400">Email:</p>
-                            <p class="font-medium text-white">${m.email}</p>
+                    <div class="bg-navy p-4 rounded-lg border border-slate-700 mb-4 space-y-3">
+                        <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+                            <div>
+                                <p class="text-xs text-slate-400">Estatus de Suscripción / Pago:</p>
+                                <div class="mt-1">${paymentStatusHtml}</div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs text-slate-400">Tablero Atleta:</p>
+                                <a href="dashboard.html?id=${m.id}" target="_blank" class="text-xs text-amber-300 font-bold hover:underline">Abrir Dashboard &rarr;</a>
+                            </div>
                         </div>
-                        <div>
-                            <p class="text-xs text-slate-400">Fecha Nacimiento:</p>
-                            <p class="metric-font text-white">${m.birth_date}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-slate-400">Fase Actual:</p>
-                            <p class="font-bold text-amber-400">${m.current_phase}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-slate-400">Métricas Registradas:</p>
-                            <p class="metric-font text-teal-400">${m.metrics.length} diagnósticos</p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-xs text-slate-400">Email:</p>
+                                <p class="font-medium text-white">${m.email}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-400">Fase Actual:</p>
+                                <p class="font-bold text-amber-400">${m.current_phase}</p>
+                            </div>
+                            <div class="col-span-2">
+                                <p class="text-xs text-slate-400">Rango del Plan (12 Semanas):</p>
+                                <p class="metric-font text-teal-300 text-xs">${m.start_date || 'No definida'} &rarr; ${m.end_date || 'No definida'}</p>
+                            </div>
                         </div>
                     </div>
 
-                    <h3 class="text-lg font-semibold text-teal-400 mb-2">Entrenamientos Asignados (${m.workouts.length})</h3>
-                    <div class="space-y-2 max-h-[220px] overflow-y-auto">
-                        ${m.workouts.length === 0 ? '<p class="text-slate-500 text-xs">Sin entrenamientos asignados.</p>' : m.workouts.map(w => `
-                            <div class="p-2.5 bg-navy rounded border border-slate-800 text-xs flex justify-between items-center">
+                    <h3 class="text-md font-semibold text-teal-400 mb-2">Entrenamientos Registrados (${m.workouts.length})</h3>
+                    <div class="space-y-1.5 max-h-[180px] overflow-y-auto pr-1">
+                        ${m.workouts.length === 0 ? '<p class="text-slate-500 text-xs">Sin entrenamientos. Usa el bloque de abajo para actualizar la semana.</p>' : m.workouts.map(w => `
+                            <div class="p-2 bg-navy rounded border border-slate-800 text-xs flex justify-between items-center">
                                 <div>
-                                    <strong class="text-white">${w.date}</strong>: ${w.description} (Objetivo RPE: <span class="text-amber-400 metric-font">${w.target_rpe}</span>)
+                                    <strong class="text-white">${w.date}</strong>: <span>${w.description.substring(0, 50)}...</span> (RPE: <span class="text-amber-400">${w.target_rpe}</span>)
                                 </div>
-                                <span class="px-2 py-1 rounded ${w.completed ? 'bg-green-900 text-green-300' : 'bg-slate-800 text-slate-400'}">
-                                    ${w.completed ? `Completado (RPE Real: ${w.actual_rpe})` : 'Pendiente'}
+                                <span class="px-2 py-0.5 rounded text-[10px] ${w.completed ? 'bg-green-900 text-green-300' : 'bg-slate-800 text-slate-400'}">
+                                    ${w.completed ? 'Completado' : 'Pendiente'}
                                 </span>
                             </div>
                         `).join('')}
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-slate-800 flex justify-end">
+                        <button onclick="deleteAthlete('${m.id}')" class="bg-red-900/80 hover:bg-red-700 text-red-200 text-xs px-4 py-2 rounded font-bold uppercase transition-colors">
+                            Eliminar Atleta
+                        </button>
                     </div>
                 `;
             } catch (err) {
@@ -173,79 +239,304 @@
             }
         }
 
-        async function importMarkdownPlan() {
-            const memberId = document.getElementById('md-member-id').value.trim();
-            const mdText = document.getElementById('md-content').value.trim();
-
-            if (!memberId || !mdText) {
-                alert("Por favor ingresa el ID del atleta y el contenido Markdown del plan.");
-                return;
-            }
-
+        async function togglePayment(memberId, newPaidState) {
             try {
-                const lines = mdText.split('\n');
-                let assignedCount = 0;
-                let defaultDate = new Date().toISOString().split('T')[0];
-
-                for (let i = 0; i < lines.length; i++) {
-                    const line = lines[i].trim();
-                    if (!line) continue;
-
-                    let wId = null;
-                    let dateStr = defaultDate;
-                    let desc = null;
-                    let rpe = 6;
-
-                    // Match lines like: [w-201] 2026-11-15 | Rodaje 10k zona 2 | target RPE: 6
-                    const bracketMatch = line.match(/\[(.*?)\]\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(?:target RPE|RPE Objetivo|RPE)[:\s]*(\d+)/i);
-                    if (bracketMatch) {
-                        [, wId, dateStr, desc, rpe] = bracketMatch;
-                    } else if (line.startsWith('-') || line.startsWith('*')) {
-                        // Bullet points
-                        let clean = line.replace(/^[-*]\s+/, '').trim();
-                        const rpeM = clean.match(/(?:target RPE|RPE Objetivo|RPE)[:\s]*(\d+)/i);
-                        if (rpeM) {
-                            rpe = parseInt(rpeM[1]);
-                            clean = clean.replace(/(?:\|\s*)?(?:target RPE|RPE Objetivo|RPE)[:\s]*\d+\)?/i, '').trim();
-                        }
-                        desc = clean.replace(/[\)\|:]+$/, '').trim();
-                    }
-
-                    // Only import structured workout items (must have bracket ID format OR explicit RPE in bullets)
-                    const isExplicitWorkout = bracketMatch !== null || (line.match(/(?:target RPE|RPE Objetivo|RPE)[:\s]*\d+/i) !== null && (line.startsWith('-') || line.startsWith('*')));
-
-                    if (isExplicitWorkout && desc && desc.length > 2) {
-                        const payload = {
-                            id: (wId || ("w-" + Math.random().toString(36).substring(2, 8))).trim(),
-                            date: (dateStr && dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) ? dateStr.trim() : defaultDate,
-                            description: desc.replace(/[\|:]$/, '').trim(),
-                            target_rpe: Math.min(Math.max(parseInt(rpe) || 6, 1), 10),
-                            completed: false
-                        };
-
-                        const res = await fetch(`${API_BASE}/members/${memberId}/workouts/`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
-
-                        if (res.ok) assignedCount++;
-                    }
-                }
-
-                if (assignedCount > 0) {
-                    alert(`¡Se importaron y asignaron ${assignedCount} entrenamientos desde el Markdown con éxito!`);
-                    selectAthlete(memberId);
-                    loadAthletes();
-                } else {
-                    alert("No se pudieron extraer entrenamientos. Asegúrate de incluir líneas con corchetes `[w-xxx] fecha | descripción | target RPE: X`.");
-                }
+                const res = await fetch(`${API_BASE}/members/${memberId}/payment`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ paid: newPaidState })
+                });
+                if (!res.ok) throw new Error("Error al actualizar pago");
+                loadAthletes();
+                selectAthlete(memberId);
             } catch (err) {
-                alert("Error al procesar el Markdown: " + err.message);
+                alert("Error: " + err.message);
             }
         }
 
-        // Initial load
+        async function deleteAthlete(memberId) {
+            if (!confirm(`¿Estás seguro de eliminar al atleta ${memberId}? Se borrarán sus entrenamientos y métricas de forma permanente.`)) return;
+            try {
+                const res = await fetch(`${API_BASE}/members/${memberId}`, {
+                    method: 'DELETE'
+                });
+                if (!res.ok) throw new Error("Error al eliminar atleta");
+                alert("Atleta eliminado correctamente.");
+                document.getElementById('selected-title').innerText = "Selecciona un Atleta";
+                document.getElementById('target-member-id').value = "";
+                document.getElementById('athlete-detail').innerHTML = '<p class="text-slate-500">Haz clic en un atleta de la lista para gestionar sus pagos, fechas de plan y modificar sus entrenamientos.</p>';
+                loadAthletes();
+            } catch (err) {
+                alert("Error: " + err.message);
+            }
+        }
+
+        async function createNewAthleteFromMarkdown() {
+            const mdText = document.getElementById('md-profile-content').value.trim();
+            if (!mdText) return alert("Pega el MD completo del perfil y plan del corredor.");
+
+            try {
+                let name = "Nuevo Atleta";
+                let age = 35;
+                let meta = "5K";
+
+                const nameMatch = mdText.match(/[-*]\s*Nombre[:\s]*(.*)/i) || mdText.match(/#\s*Plan.*?·\s*(.*)/i);
+                if (nameMatch) name = nameMatch[1].trim();
+
+                const ageMatch = mdText.match(/[-*]\s*Edad[:\s*]*(\d+)/i);
+                if (ageMatch) age = parseInt(ageMatch[1]);
+
+                const metaMatch = mdText.match(/[-*]\s*Meta[:\s]*(.*)/i);
+                if (metaMatch) meta = metaMatch[1].trim();
+
+                const memberId = name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+                const birthYear = new Date().getFullYear() - age;
+                const today = new Date().toISOString().split('T')[0];
+
+                const baseStartDate = new Date(today);
+                const endDateObj = new Date(baseStartDate);
+                endDateObj.setDate(endDateObj.getDate() + 84); // 12 weeks = 84 days
+                const endDate = endDateObj.toISOString().split('T')[0];
+
+                const payload = {
+                    id: memberId,
+                    name: name,
+                    email: `${memberId}@runnersinsedad.com`,
+                    birth_date: `${birthYear}-01-01`,
+                    current_phase: "Base",
+                    start_date: today,
+                    end_date: endDate,
+                    paid: false, // Por defecto pendiente de pago al crear desde MD
+                    metrics: [{ name: "Meta Objetivo", value: 5.0, unit: "km", recorded_at: today }],
+                    workouts: []
+                };
+
+                const res = await fetch(`${API_BASE}/members/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    // If member already exists, we can proceed to update workouts
+                }
+
+                // Parse all 12 weeks from the same MD text and assign workouts
+                const lines = mdText.split('\n');
+                let currentWeek = 1;
+                let updatedCount = 0;
+
+                const dayOffsets = {
+                    "lunes": 0,
+                    "martes": 1,
+                    "miércoles": 2, "miercoles": 2,
+                    "jueves": 3,
+                    "viernes": 4,
+                    "sábado": 5, "sabado": 5,
+                    "domingo": 6
+                };
+
+                for (let line of lines) {
+                    line = line.trim();
+                    const weekMatch = line.match(/Semana\s+(\d+)/i);
+                    if (weekMatch) {
+                        currentWeek = parseInt(weekMatch[1]);
+                        continue;
+                    }
+
+                    if (line.startsWith('|')) {
+                        const cols = line.split('|').map(c => c.trim()).filter(c => c !== '');
+                        if (cols.length >= 3) {
+                            const dayRaw = cols[0].toLowerCase();
+                            if (dayRaw.includes('día') || dayRaw.includes('---')) continue;
+
+                            const sessionType = cols[1];
+                            const detail = cols[2];
+                            const effortRaw = cols[3] || "5";
+
+                            const rpeMatch = effortRaw.match(/(\d+)/);
+                            const targetRpe = rpeMatch ? parseInt(rpeMatch[1]) : 5;
+
+                            let daysToProcess = [];
+                            if (dayRaw.includes(' a ')) {
+                                const rangeParts = dayRaw.split(' a ').map(p => p.trim());
+                                const startOff = dayOffsets[rangeParts[0]];
+                                const endOff = dayOffsets[rangeParts[1]];
+                                if (startOff !== undefined && endOff !== undefined) {
+                                    for (let o = startOff; o <= endOff; o++) {
+                                        daysToProcess.push(o);
+                                    }
+                                }
+                            } else {
+                                for (const [dName, off] of Object.entries(dayOffsets)) {
+                                    if (dayRaw.includes(dName)) {
+                                        daysToProcess.push(off);
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (daysToProcess.length === 0) continue;
+
+                            for (const offset of daysToProcess) {
+                                const workoutDate = new Date(baseStartDate);
+                                workoutDate.setDate(workoutDate.getDate() + ((currentWeek - 1) * 7) + offset);
+                                const dateIso = workoutDate.toISOString().split('T')[0];
+
+                                const dayKeyName = Object.keys(dayOffsets).find(k => dayOffsets[k] === offset) || `day${offset}`;
+                                const wId = `s${currentWeek}-${dayKeyName}`;
+                                const description = `${sessionType}: ${detail}`;
+
+                                const workoutPayload = {
+                                    id: wId,
+                                    date: dateIso,
+                                    description: description,
+                                    target_rpe: Math.min(Math.max(targetRpe, 1), 10),
+                                    completed: false
+                                };
+
+                                const wRes = await fetch(`${API_BASE}/members/${memberId}/workouts/`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(workoutPayload)
+                                });
+
+                                if (wRes.ok) updatedCount++;
+                            }
+                        }
+                    }
+                }
+
+                alert(`¡Atleta "${name}" creado con éxito! Se sincronizaron ${updatedCount} sesiones de entrenamiento (12 semanas). Estatus de pago: Pendiente.`);
+                loadAthletes();
+                selectAthlete(memberId);
+            } catch (err) {
+                alert("Error: " + err.message);
+            }
+        }
+
+        async function updateDetailedWeeklyPlan() {
+            const memberId = document.getElementById('target-member-id').value.trim();
+            const startDateStr = document.getElementById('plan-start-date').value;
+            const mdText = document.getElementById('md-detailed-week').value.trim();
+
+            if (!memberId) return alert("Selecciona un atleta de la lista primero.");
+            if (!startDateStr) return alert("Define la fecha de inicio del plan.");
+            if (!mdText) return alert("Pega el bloque semanal o plan completo en formato MD.");
+
+            try {
+                const lines = mdText.split('\n');
+                let currentWeek = 1;
+                let maxWeekFound = 1;
+                let updatedCount = 0;
+
+                const dayOffsets = {
+                    "lunes": 0,
+                    "martes": 1,
+                    "miércoles": 2, "miercoles": 2,
+                    "jueves": 3,
+                    "viernes": 4,
+                    "sábado": 5, "sabado": 5,
+                    "domingo": 6
+                };
+
+                const baseStartDate = new Date(startDateStr);
+
+                for (let line of lines) {
+                    line = line.trim();
+
+                    // Check for week header
+                    const weekMatch = line.match(/Semana\s+(\d+)/i);
+                    if (weekMatch) {
+                        currentWeek = parseInt(weekMatch[1]);
+                        if (currentWeek > maxWeekFound) maxWeekFound = currentWeek;
+                        continue;
+                    }
+
+                    // Check for markdown table row
+                    if (line.startsWith('|')) {
+                        const cols = line.split('|').map(c => c.trim()).filter(c => c !== '');
+                        if (cols.length >= 3) {
+                            const dayRaw = cols[0].toLowerCase();
+                            // Skip header rows
+                            if (dayRaw.includes('día') || dayRaw.includes('---')) continue;
+
+                            const sessionType = cols[1];
+                            const detail = cols[2];
+                            const effortRaw = cols[3] || "5";
+
+                            const rpeMatch = effortRaw.match(/(\d+)/);
+                            const targetRpe = rpeMatch ? parseInt(rpeMatch[1]) : 5;
+
+                            // Handle ranges like "Viernes a Domingo" or single days
+                            let daysToProcess = [];
+                            if (dayRaw.includes(' a ')) {
+                                const rangeParts = dayRaw.split(' a ').map(p => p.trim());
+                                const startOff = dayOffsets[rangeParts[0]];
+                                const endOff = dayOffsets[rangeParts[1]];
+                                if (startOff !== undefined && endOff !== undefined) {
+                                    for (let o = startOff; o <= endOff; o++) {
+                                        daysToProcess.push(o);
+                                    }
+                                }
+                            } else {
+                                // Match single day
+                                for (const [dName, off] of Object.entries(dayOffsets)) {
+                                    if (dayRaw.includes(dName)) {
+                                        daysToProcess.push(off);
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (daysToProcess.length === 0) continue;
+
+                            for (const offset of daysToProcess) {
+                                const workoutDate = new Date(baseStartDate);
+                                workoutDate.setDate(workoutDate.getDate() + ((currentWeek - 1) * 7) + offset);
+                                const dateIso = workoutDate.toISOString().split('T')[0];
+
+                                const dayKeyName = Object.keys(dayOffsets).find(k => dayOffsets[k] === offset) || `day${offset}`;
+                                const wId = `s${currentWeek}-${dayKeyName}`;
+                                const description = `${sessionType}: ${detail}`;
+
+                                const workoutPayload = {
+                                    id: wId,
+                                    date: dateIso,
+                                    description: description,
+                                    target_rpe: Math.min(Math.max(targetRpe, 1), 10),
+                                    completed: false
+                                };
+
+                                const res = await fetch(`${API_BASE}/members/${memberId}/workouts/`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(workoutPayload)
+                                });
+
+                                if (res.ok) updatedCount++;
+                            }
+                        }
+                    }
+                }
+
+                // Automatically update plan end date based on max week found
+                const endDateObj = new Date(baseStartDate);
+                endDateObj.setDate(endDateObj.getDate() + (maxWeekFound * 7));
+                const endDateStr = endDateObj.toISOString().split('T')[0];
+                document.getElementById('plan-end-date').value = endDateStr;
+
+                if (updatedCount > 0) {
+                    alert(`¡Plan actualizado con éxito! Se sincronizaron ${updatedCount} sesiones (hasta la Semana ${maxWeekFound}).`);
+                    selectAthlete(memberId);
+                } else {
+                    alert("No se pudieron extraer filas de tabla Markdown válidas. Asegúrate de que el formato contenga tablas Markdown (| Día | Sesión | ...) y encabezados de semana.");
+                }
+            } catch (err) {
+                alert("Error al actualizar plan detallado: " + err.message);
+            }
+        }
+
         loadAthletes();
     </script>
 </body>

@@ -47,6 +47,22 @@ app.add_middleware(
 repo = SQLiteMemberRepository()
 service = TrainingPlanService(repo)
 
+@app.on_event("startup")
+def startup_event():
+    if not repo.find_by_id("runner-demo"):
+        demo_member = Member(
+            id="runner-demo",
+            name="Renata Ramirez",
+            email="renata@runnersinsedad.com",
+            birth_date=date(2010, 5, 12),
+            current_phase=TrainingPhase.BASE,
+            metrics=[Metric(name="VO2max", value=42.4, unit="ml/kg/min", recorded_at=date.today())],
+            workouts=[
+                Workout(id="w1", date=date.today(), description="Caminar 3 min / Trotar suave 1 min (repetir 8 veces)", target_rpe=4, completed=False)
+            ]
+        )
+        repo.save(demo_member)
+
 # --- Pydantic Schemas ---
 
 class HumanizeRequest(BaseModel):
@@ -77,12 +93,18 @@ class CompleteWorkoutRequest(BaseModel):
     rpe: int = Field(..., ge=1, le=10)
     notes: Optional[str] = None
 
+class UpdatePaymentRequest(BaseModel):
+    paid: bool
+
 class MemberSchema(BaseModel):
     id: Optional[str] = None
     name: str
     email: str
     birth_date: date
     current_phase: TrainingPhase
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+    paid: bool = True
     metrics: List[MetricSchema] = Field(default_factory=list)
     workouts: List[WorkoutSchema] = Field(default_factory=list)
 
@@ -131,6 +153,9 @@ def create_member(member: MemberSchema):
         email=member.email,
         birth_date=member.birth_date,
         current_phase=member.current_phase,
+        start_date=member.start_date,
+        end_date=member.end_date,
+        paid=member.paid,
         metrics=[Metric(**_dump(m)) for m in member.metrics],
         workouts=[Workout(**_dump(w)) for w in member.workouts]
     )
@@ -162,6 +187,15 @@ def add_workout(member_id: str, workout: WorkoutSchema):
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
+@app.patch("/members/{member_id}/payment")
+def update_payment(member_id: str, request: UpdatePaymentRequest):
+    member = repo.find_by_id(member_id)
+    if not member:
+        raise HTTPException(status_code=404, detail="Member not found")
+    member.paid = request.paid
+    repo.save(member)
+    return {"status": "Payment status updated", "paid": member.paid}
+
 @app.patch("/members/{member_id}/workouts/{workout_id}")
 def complete_workout(member_id: str, workout_id: str, request: CompleteWorkoutRequest):
     try:
@@ -175,6 +209,13 @@ def complete_workout(member_id: str, workout_id: str, request: CompleteWorkoutRe
 @app.get("/members/", response_model=List[MemberSchema])
 def list_members():
     return repo.list_all()
+
+@app.delete("/members/{member_id}")
+def delete_member(member_id: str):
+    success = repo.delete(member_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Member not found")
+    return {"status": "Member deleted", "member_id": member_id}
 
 @app.get("/coach")
 @app.get("/coach.html")

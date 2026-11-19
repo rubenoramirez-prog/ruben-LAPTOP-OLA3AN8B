@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Runners Sin Edad - Dashboard</title>
+    <title>Runners Sin Edad - Dashboard y Seguimiento (12 Semanas)</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Inter:wght@400;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <style>
         :root {
             --navy: #0a192f;
             --charcoal: #112240;
-            --amber: #ffbf00; /* Fuerza */
-            --teal: #00ced1;   /* Carrera */
+            --amber: #f59e0b;
+            --teal: #14b8a6;
             --slate: #8892b0;
         }
         body {
@@ -19,7 +20,7 @@
             color: white;
             font-family: 'Inter', sans-serif;
         }
-        h1, h2, h3 {
+        h1, h2, h3, h4 {
             font-family: 'Oswald', sans-serif;
             text-transform: uppercase;
         }
@@ -60,137 +61,300 @@
     <!-- Login Overlay -->
     <div id="login-overlay" class="fixed inset-0 bg-navy/95 z-50 flex items-center justify-center">
         <div class="card p-8 rounded-xl shadow-2xl max-w-md w-full text-center">
-            <h2 class="text-3xl mb-6">Acceso Corredor</h2>
-            <p class="text-slate-400 mb-6 text-sm">Ingresa tu ID de miembro para cargar tu plan.</p>
+            <h2 class="text-3xl mb-2 text-teal-400">Acceso Corredor</h2>
+            <p class="text-slate-400 mb-6 text-sm">Coach Ruben Ramírez — Runners Sin Edad</p>
             <input type="text" id="member-id-input" class="w-full bg-slate-900 border-2 border-teal-400 text-white p-3 rounded mb-4 metric-font text-center text-lg font-bold shadow-inner" placeholder="Ej: runner-demo" autofocus>
             <button onclick="login()" class="w-full bg-teal-500 hover:bg-teal-600 text-navy font-bold py-3 rounded transition-colors uppercase">
-                Entrar al Plan
+                Entrar al Plan de 12 Semanas
+            </button>
+            <div class="mt-4 text-xs text-slate-500">
+                Prueba con ID: <span class="text-teal-300 font-bold">runner-demo</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Block Overlay -->
+    <div id="payment-block-overlay" class="fixed inset-0 bg-navy/95 z-40 hidden flex items-center justify-center p-4">
+        <div class="card p-8 rounded-xl shadow-2xl max-w-lg w-full text-center border-2 border-red-500/60">
+            <div class="text-5xl mb-3">🔒</div>
+            <h2 class="text-3xl mb-2 text-red-400">Acceso Bloqueado: Pago Pendiente</h2>
+            <p id="payment-block-name" class="text-teal-300 font-bold text-lg mb-2">Atleta</p>
+            <p class="text-slate-300 text-sm mb-6 leading-relaxed">
+                Tu membresía o pago de la cuota para el plan de entrenamiento de 12 semanas se encuentra pendiente. Para desbloquear tu tablero, entrenamientos y seguimiento personalizado, realiza tu pago con el Coach Ruben Ramírez.
+            </p>
+            <div class="bg-slate-900 p-4 rounded-lg border border-slate-800 text-xs text-slate-400 mb-6 text-left space-y-1">
+                <p>• <strong class="text-white">Coach:</strong> Ruben Omar Ramírez Gutiérrez</p>
+                <p>• <strong class="text-white">Metodología:</strong> A Tu Marca (Adultos 35+)</p>
+                <p>• <strong class="text-white">Estado:</strong> Suscripción Inactiva / Pendiente de Validación</p>
+            </div>
+            <button onclick="location.reload()" class="w-full bg-teal-500 hover:bg-teal-600 text-navy font-bold py-3 rounded text-xs uppercase transition-colors">
+                Verificar de Nuevo
             </button>
         </div>
     </div>
 
-    <div class="max-w-4xl mx-auto">
+    <div class="max-w-5xl mx-auto">
         <!-- Header -->
-        <header class="flex justify-between items-center mb-8 border-b border-slate-800 pb-4">
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b border-slate-800 pb-4 gap-4">
             <div>
                 <h1 class="text-4xl font-bold text-white">Runners <span class="text-teal-400">Sin Edad</span></h1>
-                <p class="text-slate-400">Plan Personalizado | Atleta</p>
+                <p class="text-slate-400">Metodología A Tu Marca · Plan Personalizado</p>
             </div>
-            <div class="flex items-center gap-4">
-                <a href="coach.html" class="bg-slate-800 hover:bg-slate-700 text-amber-300 px-4 py-2 rounded text-sm font-bold uppercase border border-amber-500/40 transition-colors">
-                    Panel Coach
-                </a>
-                <div class="text-right">
-                    <div id="current-date" class="metric-font text-sm text-slate-400"></div>
-                    <div id="member-name" class="text-xl font-semibold">Cargando...</div>
-                </div>
+            <div class="text-right">
+                <div id="current-date" class="metric-font text-xs text-slate-400"></div>
+                <div id="member-name" class="text-xl font-semibold text-teal-300">Cargando...</div>
             </div>
         </header>
 
-        <!-- Phase Tracker -->
-        <section class="mb-10">
-            <h2 class="text-xl mb-4 flex items-center">
-                <span class="mr-2">🏃</span> Estado de Periodización
-            </h2>
+        <!-- Phase & Timeline Tracker -->
+        <section class="mb-10 card p-6 rounded-xl shadow-xl">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-3 gap-2">
+                <h2 class="text-xl flex items-center text-teal-400">
+                    <span class="mr-2">🏃</span> Periodización y Calendario
+                </h2>
+                <div id="plan-dates-badge" class="metric-font text-xs bg-slate-900 px-3 py-1.5 rounded border border-slate-700 text-slate-300">
+                    Plan: -- &rarr; --
+                </div>
+            </div>
             <div class="grid grid-cols-4 gap-2 mb-2">
-                <div class="text-center text-xs uppercase font-bold text-slate-500">Base</div>
-                <div class="text-center text-xs uppercase font-bold text-slate-500">Fuerza</div>
-                <div class="text-center text-xs uppercase font-bold text-slate-500">Velocidad</div>
-                <div class="text-center text-xs uppercase font-bold text-slate-500">Taper</div>
+                <div class="text-center text-xs uppercase font-bold text-teal-400">Base (Sem 1-3)</div>
+                <div class="text-center text-xs uppercase font-bold text-amber-400">Fuerza (Sem 4-6)</div>
+                <div class="text-center text-xs uppercase font-bold text-orange-400">Velocidad (Sem 7-9)</div>
+                <div class="text-center text-xs uppercase font-bold text-lime-400">Taper (Sem 10-12)</div>
             </div>
             <div class="progress-bar-bg w-full">
-                <div id="phase-progress" class="progress-bar-fill phase-base" style="width: 0%"></div>
+                <div id="phase-progress" class="progress-bar-fill phase-base" style="width: 25%"></div>
             </div>
-            <p id="phase-desc" class="text-sm text-slate-400 mt-2 italic text-center">Sincronizando con el Coach...</p>
+            <p id="phase-desc" class="text-sm text-slate-300 mt-2 italic text-center">Fase 1: Construcción de Base Aeróbica.</p>
         </section>
 
-        <!-- Main Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Main Grid: Today + Metrics & Chart -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
 
             <!-- Today's Workout -->
             <div class="md:col-span-2 card p-6 rounded-xl shadow-xl">
-                <h3 class="text-2xl mb-4 text-teal-400">Entrenamiento de Hoy</h3>
+                <h3 class="text-2xl mb-4 text-teal-400 flex items-center justify-between">
+                    <span>Entrenamiento de Hoy</span>
+                    <span id="workout-phase-tag" class="text-xs bg-slate-800 px-3 py-1 rounded text-teal-300">Sesión Activa</span>
+                </h3>
                 <div id="workout-card" class="space-y-4">
-                    <div class="bg-navy p-4 rounded-lg border border-slate-700">
-                        <p id="workout-desc" class="text-lg font-medium">Cargando sesión...</p>
-                        <div class="flex justify-between items-center mt-4">
-                            <span class="text-xs uppercase text-slate-500">RPE Objetivo: <span id="target-rpe" class="metric-font text-white">--</span></span>
-                            <span id="workout-status" class="text-xs px-2 py-1 rounded bg-slate-800 text-slate-400">Pendiente</span>
+                    <div class="bg-navy p-5 rounded-lg border border-slate-700">
+                        <p id="workout-desc" class="text-lg font-medium leading-relaxed">Cargando sesión...</p>
+                        <div class="flex flex-wrap justify-between items-center mt-4 pt-3 border-t border-slate-800">
+                            <span class="text-xs uppercase text-slate-400">RPE Objetivo: <span id="target-rpe" class="metric-font text-amber-400 font-bold text-base">--</span></span>
+                            <span id="workout-status" class="text-xs px-3 py-1 rounded bg-slate-800 text-slate-300 font-bold">Pendiente</span>
                         </div>
                     </div>
 
                     <!-- Completion Form -->
-                    <div id="completion-form" class="pt-4 border-t border-slate-800 hidden">
-                        <p class="text-sm mb-2 text-slate-400">¿Cómo sentiste la sesión? (RPE Real 1-10)</p>
-                        <div class="flex gap-3">
-                            <input type="number" id="actual-rpe" min="1" max="10" class="bg-navy border border-slate-700 text-white p-2 rounded w-20 metric-font" placeholder="RPE">
-                            <button onclick="submitWorkout()" class="bg-teal-500 hover:bg-teal-600 text-navy font-bold py-2 px-4 rounded transition-colors">
-                                Registrar Sesión
+                    <div id="completion-form" class="pt-2 hidden">
+                        <p class="text-sm mb-2 text-slate-300 font-semibold">¿Cómo sentiste la sesión? (RPE Real 1-10 y notas)</p>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <input type="number" id="actual-rpe" min="1" max="10" class="bg-navy border border-slate-700 text-white p-2 rounded w-full sm:w-28 metric-font" placeholder="RPE (1-10)">
+                            <input type="text" id="workout-notes" class="bg-navy border border-slate-700 text-white p-2 rounded flex-1 text-sm" placeholder="Notas breves (opcional)">
+                            <button onclick="submitWorkout()" class="bg-teal-500 hover:bg-teal-600 text-navy font-bold py-2 px-6 rounded transition-colors uppercase text-sm">
+                                Registrar
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Diagnostics -->
-            <div class="card p-6 rounded-xl shadow-xl">
-                <h3 class="text-xl mb-4 text-amber-400">Progreso y Métricas</h3>
-                <div id="metrics-list" class="space-y-3">
-                    <!-- Metric items injected here -->
+            <!-- Diagnostics & Progress Chart -->
+            <div class="card p-6 rounded-xl shadow-xl flex flex-col justify-between">
+                <div>
+                    <h3 class="text-xl mb-3 text-amber-400">Métricas y Avances</h3>
+                    <div id="metrics-list" class="space-y-2 mb-4">
+                        <!-- Metric items injected here -->
+                    </div>
+                    <!-- Progress Chart Canvas -->
+                    <div class="bg-navy p-3 rounded-lg border border-slate-800">
+                        <p class="text-[11px] text-slate-400 uppercase mb-1 font-bold">Progreso de Sesiones (Sem 1-12)</p>
+                        <div class="relative h-40">
+                            <canvas id="progressChart"></canvas>
+                        </div>
+                    </div>
                 </div>
-                <button onclick="exportData()" class="w-full mt-6 text-xs text-slate-500 hover:text-white transition-colors uppercase font-bold">
-                    Exportar JSON de Progreso
-                </button>
-                <a href="http://127.0.0.1:8000/planes-entreno/index.html" target="_blank" class="block w-full mt-4 text-center text-xs text-teal-300 hover:text-teal-100 transition-colors uppercase font-bold border border-teal-500/50 rounded px-3 py-2">
-                    Suite de Planes
-                </a>
+                <div class="space-y-2 mt-4">
+                    <button onclick="exportData()" class="w-full text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded transition-colors uppercase font-bold border border-slate-700">
+                        Exportar Progreso JSON
+                    </button>
+                    <a href="http://127.0.0.1:8000/planes-entreno/index.html" target="_blank" class="block w-full text-center text-xs text-teal-300 hover:text-teal-100 transition-colors uppercase font-bold border border-teal-500/50 rounded py-2.5 bg-teal-950/30">
+                        Abrir Suite de Planes
+                    </a>
+                </div>
             </div>
 
         </div>
+
+        <!-- 12-WEEK MASTER PLAN & TRACKING CONTAINER -->
+        <section class="card p-6 md:p-8 rounded-xl shadow-2xl mb-12 border-t-4 border-teal-400">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b border-slate-800 gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold text-white">Plan y Seguimiento de 12 Semanas</h2>
+                    <p class="text-slate-400 text-sm">Visualización por Semana, Mes o Ciclo Completo (A Tu Marca)</p>
+                </div>
+                <!-- View Mode Selector -->
+                <div class="flex gap-2 bg-slate-900 p-1.5 rounded-lg border border-slate-700">
+                    <button onclick="setViewMode('week')" class="px-3 py-1.5 rounded text-xs font-bold uppercase transition-all bg-teal-500 text-navy" id="mode-week">Por Semana</button>
+                    <button onclick="setViewMode('month')" class="px-3 py-1.5 rounded text-xs font-bold uppercase transition-all bg-slate-800 text-slate-300 hover:bg-slate-700" id="mode-month">Por Mes</button>
+                    <button onclick="setViewMode('year')" class="px-3 py-1.5 rounded text-xs font-bold uppercase transition-all bg-slate-800 text-slate-300 hover:bg-slate-700" id="mode-year">Ciclo 12 Semanas</button>
+                </div>
+            </div>
+
+            <!-- WEEKLY VIEW MODE -->
+            <div id="view-week-container">
+                <div class="flex gap-1.5 overflow-x-auto pb-3 mb-4" id="week-selectors">
+                    <!-- Injected via JS -->
+                </div>
+                <div id="week-detail-container" class="card p-5 rounded-lg bg-slate-900 border border-slate-800">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- MONTHLY VIEW MODE -->
+            <div id="view-month-container" class="hidden space-y-6">
+                <div class="flex gap-2 mb-4" id="month-tabs">
+                    <button onclick="selectMonth(1)" class="px-4 py-2 rounded text-xs font-bold uppercase bg-teal-500 text-navy" id="month-btn-1">Mes 1 (Semanas 1-4)</button>
+                    <button onclick="selectMonth(2)" class="px-4 py-2 rounded text-xs font-bold uppercase bg-slate-800 text-slate-300 hover:bg-slate-700" id="month-btn-2">Mes 2 (Semanas 5-8)</button>
+                    <button onclick="selectMonth(3)" class="px-4 py-2 rounded text-xs font-bold uppercase bg-slate-800 text-slate-300 hover:bg-slate-700" id="month-btn-3">Mes 3 (Semanas 9-12)</button>
+                </div>
+                <div id="month-detail-container" class="card p-5 rounded-lg bg-slate-900 border border-slate-800">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- YEARLY / FULL 12-WEEK CYCLE VIEW MODE -->
+            <div id="view-year-container" class="hidden">
+                <div id="full-cycle-container" class="space-y-4">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 8 POINTS METHODOLOGY GUIDELINE (Official Coach Template) -->
+        <section class="card p-6 md:p-8 rounded-xl shadow-2xl mb-12 border-t-4 border-amber-400">
+            <h2 class="text-3xl font-bold text-white mb-2">Guía Metodológica · Los 8 Puntos Clave</h2>
+            <p class="text-slate-400 text-sm mb-6">Fundamentos del plan oficial de 12 semanas (Metodología A Tu Marca)</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div class="bg-navy p-4 rounded-lg border border-slate-800">
+                    <strong class="text-teal-400 block mb-1">1. Tu Punto de Partida</strong>
+                    <p class="text-slate-300 text-xs leading-relaxed">Nivel 1 (menos de 20 min continuos). Enfoque en base aeróbica para 5K sin equipo, terreno mixto y consideración de altitud de Pachuca.</p>
+                </div>
+                <div class="bg-navy p-4 rounded-lg border border-slate-800">
+                    <strong class="text-amber-400 block mb-1">2. Cómo Vas a Entrenar</strong>
+                    <p class="text-slate-300 text-xs leading-relaxed">Escala de esfuerzo RPE 1-10 (3-4 caminata, 5-6 trote suave). Prueba del habla obligatoria: poder decir frases completas sin ahogarse.</p>
+                </div>
+                <div class="bg-navy p-4 rounded-lg border border-slate-800">
+                    <strong class="text-teal-400 block mb-1">3. Calendario Semanal</strong>
+                    <p class="text-slate-300 text-xs leading-relaxed">3 bloques periodizados: Adaptación (1-4), Construcción de resistencia (5-8) y Consolidación 5K (9-12).</p>
+                </div>
+                <div class="bg-navy p-4 rounded-lg border border-slate-800">
+                    <strong class="text-amber-400 block mb-1">4. Fuerza y Movilidad</strong>
+                    <p class="text-slate-300 text-xs leading-relaxed">Rutina 1 (Piernas y estabilidad - blindaje articular) y Rutina 2 (Core y postura) al terminar sesiones de lunes y miércoles.</p>
+                </div>
+                <div class="bg-navy p-4 rounded-lg border border-slate-800">
+                    <strong class="text-teal-400 block mb-1">5. Hidratación, Sueño y Alimentación</strong>
+                    <p class="text-slate-300 text-xs leading-relaxed">Agua constante, 8-9 horas de sueño nocturno (fundamental), comida ligera previa (60-90 min antes) y evitar pesados.</p>
+                </div>
+                <div class="bg-navy p-4 rounded-lg border border-slate-800">
+                    <strong class="text-amber-400 block mb-1">6. Señales de Alto</strong>
+                    <p class="text-slate-300 text-xs leading-relaxed">Detenerse ante dolor agudo/punzante, mareos, opresión en el pecho, falta de aire anormal o cojera persistente.</p>
+                </div>
+                <div class="bg-navy p-4 rounded-lg border border-slate-800">
+                    <strong class="text-teal-400 block mb-1">7. Día de Carrera o Prueba Final</strong>
+                    <p class="text-slate-300 text-xs leading-relaxed">Jueves de Semana 12. Calentamiento de 8 min, salida conservadora, control de respiración y ritmo sostenido en 5K.</p>
+                </div>
+                <div class="bg-navy p-4 rounded-lg border border-slate-800">
+                    <strong class="text-amber-400 block mb-1">8. Tu Siguiente Paso</strong>
+                    <p class="text-slate-300 text-xs leading-relaxed">4-5 días de descanso activo post-meta, luego evaluar siguiente objetivo (velocidad 5K o construcción hacia 10K).</p>
+                </div>
+            </div>
+        </section>
     </div>
 
     <script>
         const API_BASE = "http://127.0.0.1:8000";
         let CURRENT_MEMBER_ID = null;
         let CURRENT_WORKOUT_ID = null;
+        let currentMemberData = null;
+        let activeWeekNumber = 1;
+        let activeMonthNumber = 1;
+        let currentViewMode = 'week';
+        let progressChartInstance = null;
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlMemberId = urlParams.get('id');
 
         async function login() {
-            const id = document.getElementById('member-id-input').value;
-            if (!id) return alert("Por favor ingresa tu ID");
+            const id = urlMemberId || document.getElementById('member-id-input').value.trim();
+            if (!id) return alert("Por favor ingresa tu ID de miembro");
 
             try {
                 const response = await fetch(`${API_BASE}/members/${id}`);
-                if (!response.ok) throw new Error("Miembro no encontrado");
+                if (!response.ok) throw new Error("Miembro no encontrado en el sistema.");
 
                 const member = await response.json();
                 CURRENT_MEMBER_ID = id;
+                currentMemberData = member;
+
+                if (member.paid === false) {
+                    document.getElementById('login-overlay').style.display = 'none';
+                    document.getElementById('payment-block-name').innerText = `Atleta: ${member.name} (${member.id})`;
+                    document.getElementById('payment-block-overlay').classList.remove('hidden');
+                    return;
+                }
 
                 const overlay = document.getElementById('login-overlay');
-                overlay.style.display = 'none';
-                overlay.style.pointerEvents = 'none';
+                if (overlay) {
+                    overlay.style.display = 'none';
+                    overlay.style.pointerEvents = 'none';
+                }
 
                 renderDashboard(member);
             } catch (err) {
                 alert(err.message);
+                if (urlMemberId) {
+                    const overlay = document.getElementById('login-overlay');
+                    if (overlay) {
+                        overlay.style.display = 'flex';
+                        overlay.style.pointerEvents = 'auto';
+                    }
+                }
             }
+        }
+
+        if (urlMemberId) {
+            document.addEventListener('DOMContentLoaded', () => {
+                login();
+            });
         }
 
         function renderDashboard(member) {
             document.getElementById('current-date').innerText = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            document.getElementById('member-name').innerText = member.name;
+            document.getElementById('member-name').innerText = `Atleta: ${member.name}`;
+
+            if (member.start_date && member.end_date) {
+                document.getElementById('plan-dates-badge').innerText = `Plan: ${member.start_date} → ${member.end_date}`;
+            } else {
+                document.getElementById('plan-dates-badge').innerText = `Plan de 12 Semanas (A Tu Marca)`;
+            }
 
             renderPhase(member.current_phase);
             renderMetrics(member.metrics);
+            renderProgressChart(member.workouts);
 
-            // Get the most recent incomplete workout
             const pendingWorkout = member.workouts.find(w => !w.completed) || member.workouts[0];
             if (pendingWorkout) {
                 CURRENT_WORKOUT_ID = pendingWorkout.id;
                 renderWorkout(pendingWorkout);
             } else {
-                document.getElementById('workout-desc').innerText = "¡Todas las sesiones completadas!";
+                document.getElementById('workout-desc').innerText = "¡Todas las sesiones registradas! Consulta tu plan maestro abajo.";
                 document.getElementById('completion-form').classList.add('hidden');
             }
+
+            renderTrackingViews();
         }
 
         function renderPhase(phase) {
@@ -198,10 +362,10 @@
             const desc = document.getElementById('phase-desc');
 
             const phases = {
-                "Base": { width: "25%", class: "phase-base", text: "Construyendo la base aeróbica..." },
-                "Fuerza": { width: "50%", class: "phase-strength", text: "Incrementando la potencia muscular..." },
-                "Velocidad": { width: "75%", class: "phase-speed", text: "Afinando el ritmo de carrera..." },
-                "Taper": { width: "100%", class: "phase-taper", text: "Recuperación final para el objetivo." }
+                "Base": { width: "25%", class: "phase-base", text: "Fase 1: Construcción de Base Aeróbica (Semanas 1 a 3)." },
+                "Fuerza": { width: "50%", class: "phase-strength", text: "Fase 2: Fuerza y Resistencia Muscular (Semanas 4 a 6)." },
+                "Velocidad": { width: "75%", class: "phase-speed", text: "Fase 3: Velocidad, Ritmo y Fartlek (Semanas 7 a 9)." },
+                "Taper": { width: "100%", class: "phase-taper", text: "Fase 4: Taper y Consolidación para el 5K (Semanas 10 a 12)." }
             };
 
             const config = phases[phase] || phases["Base"];
@@ -212,12 +376,78 @@
 
         function renderMetrics(metrics) {
             const container = document.getElementById('metrics-list');
+            if (!metrics || metrics.length === 0) {
+                container.innerHTML = '<p class="text-xs text-slate-500 italic">No hay métricas registradas aún.</p>';
+                return;
+            }
             container.innerHTML = metrics.map(m => `
-                <div class="flex justify-between items-center p-2 bg-navy rounded border border-slate-800">
-                    <span class="text-sm text-slate-400">${m.name}</span>
-                    <span class="metric-font text-amber-400 font-bold">${m.value} <small class="text-[10px]">${m.unit}</small></span>
+                <div class="flex justify-between items-center p-2 bg-navy rounded border border-slate-800 text-xs">
+                    <span class="text-slate-400">${m.name}</span>
+                    <span class="metric-font text-amber-400 font-bold">${m.value} <small class="text-[9px]">${m.unit}</small></span>
                 </div>
             `).join('');
+        }
+
+        function renderProgressChart(workouts) {
+            const ctx = document.getElementById('progressChart').getContext('2d');
+
+            const weeklyCompleted = [];
+            const weeklyTotal = [];
+            for (let w = 1; w <= 12; w++) {
+                const wkst = workouts.filter(wk => wk.id && wk.id.startsWith(`s${w}-`));
+                const comp = wkst.filter(wk => wk.completed).length;
+                weeklyCompleted.push(comp);
+                weeklyTotal.push(wkst.length);
+            }
+
+            if (progressChartInstance) {
+                progressChartInstance.destroy();
+            }
+
+            progressChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Array.from({length: 12}, (_, i) => `S${i+1}`),
+                    datasets: [
+                        {
+                            label: 'Completadas',
+                            data: weeklyCompleted,
+                            backgroundColor: '#14b8a6',
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Total Asignadas',
+                            data: weeklyTotal,
+                            backgroundColor: '#233554',
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                color: '#8892b0',
+                                font: { size: 10 }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#8892b0', font: { size: 9 } },
+                            grid: { display: false }
+                        },
+                        y: {
+                            ticks: { color: '#8892b0', font: { size: 9 }, stepSize: 1 },
+                            grid: { color: '#233554' }
+                        }
+                    }
+                }
+            });
         }
 
         function renderWorkout(workout) {
@@ -226,7 +456,7 @@
 
             if (workout.completed) {
                 document.getElementById('workout-status').innerText = "Completado";
-                document.getElementById('workout-status').className = "text-xs px-2 py-1 rounded bg-green-900 text-green-300";
+                document.getElementById('workout-status').className = "text-xs px-3 py-1 rounded bg-green-900 text-green-300 font-bold";
                 document.getElementById('completion-form').classList.add('hidden');
             } else {
                 document.getElementById('workout-status').innerText = "Pendiente";
@@ -234,8 +464,177 @@
             }
         }
 
+        function setViewMode(mode) {
+            currentViewMode = mode;
+            ['week', 'month', 'year'].forEach(m => {
+                const btn = document.getElementById(`mode-${m}`);
+                const container = document.getElementById(`view-${m}-container`);
+                if (btn && container) {
+                    if (m === mode) {
+                        btn.className = 'px-3 py-1.5 rounded text-xs font-bold uppercase transition-all bg-teal-500 text-navy';
+                        container.classList.remove('hidden');
+                    } else {
+                        btn.className = 'px-3 py-1.5 rounded text-xs font-bold uppercase transition-all bg-slate-800 text-slate-300 hover:bg-slate-700';
+                        container.classList.add('hidden');
+                    }
+                }
+            });
+            renderTrackingViews();
+        }
+
+        function renderTrackingViews() {
+            if (!currentMemberData) return;
+
+            if (currentViewMode === 'week') {
+                renderWeeklyView();
+            } else if (currentViewMode === 'month') {
+                renderMonthlyView();
+            } else if (currentViewMode === 'year') {
+                renderFullCycleView();
+            }
+        }
+
+        function renderWeeklyView() {
+            const selectorsContainer = document.getElementById('week-selectors');
+            let selectorsHtml = '';
+            for (let w = 1; w <= 12; w++) {
+                const isActive = w === activeWeekNumber;
+                const bgClass = isActive ? 'bg-teal-500 text-navy font-bold shadow-lg scale-105' : 'bg-navy text-slate-300 hover:bg-slate-800 border border-slate-700';
+                selectorsHtml += `<button onclick="selectWeek(${w})" class="px-3.5 py-2 rounded text-xs font-bold uppercase transition-all ${bgClass}">Sem ${w}</button>`;
+            }
+            selectorsContainer.innerHTML = selectorsHtml;
+
+            const detailContainer = document.getElementById('week-detail-container');
+            const weekWorkouts = currentMemberData.workouts.filter(w => w.id && w.id.startsWith(`s${activeWeekNumber}-`));
+
+            let html = `
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-3 border-b border-slate-800 gap-2">
+                    <div>
+                        <h4 class="text-xl text-amber-400 font-bold">Semana ${activeWeekNumber} — Detalle de Entrenamientos</h4>
+                        <p class="text-xs text-slate-400">Seguimiento oficial de sesiones asignadas</p>
+                    </div>
+                    <span class="text-xs bg-teal-950 text-teal-300 border border-teal-500/40 px-3 py-1 rounded font-bold uppercase">Semana ${activeWeekNumber} / 12</span>
+                </div>
+            `;
+
+            if (weekWorkouts.length === 0) {
+                html += `<p class="text-sm text-slate-500 py-4 text-center italic">No hay entrenamientos específicos registrados para la Semana ${activeWeekNumber} todavía. Usa el Panel del Coach para actualizarla.</p>`;
+            } else {
+                html += `
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-700 text-xs text-slate-400 uppercase">
+                                    <th class="p-3">Fecha</th>
+                                    <th class="p-3">Sesión / Detalle</th>
+                                    <th class="p-3 text-center">Objetivo RPE</th>
+                                    <th class="p-3 text-center">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800 text-sm">
+                `;
+                weekWorkouts.forEach(w => {
+                    html += `
+                        <tr class="hover:bg-slate-800/50 transition-colors">
+                            <td class="p-3 font-semibold text-teal-300 metric-font">${w.date}</td>
+                            <td class="p-3 text-slate-200">${w.description}</td>
+                            <td class="p-3 text-center metric-font font-bold text-amber-400">${w.target_rpe}</td>
+                            <td class="p-3 text-center">
+                                <span class="px-2.5 py-1 rounded text-xs ${w.completed ? 'bg-green-900 text-green-300 font-bold' : 'bg-slate-800 text-slate-400'}">
+                                    ${w.completed ? `Completado (RPE: ${w.actual_rpe})` : 'Pendiente'}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                });
+                html += `</tbody></table></div>`;
+            }
+            detailContainer.innerHTML = html;
+        }
+
+        function selectWeek(w) {
+            activeWeekNumber = w;
+            renderWeeklyView();
+        }
+
+        function selectMonth(m) {
+            activeMonthNumber = m;
+            ['1', '2', '3'].forEach(mn => {
+                const btn = document.getElementById(`month-btn-${mn}`);
+                if (btn) {
+                    btn.className = parseInt(mn) === m
+                        ? 'px-4 py-2 rounded text-xs font-bold uppercase bg-teal-500 text-navy'
+                        : 'px-4 py-2 rounded text-xs font-bold uppercase bg-slate-800 text-slate-300 hover:bg-slate-700';
+                }
+            });
+            renderMonthlyView();
+        }
+
+        function renderMonthlyView() {
+            const container = document.getElementById('month-detail-container');
+            const startWeek = (activeMonthNumber - 1) * 4 + 1;
+            const endWeek = startWeek + 3;
+
+            let html = `
+                <div class="mb-4 pb-3 border-b border-slate-800">
+                    <h4 class="text-xl text-teal-400 font-bold">Mes ${activeMonthNumber} (Semanas ${startWeek} a ${endWeek})</h4>
+                    <p class="text-xs text-slate-400">Resumen y consolidación mensual del ciclo</p>
+                </div>
+                <div class="space-y-4">
+            `;
+
+            for (let w = startWeek; w <= endWeek; w++) {
+                const weekWkst = currentMemberData.workouts.filter(wk => wk.id && wk.id.startsWith(`s${w}-`));
+                const completedCount = weekWkst.filter(wk => wk.completed).length;
+                html += `
+                    <div class="bg-navy p-4 rounded border border-slate-800">
+                        <div class="flex justify-between items-center mb-2">
+                            <strong class="text-amber-400">Semana ${w}</strong>
+                            <span class="text-xs text-slate-400 metric-font">${completedCount} / ${weekWkst.length} completadas</span>
+                        </div>
+                        <ul class="text-xs text-slate-300 space-y-1">
+                            ${weekWkst.length === 0 ? '<li class="text-slate-500 italic">Sin sesiones registradas</li>' : weekWkst.map(wk => `<li>• [${wk.date}] ${wk.description} <span class="text-teal-400">(${wk.completed ? '✓' : '•'})</span></li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        function renderFullCycleView() {
+            const container = document.getElementById('full-cycle-container');
+            let html = `
+                <div class="mb-4 pb-3 border-b border-slate-800">
+                    <h4 class="text-xl text-amber-400 font-bold">Ciclo Completo de 12 Semanas (Año / Periodización)</h4>
+                    <p class="text-xs text-slate-400">Vista general de todas las semanas del plan de entrenamiento</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            `;
+
+            for (let w = 1; w <= 12; w++) {
+                const weekWkst = currentMemberData.workouts.filter(wk => wk.id && wk.id.startsWith(`s${w}-`));
+                const completedCount = weekWkst.filter(wk => wk.completed).length;
+                html += `
+                    <div class="bg-navy p-4 rounded-lg border border-slate-700">
+                        <div class="flex justify-between items-center mb-2 pb-2 border-b border-slate-800">
+                            <span class="font-bold text-teal-300">Semana ${w}</span>
+                            <span class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-amber-400">${completedCount}/${weekWkst.length} listas</span>
+                        </div>
+                        <div class="space-y-1 max-h-[100px] overflow-y-auto text-xs text-slate-300">
+                            ${weekWkst.length === 0 ? '<p class="text-slate-500 italic text-[11px]">Sin asignar</p>' : weekWkst.map(wk => `<p>• ${wk.date.slice(5)}: ${wk.description.substring(0, 35)}...</p>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
         async function submitWorkout() {
             const rpe = document.getElementById('actual-rpe').value;
+            const notes = document.getElementById('workout-notes').value || "Registrado desde el Dashboard";
+
             if (!rpe || rpe < 1 || rpe > 10) {
                 alert("Por favor ingresa un RPE válido (1-10)");
                 return;
@@ -247,31 +646,33 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         rpe: parseInt(rpe),
-                        notes: "Registrado desde el Dashboard"
+                        notes: notes
                     })
                 });
 
                 if (response.ok) {
-                    alert("Sesión registrada con éxito. ¡Buen trabajo!");
-                    location.reload(); // Refresh to update status
+                    alert("¡Sesión registrada con éxito! Excelente trabajo.");
+                    location.reload();
+                } else {
+                    alert("Error al registrar la sesión en el servidor.");
                 }
             } catch (err) {
-                alert("Error al conectar con el servidor");
+                alert("Error de conexión con el servidor.");
             }
         }
 
         async function exportData() {
+            if (!CURRENT_MEMBER_ID) return alert("Primero inicia sesión");
             const response = await fetch(`${API_BASE}/members/${CURRENT_MEMBER_ID}`);
             const data = await response.json();
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `member_${CURRENT_MEMBER_ID}_progress.json`;
+            a.download = `atleta_${CURRENT_MEMBER_ID}_12_weeks_progress.json`;
             a.click();
         }
 
-        // Allow pressing Enter in the ID input to trigger login
         document.addEventListener('DOMContentLoaded', () => {
             const input = document.getElementById('member-id-input');
             if (input) {
