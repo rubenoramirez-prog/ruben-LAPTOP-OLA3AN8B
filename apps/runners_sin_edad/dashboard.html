@@ -251,52 +251,21 @@
             </div>
         </section>
 
-        <!-- 12-WEEK MASTER PLAN & TRACKING CONTAINER -->
+        <!-- 3. CALENDARIO SEMANAL EN CURSO -->
         <section class="card p-6 md:p-8 rounded-xl shadow-2xl mb-12 border-t-4 border-teal-400">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b border-slate-800 gap-4">
                 <div>
-                    <h2 class="text-3xl font-bold text-white">3. Calendario Semanal y Plan de 12 Semanas</h2>
-                    <p class="text-slate-400 text-sm">Visualización organizada por Bloques, Semanas, Mes o Ciclo Completo (A Tu Marca)</p>
-                </div>
-                <!-- View Mode Selector -->
-                <div class="flex gap-2 bg-slate-900 p-1.5 rounded-lg border border-slate-700 flex-wrap">
-                    <button onclick="setViewMode('block')" class="px-3 py-1.5 rounded text-xs font-bold uppercase transition-all bg-teal-500 text-navy" id="mode-block">Por Bloques</button>
-                    <button onclick="setViewMode('week')" class="px-3 py-1.5 rounded text-xs font-bold uppercase transition-all bg-slate-800 text-slate-300 hover:bg-slate-700" id="mode-week">Por Semana</button>
-                    <button onclick="setViewMode('month')" class="px-3 py-1.5 rounded text-xs font-bold uppercase transition-all bg-slate-800 text-slate-300 hover:bg-slate-700" id="mode-month">Por Mes</button>
-                    <button onclick="setViewMode('year')" class="px-3 py-1.5 rounded text-xs font-bold uppercase transition-all bg-slate-800 text-slate-300 hover:bg-slate-700" id="mode-year">Ciclo 12 Semanas</button>
+                    <h2 class="text-3xl font-bold text-white">3. Calendario Semanal en Curso</h2>
+                    <p class="text-slate-400 text-sm">Sesiones programadas de lunes a domingo para la semana actual de entrenamiento (Metodología A Tu Marca)</p>
                 </div>
             </div>
 
-            <!-- BLOCK VIEW MODE (Default) -->
-            <div id="view-block-container">
-                <!-- Populated dynamically -->
-            </div>
-
-            <!-- WEEKLY VIEW MODE -->
-            <div id="view-week-container" class="hidden">
+            <!-- WEEKLY VIEW MODE (Único Modo Activo) -->
+            <div id="view-week-container">
                 <div class="flex gap-1.5 overflow-x-auto pb-3 mb-4" id="week-selectors">
                     <!-- Injected via JS -->
                 </div>
                 <div id="week-detail-container" class="card p-5 rounded-lg bg-slate-900 border border-slate-800">
-                    <!-- Populated dynamically -->
-                </div>
-            </div>
-
-            <!-- MONTHLY VIEW MODE -->
-            <div id="view-month-container" class="hidden space-y-6">
-                <div class="flex gap-2 mb-4" id="month-tabs">
-                    <button onclick="selectMonth(1)" class="px-4 py-2 rounded text-xs font-bold uppercase bg-teal-500 text-navy" id="month-btn-1">Mes 1 (Semanas 1-4)</button>
-                    <button onclick="selectMonth(2)" class="px-4 py-2 rounded text-xs font-bold uppercase bg-slate-800 text-slate-300 hover:bg-slate-700" id="month-btn-2">Mes 2 (Semanas 5-8)</button>
-                    <button onclick="selectMonth(3)" class="px-4 py-2 rounded text-xs font-bold uppercase bg-slate-800 text-slate-300 hover:bg-slate-700" id="month-btn-3">Mes 3 (Semanas 9-12)</button>
-                </div>
-                <div id="month-detail-container" class="card p-5 rounded-lg bg-slate-900 border border-slate-800">
-                    <!-- Populated dynamically -->
-                </div>
-            </div>
-
-            <!-- YEARLY / FULL 12-WEEK CYCLE VIEW MODE -->
-            <div id="view-year-container" class="hidden">
-                <div id="full-cycle-container" class="space-y-4">
                     <!-- Populated dynamically -->
                 </div>
             </div>
