@@ -399,24 +399,23 @@
                 renderMethodology(member.methodology_markdown);
             }
 
-            const activeWorkouts = getActiveCycleWorkouts(member.workouts);
-            renderProgressChart(activeWorkouts);
+            renderProgressChart(member.workouts);
 
             const todayStr = new Date().toISOString().split('T')[0];
-            const todayWorkout = activeWorkouts.find(w => w.date === todayStr);
+            const todayWorkout = (member.workouts || []).find(w => w.date === todayStr);
 
             if (todayWorkout) {
                 CURRENT_WORKOUT_ID = todayWorkout.id;
                 renderWorkout(todayWorkout);
             } else {
-                document.getElementById('workout-desc').innerText = "Hoy no hay sesión programada en el ciclo mensual activo (o es día de descanso). Consulta tu calendario abajo.";
+                document.getElementById('workout-desc').innerText = "Hoy no hay sesión programada (o es día de descanso). Consulta tu calendario semanal abajo.";
                 document.getElementById('target-rpe').innerText = "--";
                 document.getElementById('workout-status').innerText = "Descanso / Sin sesión hoy";
                 document.getElementById('workout-status').className = "text-xs px-3 py-1 rounded bg-slate-800 text-slate-400 font-bold";
                 document.getElementById('completion-form').classList.add('hidden');
             }
 
-            renderTrackingViews();
+            renderWeeklyView();
         }
 
         function renderPhase(phase) {
@@ -670,134 +669,69 @@
             }
         }
 
-        function setViewMode(mode) {
-            currentViewMode = mode;
-            ['block', 'week', 'month', 'year'].forEach(m => {
-                const btn = document.getElementById(`mode-${m}`);
-                const container = document.getElementById(`view-${m}-container`);
-                if (btn && container) {
-                    if (m === mode) {
-                        btn.className = 'px-3 py-1.5 rounded text-xs font-bold uppercase transition-all bg-teal-500 text-navy';
-                        container.classList.remove('hidden');
-                    } else {
-                        btn.className = 'px-3 py-1.5 rounded text-xs font-bold uppercase transition-all bg-slate-800 text-slate-300 hover:bg-slate-700';
-                        container.classList.add('hidden');
-                    }
-                }
-            });
-            renderTrackingViews();
-        }
-
-        function renderTrackingViews() {
-            if (!currentMemberData) return;
-
-            if (currentViewMode === 'block') {
-                renderBlockView();
-            } else if (currentViewMode === 'week') {
-                renderWeeklyView();
-            } else if (currentViewMode === 'month') {
-                renderMonthlyView();
-            } else if (currentViewMode === 'year') {
-                renderFullCycleView();
+        function calculateCurrentWeekNumber(member) {
+            if (!member || !member.start_date) return 1;
+            try {
+                const start = new Date(member.start_date + 'T00:00:00');
+                const now = new Date();
+                const diffDays = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+                if (diffDays < 0) return 1;
+                const weekNum = Math.floor(diffDays / 7) + 1;
+                return Math.max(1, Math.min(12, weekNum));
+            } catch (e) {
+                return 1;
             }
-        }
-
-        function renderBlockView() {
-            const container = document.getElementById('view-block-container');
-            const blocks = [
-                { id: 1, title: "Bloque 1: Adaptación y despertar aeróbico", weeks: [1, 2, 3, 4], desc: "Construcción de resistencia desde la base y adaptación articular." },
-                { id: 2, title: "Bloque 2: Construcción de resistencia", weeks: [5, 6, 7, 8], desc: "Extendiendo el tiempo de trote y reduciendo pausas de caminata." },
-                { id: 3, title: "Bloque 3: Consolidación 5K", weeks: [9, 10, 11, 12], desc: "Trote continuo, volumen máximo y prueba final 5K." }
-            ];
-
-            let html = `<div class="space-y-8">`;
-            blocks.forEach(b => {
-                html += `
-                    <div class="card p-5 rounded-xl bg-navy border border-slate-700">
-                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-3 border-b border-slate-800 gap-2">
-                            <div>
-                                <h3 class="text-xl text-amber-400 font-bold">${b.title}</h3>
-                                <p class="text-xs text-slate-400">${b.desc}</p>
-                            </div>
-                            <span class="text-xs bg-teal-950 text-teal-300 border border-teal-500/40 px-3 py-1 rounded font-bold uppercase">Semanas ${b.weeks[0]} a ${b.weeks[3]}</span>
-                        </div>
-                        <div class="space-y-6">
-                `;
-
-                b.weeks.forEach(w => {
-                    const activeWks = getActiveCycleWorkouts(currentMemberData.workouts);
-                    const weekWorkouts = activeWks.filter(wk => wk.id && wk.id.startsWith(`s${w}-`));
-                    const completedCount = weekWorkouts.filter(wk => wk.completed).length;
-
-                    html += `
-                        <div class="bg-slate-900/80 p-4 rounded-lg border border-slate-800">
-                            <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-800">
-                                <h4 class="text-md font-bold text-teal-300">Semana ${w}</h4>
-                                <span class="text-xs metric-font text-slate-400">${completedCount} / ${weekWorkouts.length} completadas</span>
-                            </div>
-                    `;
-
-                    if (weekWorkouts.length === 0) {
-                        html += `<p class="text-xs text-slate-500 italic py-2">Sin entrenamientos registrados para esta semana.</p>`;
-                    } else {
-                        html += `
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left border-collapse text-xs">
-                                    <thead>
-                                        <tr class="border-b border-slate-800 text-slate-400 uppercase">
-                                            <th class="p-2">Fecha</th>
-                                            <th class="p-2">Sesión / Detalle</th>
-                                            <th class="p-2 text-center">RPE</th>
-                                            <th class="p-2 text-center">Estado</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-slate-800">
-                        `;
-                        weekWorkouts.forEach(wk => {
-                            html += `
-                                <tr class="hover:bg-slate-800/40 transition-colors">
-                                    <td class="p-2 font-semibold text-teal-300 metric-font">${wk.date}</td>
-                                    <td class="p-2 text-slate-200">${renderMarkdown(wk.description)}</td>
-                                    <td class="p-2 text-center metric-font font-bold text-amber-400">${wk.target_rpe}</td>
-                                    <td class="p-2 text-center">
-                                        <label class="flex items-center justify-center gap-1.5 cursor-pointer">
-                                            <input type="checkbox" ${wk.completed ? 'checked' : ''} onchange="toggleWorkoutStatus('${wk.id}', this.checked)" class="w-4 h-4 accent-teal-400 cursor-pointer">
-                                            <span class="text-[11px] ${wk.completed ? 'text-green-300 font-bold' : 'text-slate-400'}">${wk.completed ? 'Realizado' : 'Pendiente'}</span>
-                                        </label>
-                                    </td>
-                                </tr>
-                            `;
-                        });
-                        html += `</tbody></table></div>`;
-                    }
-                    html += `</div>`;
-                });
-
-                html += `</div></div>`;
-            });
-            html += `</div>`;
-            container.innerHTML = html;
         }
 
         function renderWeeklyView() {
+            if (!currentMemberData) return;
+
             const selectorsContainer = document.getElementById('week-selectors');
-            let selectorsHtml = '';
-            for (let w = 1; w <= 12; w++) {
-                const isActive = w === activeWeekNumber;
-                const bgClass = isActive ? 'bg-teal-500 text-navy font-bold shadow-lg scale-105' : 'bg-navy text-slate-300 hover:bg-slate-800 border border-slate-700';
-                selectorsHtml += `<button onclick="selectWeek(${w})" class="px-3.5 py-2 rounded text-xs font-bold uppercase transition-all ${bgClass}">Sem ${w}</button>`;
+            if (selectorsContainer) {
+                let selectorsHtml = '';
+                for (let w = 1; w <= 12; w++) {
+                    const isActive = w === activeWeekNumber;
+                    const bgClass = isActive
+                        ? 'bg-teal-500 text-navy font-bold shadow-lg scale-105'
+                        : 'bg-navy text-slate-300 hover:bg-slate-800 border border-slate-700';
+                    selectorsHtml += `<button onclick="selectWeek(${w})" class="px-3.5 py-2 rounded text-xs font-bold uppercase transition-all ${bgClass}">Sem ${w}</button>`;
+                }
+                selectorsContainer.innerHTML = selectorsHtml;
             }
-            selectorsContainer.innerHTML = selectorsHtml;
 
             const detailContainer = document.getElementById('week-detail-container');
-            const activeWksWeekly = getActiveCycleWorkouts(currentMemberData.workouts);
-            const weekWorkouts = activeWksWeekly.filter(w => w.id && w.id.startsWith(`s${activeWeekNumber}-`));
+            if (!detailContainer) return;
+
+            const allWorkouts = currentMemberData.workouts || [];
+            let weekWorkouts = allWorkouts.filter(w => w.id && w.id.toLowerCase().startsWith(`s${activeWeekNumber}-`));
+
+            // Fallback by date range if prefix doesn't match
+            if (weekWorkouts.length === 0 && currentMemberData.start_date) {
+                try {
+                    const sDate = new Date(currentMemberData.start_date + 'T00:00:00');
+                    const wStart = new Date(sDate);
+                    wStart.setDate(sDate.getDate() + (activeWeekNumber - 1) * 7);
+                    const wEnd = new Date(wStart);
+                    wEnd.setDate(wStart.getDate() + 6);
+                    const startStr = wStart.toISOString().split('T')[0];
+                    const endStr = wEnd.toISOString().split('T')[0];
+                    weekWorkouts = allWorkouts.filter(w => w.date >= startStr && w.date <= endStr);
+                } catch (e) {}
+            }
+
+            // Fallback to chunk of 7
+            if (weekWorkouts.length === 0 && allWorkouts.length > 0) {
+                const startIdx = (activeWeekNumber - 1) * 7;
+                weekWorkouts = allWorkouts.slice(startIdx, startIdx + 7);
+            }
+
+            weekWorkouts.sort((a, b) => (a.date > b.date ? 1 : -1));
 
             let html = `
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-3 border-b border-slate-800 gap-2">
                     <div>
                         <h4 class="text-xl text-amber-400 font-bold">Semana ${activeWeekNumber} — Detalle de Entrenamientos</h4>
-                        <p class="text-xs text-slate-400">Seguimiento oficial de sesiones asignadas</p>
+                        <p class="text-xs text-slate-400">Sesiones oficiales de lunes a domingo (Metodología A Tu Marca)</p>
                     </div>
                     <span class="text-xs bg-teal-950 text-teal-300 border border-teal-500/40 px-3 py-1 rounded font-bold uppercase">Semana ${activeWeekNumber} / 12</span>
                 </div>
@@ -806,12 +740,13 @@
             if (weekWorkouts.length === 0) {
                 html += `<p class="text-sm text-slate-500 py-4 text-center italic">No hay entrenamientos específicos registrados para la Semana ${activeWeekNumber} todavía. Usa el Panel del Coach para actualizarla.</p>`;
             } else {
+                const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
                 html += `
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="border-b border-slate-700 text-xs text-slate-400 uppercase">
-                                    <th class="p-3">Fecha</th>
+                                    <th class="p-3">Día / Fecha</th>
                                     <th class="p-3">Sesión / Detalle</th>
                                     <th class="p-3 text-center">Objetivo RPE</th>
                                     <th class="p-3 text-center">Estado</th>
@@ -820,12 +755,20 @@
                             <tbody class="divide-y divide-slate-800 text-sm">
                 `;
                 weekWorkouts.forEach(w => {
+                    let dayLabel = w.date;
+                    try {
+                        const dObj = new Date(w.date + 'T00:00:00');
+                        if (!isNaN(dObj.getTime())) {
+                            dayLabel = `${dayNames[dObj.getDay()]} ${dObj.getDate()}/${dObj.getMonth()+1}`;
+                        }
+                    } catch (e) {}
+
                     html += `
                         <tr class="hover:bg-slate-800/50 transition-colors">
-                            <td class="p-3 font-semibold text-teal-300 metric-font">${w.date}</td>
+                            <td class="p-3 font-semibold text-teal-300 metric-font whitespace-nowrap">${dayLabel}</td>
                             <td class="p-3 text-slate-200">${renderMarkdown(w.description)}</td>
                             <td class="p-3 text-center metric-font font-bold text-amber-400">${w.target_rpe}</td>
-                            <td class="p-3 text-center">
+                            <td class="p-3 text-center whitespace-nowrap">
                                 <label class="flex items-center justify-center gap-2 cursor-pointer">
                                     <input type="checkbox" ${w.completed ? 'checked' : ''} onchange="toggleWorkoutStatus('${w.id}', this.checked)" class="w-4 h-4 accent-teal-400 cursor-pointer">
                                     <span class="text-xs ${w.completed ? 'text-green-300 font-bold' : 'text-slate-400'}">${w.completed ? `Realizado (RPE: ${w.actual_rpe || '-'})` : 'Pendiente'}</span>
