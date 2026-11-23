@@ -661,6 +661,131 @@ Nota final: "Este plan es una guía general de entrenamiento y no sustituye la v
 """
     return {"markdown": md}
 
+class MarkdownImportSchema(BaseModel):
+    markdown_content: str
+    member_id: Optional[str] = None
+    email: Optional[str] = None
+
+@app.post("/api/members/import-markdown")
+def import_member_from_markdown(req: MarkdownImportSchema):
+    mdText = req.markdown_content
+    import re
+    name_match = re.search(r'[-*]\s*Nombre[:\s]*(.*)', mdText, re.IGNORECASE) or re.search(r'#\s*Plan.*?·\s*(.*)', mdText, re.IGNORECASE)
+    name = name_match.group(1).strip() if name_match else "Atleta A Tu Marca"
+
+    age_match = re.search(r'[-*]\s*Edad[:\s*]*(\d+)', mdText, re.IGNORECASE)
+    age = int(age_match.group(1)) if age_match else 35
+
+    email = req.email or f"{name.lower().replace(' ', '')}@runnersinsedad.com"
+    member_id = req.member_id or name.lower().replace(' ', '-').replace('--', '-')
+
+    birth_year = date.today().year - age
+    birth_date = date(birth_year, 1, 1)
+
+    today = date.today()
+    day_offset = today.weekday()
+    base_start_date = today - timedelta(days=day_offset)
+    end_date = base_start_date + timedelta(days=84)
+
+    day_offsets = {
+        "lunes": 0, "martes": 1, "miércoles": 2, "miercoles": 2,
+        "jueves": 3, "viernes": 4, "sábado": 5, "sabado": 5, "domingo": 6
+    }
+
+    lines = mdText.split('\n')
+    current_week = 1
+    workouts = []
+
+    for line in lines:
+        line = line.strip()
+        week_match = re.search(r'Semana\s+(\d+)', line, re.IGNORECASE)
+        if week_match:
+            current_week = int(week_match.group(1))
+            continue
+
+        if line.startswith('|'):
+            cols = [c.strip() for c in line.split('|') if c.strip() != '']
+            if len(cols) >= 2:
+                day_raw = cols[0].lower()
+                if 'día' in day_raw or 'dia' in day_raw or '---' in day_raw:
+                    continue
+                session_type = cols[1] if len(cols) > 1 else "Entrenamiento"
+                detail = cols[2] if len(cols) > 2 else session_type
+                effort_raw = cols[3] if len(cols) > 3 else (cols[2] if len(cols) > 2 else "5")
+                rpe_match = re.search(r'(\d+)', effort_raw)
+                target_rpe = int(rpe_match.group(1)) if rpe_match else 5
+                target_rpe = max(1, min(10, target_rpe))
+
+                days_to_process = []
+                for d_name, off in day_offsets.items():
+                    if d_name in day_raw:
+                        days_to_process.append(off)
+                        break
+
+                if not days_to_process and (' a ' in day_raw or '-' in day_raw):
+                    parts = re.split(r'\s+a\s+|\s*-\s*', day_raw)
+                    if len(parts) == 2:
+                        start_off = day_offsets.get(parts[0].strip(), 0)
+                        end_off = day_offsets.get(parts[1].strip(), 6)
+                        for o in range(start_off, end_off + 1):
+                            days_to_process.append(o)
+
+                if not days_to_process:
+                    days_to_process = [0]
+
+                for offset in days_to_process:
+                    w_date = base_start_date + timedelta(weeks=(current_week - 1), days=offset)
+                    w_id = f"s{current_week}-{uuid.uuid4().hex[:6]}"
+                    description = f"{session_type}: {detail}" if detail != session_type else session_type
+                    workouts.append(Workout(
+                        id=w_id,
+                        date=w_date,
+                        description=description,
+                        target_rpe=target_rpe,
+                        completed=False
+                    ))
+
+    meth_lines = []
+    for line in mdText.split('\n'):
+        if line.startswith('## ') and not any(k in line.lower() for k in ['calendario', 'semana']):
+            meth_lines.append(line)
+        elif meth_lines and not line.startswith('|'):
+            meth_lines.append(line)
+
+    methodology_markdown = "\n".join(meth_lines) if meth_lines else mdText
+
+    member = Member(
+        id=member_id,
+        name=name,
+        email=email,
+        birth_date=birth_date,
+        current_phase=TrainingPhase.BASE,
+        start_date=base_start_date,
+        end_date=end_date,
+        paid=True,
+        methodology_markdown=methodology_markdown,
+        workouts=workouts
+    )
+    repo.save(member)
+    return {"status": "Member imported successfully", "member_id": member_id, "name": name, "workouts_count": len(workouts)}
+
+@app.get("/api/members/{member_id}/whatsapp-export")
+def whatsapp_export(member_id: str):
+    member = repo.find_by_id(member_id)
+    if not member:
+        raise HTTPException(status_code=404, detail="Member not found")
+
+    msg = f"🏃 *A TU MARCA — PLAN DE ENTRENAMIENTO*\n"
+    msg += f"Atleta: *{member.name}*\n"
+    msg += f"Fase: {member.current_phase.value}\n"
+    msg += f"Periodo: {member.start_date} al {member.end_date}\n\n"
+    msg += f"📋 *Próximas Sesiones / Resumen:*\n"
+    for w in member.workouts[:7]:
+        status = "✅" if w.completed else "⏳"
+        msg += f"{status} *{w.date}* — {w.description} (RPE Obj: {w.target_rpe})\n"
+    msg += f"\n¡Mucho éxito en tu sesión! Recuerda mantener el esfuerzo programado y reportar tu RPE al terminar. 🔥"
+    return {"whatsapp_text": msg}
+
 @app.get("/coach")
 @app.get("/coach.html")
 def serve_coach():

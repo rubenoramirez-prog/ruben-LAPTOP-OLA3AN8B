@@ -287,3 +287,66 @@ def test_api_complete_workout_errors(api_client):
     })
     res2 = api_client.patch("/members/runner-empty/workouts/invalid-wid", json=patch_payload)
     assert res2.status_code == 404
+
+
+def test_api_import_markdown(api_client):
+    """Valida la importacion de un atleta y su plan a partir de Markdown."""
+    sample_md = """# Plan 5K/10K · Atleta Test Markdown
+DATOS DEL CORREDOR
+- Nombre: Atleta Test Markdown
+- Edad: 38
+- Meta: 5K
+
+## 3. Calendario semanal
+**Semana 1: Primeros pasos**
+| Día | Sesión | Detalle exacto | Esfuerzo (1-10) |
+| --- | --- | --- | --- |
+| Lunes | Intervalos CaCo | 6 min caminata + 8x(1' trote / 2' caminata) | 5 |
+| Miércoles | Intervalos CaCo | 6 min caminata + 8x(1' trote / 2' caminata) | 5 |
+
+## 4. Fuerza y movilidad
+Rutinas de fuerza general.
+"""
+    res = api_client.post("/api/members/import-markdown", json={"markdown_content": sample_md})
+    assert res.status_code == 200
+    data = res.json()
+    assert data["status"] == "Member imported successfully"
+    assert data["workouts_count"] == 2
+    assert "atleta-test-markdown" in data["member_id"]
+
+    # Verificar que el miembro fue creado en la base de datos
+    member_res = api_client.get(f"/members/{data['member_id']}")
+    assert member_res.status_code == 200
+    assert member_res.json()["name"] == "Atleta Test Markdown"
+    assert len(member_res.json()["workouts"]) == 2
+
+
+def test_api_whatsapp_export(api_client):
+    """Valida la generacion del formato de texto para compartir por WhatsApp."""
+    # 1. Crear miembro con sesión
+    member_payload = {
+        "id": "runner-wa-test",
+        "name": "Corredor WhatsApp",
+        "email": "wa@test.com",
+        "birth_date": "1985-06-15",
+        "current_phase": "Base",
+        "workouts": [
+            {
+                "id": "w-wa-1",
+                "date": "2026-11-23",
+                "description": "Trote regenerativo 30min",
+                "target_rpe": 4,
+                "completed": False
+            }
+        ]
+    }
+    api_client.post("/members/", json=member_payload)
+
+    # 2. Consultar exportación WhatsApp
+    wa_res = api_client.get("/api/members/runner-wa-test/whatsapp-export")
+    assert wa_res.status_code == 200
+    wa_data = wa_res.json()
+    assert "whatsapp_text" in wa_data
+    assert "Corredor WhatsApp" in wa_data["whatsapp_text"]
+    assert "Trote regenerativo 30min" in wa_data["whatsapp_text"]
+

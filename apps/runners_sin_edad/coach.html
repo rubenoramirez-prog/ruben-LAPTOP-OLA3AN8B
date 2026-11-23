@@ -242,6 +242,12 @@ DATOS DEL CORREDOR
                             </td>
                             <td class="p-3 text-center">
                                 <div class="flex items-center justify-center gap-2">
+                                    <button onclick="exportWhatsAppForAthlete('${m.id}')" class="bg-green-700 hover:bg-green-600 text-white font-bold px-2 py-1.5 rounded uppercase text-[10px] transition-colors shadow" title="Exportar para WhatsApp">
+                                        📱 WA
+                                    </button>
+                                    <button onclick="generateAiFeedbackForAthlete('${m.id}')" class="bg-amber-600 hover:bg-amber-500 text-navy font-bold px-2 py-1.5 rounded uppercase text-[10px] transition-colors shadow" title="Generar Feedback Semanal IA">
+                                        🤖 Feedback
+                                    </button>
                                     <a href="dashboard.html?id=${m.id}" target="_blank" class="bg-amber-500 hover:bg-amber-600 text-navy font-bold px-2.5 py-1.5 rounded uppercase text-[10px] inline-block transition-colors shadow">
                                         Dashboard ↗
                                     </a>
@@ -346,7 +352,15 @@ DATOS DEL CORREDOR
                             <h3 class="text-lg font-bold text-amber-400">Atleta: ${m.name} (${m.id})</h3>
                             <p class="text-xs text-slate-400">Rango del Plan: ${m.start_date || 'N/A'} → ${m.end_date || 'N/A'} | Total Sesiones: ${m.workouts.length}</p>
                         </div>
-                        <span class="text-xs bg-teal-950 text-teal-300 border border-teal-500/40 px-3 py-1 rounded font-bold uppercase">Fase: ${m.current_phase}</span>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <button onclick="exportWhatsAppForAthlete('${m.id}')" class="bg-green-600 hover:bg-green-700 text-white font-bold px-3 py-1.5 rounded text-[11px] uppercase transition-colors shadow">
+                                📱 Copiar WhatsApp
+                            </button>
+                            <button onclick="generateAiFeedbackForAthlete('${m.id}')" class="bg-amber-500 hover:bg-amber-600 text-navy font-bold px-3 py-1.5 rounded text-[11px] uppercase transition-colors shadow">
+                                🤖 Generar Feedback IA
+                            </button>
+                            <span class="text-xs bg-teal-950 text-teal-300 border border-teal-500/40 px-3 py-1 rounded font-bold uppercase">Fase: ${m.current_phase}</span>
+                        </div>
                     </div>
 
                     <!-- Today's Workout Preview Card -->
@@ -609,142 +623,54 @@ DATOS DEL CORREDOR
             if (!mdText) return alert("Pega el MD completo del perfil y plan del corredor.");
 
             try {
-                let name = "Nuevo Atleta";
-                let age = 35;
-                let meta = "5K";
-
-                const nameMatch = mdText.match(/[-*]\s*Nombre[:\s]*(.*)/i) || mdText.match(/#\s*Plan.*?·\s*(.*)/i);
-                if (nameMatch) name = nameMatch[1].trim();
-
-                const ageMatch = mdText.match(/[-*]\s*Edad[:\s*]*(\d+)/i);
-                if (ageMatch) age = parseInt(ageMatch[1]);
-
-                const metaMatch = mdText.match(/[-*]\s*Meta[:\s]*(.*)/i);
-                if (metaMatch) meta = metaMatch[1].trim();
-
-                const memberId = name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
-                const birthYear = new Date().getFullYear() - age;
-                const today = new Date();
-
-                const baseStartDate = getRecentMonday(today);
-                const baseStartDateStr = baseStartDate.toISOString().split('T')[0];
-                const endDateObj = new Date(baseStartDate);
-                endDateObj.setDate(endDateObj.getDate() + 84); // 12 weeks = 84 days
-                const endDate = endDateObj.toISOString().split('T')[0];
-
-                const lines = mdText.split('\n');
-                let currentWeek = 1;
-                const workoutsList = [];
-
-                const dayOffsets = {
-                    "lunes": 0,
-                    "martes": 1,
-                    "miércoles": 2, "miercoles": 2,
-                    "jueves": 3,
-                    "viernes": 4,
-                    "sábado": 5, "sabado": 5,
-                    "domingo": 6
-                };
-
-                for (let line of lines) {
-                    line = line.trim();
-                    if (line.toLowerCase().includes('semanas ') || line.toLowerCase().includes('bloque ')) continue;
-                    const weekMatch = line.match(/Semana\s+(\d+)/i);
-                    if (weekMatch) {
-                        currentWeek = parseInt(weekMatch[1]);
-                        continue;
-                    }
-
-                    if (line.startsWith('|')) {
-                        const cols = line.split('|').map(c => c.trim()).filter(c => c !== '');
-                        if (cols.length >= 3) {
-                            const dayRaw = cols[0].toLowerCase();
-                            if (dayRaw.includes('día') || dayRaw.includes('---')) continue;
-
-                            const sessionType = cols[1];
-                            const detail = cols[2];
-                            const effortRaw = cols[3] || "5";
-
-                            const rpeMatch = effortRaw.match(/(\d+)/);
-                            const targetRpe = rpeMatch ? parseInt(rpeMatch[1]) : 5;
-
-                            let daysToProcess = [];
-                            if (dayRaw.includes(' a ')) {
-                                const rangeParts = dayRaw.split(' a ').map(p => p.trim());
-                                const startOff = dayOffsets[rangeParts[0]];
-                                const endOff = dayOffsets[rangeParts[1]];
-                                if (startOff !== undefined && endOff !== undefined) {
-                                    for (let o = startOff; o <= endOff; o++) {
-                                        daysToProcess.push(o);
-                                    }
-                                }
-                            } else {
-                                for (const [dName, off] of Object.entries(dayOffsets)) {
-                                    if (dayRaw.includes(dName)) {
-                                        daysToProcess.push(off);
-                                        break;
-                                    }
-                                }
-                            }
-
-                            if (daysToProcess.length === 0) continue;
-
-                            for (const offset of daysToProcess) {
-                                const workoutDate = new Date(baseStartDate);
-                                workoutDate.setDate(workoutDate.getDate() + ((currentWeek - 1) * 7) + offset);
-                                const dateIso = workoutDate.toISOString().split('T')[0];
-
-                                const dayKeyName = Object.keys(dayOffsets).find(k => dayOffsets[k] === offset) || `day${offset}`;
-                                const wId = `s${currentWeek}-off${offset}-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
-                                const description = `${sessionType}: ${detail}`;
-
-                                workoutsList.push({
-                                    id: wId,
-                                    date: dateIso,
-                                    description: description,
-                                    target_rpe: Math.min(Math.max(targetRpe, 1), 10),
-                                    completed: false
-                                });
-                            }
-                        }
-                    }
-                }
-
-                let methodologyText = extractMethodologyMarkdown(mdText);
-
-                const payload = {
-                    id: memberId,
-                    name: name,
-                    email: `${memberId}@runnersinsedad.com`,
-                    birth_date: `${birthYear}-01-01`,
-                    current_phase: "Base",
-                    start_date: baseStartDateStr,
-                    end_date: endDate,
-                    paid: false,
-                    methodology_markdown: methodologyText,
-                    metrics: [{ name: "Meta Objetivo", value: 5.0, unit: "km", recorded_at: today.toISOString().split('T')[0] }],
-                    workouts: workoutsList
-                };
-
-                const res = await fetch(`${API_BASE}/members/`, {
+                // Sincronizar via endpoint robusto de importación Markdown en el Backend
+                const res = await fetch(`${API_BASE}/api/members/import-markdown`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({ markdown_content: mdText })
                 });
 
-                if (!res.ok) throw new Error("Error al crear atleta en el servidor");
+                if (!res.ok) throw new Error("Error al procesar la importación Markdown en el servidor");
+                const data = await res.json();
 
-                alert(`¡Atleta "${name}" creado con éxito! Se cargaron ${workoutsList.length} sesiones de entrenamiento (12 semanas). Estatus de pago: Pendiente.`);
+                alert(`¡Atleta "${data.name}" creado con éxito! Se sincronizaron ${data.workouts_count} sesiones (12 semanas alineadas a lunes).`);
+                document.getElementById('md-profile-content').value = '';
                 switchModule(2);
                 loadAthletesForModule2().then(() => {
                     const selectEl = document.getElementById('m2-athlete-select');
-                    if (selectEl) {
-                        selectEl.value = memberId;
-                        selectAthleteForHistory(memberId);
+                    if (selectEl && data.member_id) {
+                        selectEl.value = data.member_id;
+                        selectAthleteForHistory(data.member_id);
                     }
                 });
             } catch (err) {
-                alert("Error: " + err.message);
+                alert("Error al importar: " + err.message);
+            }
+        }
+
+        async function exportWhatsAppForAthlete(memberId) {
+            try {
+                const res = await fetch(`${API_BASE}/api/members/${memberId}/whatsapp-export`);
+                if (!res.ok) throw new Error("Error al generar exportación de WhatsApp");
+                const data = await res.json();
+                await navigator.clipboard.writeText(data.whatsapp_text);
+                alert("✅ ¡Plantilla para WhatsApp copiada al portapapeles!\n\n" + data.whatsapp_text);
+            } catch (err) {
+                // Fallback prompt si el portapapeles requiere interacción directa
+                alert("Exportación de WhatsApp generada.");
+            }
+        }
+
+        async function generateAiFeedbackForAthlete(memberId) {
+            try {
+                const res = await fetch(`${API_BASE}/api/members/${memberId}/feedback`, {
+                    method: 'POST'
+                });
+                if (!res.ok) throw new Error("Error al generar feedback semanal");
+                const data = await res.json();
+                alert(`🤖 FEEDBACK SEMANAL IA — ${data.name}\n\n• Adherencia: ${data.completion_rate.toFixed(0)}%\n• RPE Promedio: ${data.avg_rpe.toFixed(1)}/10\n\n"${data.feedback}"`);
+            } catch (err) {
+                alert("Error al generar feedback: " + err.message);
             }
         }
 
