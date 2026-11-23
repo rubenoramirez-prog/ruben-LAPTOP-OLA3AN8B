@@ -775,16 +775,47 @@ def whatsapp_export(member_id: str):
     if not member:
         raise HTTPException(status_code=404, detail="Member not found")
 
-    msg = f"🏃 *A TU MARCA — PLAN DE ENTRENAMIENTO*\n"
+    today = date.today()
+    start_date = member.start_date or today
+
+    # Calculate current week number (1 to 12)
+    delta_days = (today - start_date).days
+    current_week = max(1, min(12, (delta_days // 7) + 1))
+
+    # Week start (Monday) and end (Sunday)
+    week_start = start_date + timedelta(weeks=current_week - 1)
+    week_end = week_start + timedelta(days=6)
+
+    # Filter workouts falling between week_start and week_end
+    week_workouts = [w for w in member.workouts if week_start <= w.date <= week_end]
+
+    # Fallback search by week prefix if date range yields nothing
+    if not week_workouts:
+        week_workouts = [w for w in member.workouts if w.id and w.id.lower().startswith(f"s{current_week}-")]
+    if not week_workouts:
+        start_idx = (current_week - 1) * 7
+        week_workouts = member.workouts[start_idx:start_idx+7] if len(member.workouts) >= start_idx+7 else member.workouts[:7]
+
+    week_workouts.sort(key=lambda x: x.date)
+
+    msg = f"🏃 *A TU MARCA — ENTRENAMIENTO SEMANA {current_week}*\n"
     msg += f"Atleta: *{member.name}*\n"
-    msg += f"Fase: {member.current_phase.value}\n"
-    msg += f"Periodo: {member.start_date} al {member.end_date}\n\n"
-    msg += f"📋 *Próximas Sesiones / Resumen:*\n"
-    for w in member.workouts[:7]:
-        status = "✅" if w.completed else "⏳"
-        msg += f"{status} *{w.date}* — {w.description} (RPE Obj: {w.target_rpe})\n"
-    msg += f"\n¡Mucho éxito en tu sesión! Recuerda mantener el esfuerzo programado y reportar tu RPE al terminar. 🔥"
-    return {"whatsapp_text": msg}
+    msg += f"📅 Del {week_start.strftime('%d/%m/%Y')} al {week_end.strftime('%d/%m/%Y')}\n"
+    msg += f"Fase: {member.current_phase.value}\n\n"
+    msg += f"📋 *Sesiones (Lunes a Domingo):*\n"
+
+    if not week_workouts:
+        msg += "No hay sesiones programadas para esta semana.\n"
+    else:
+        day_names_es = {"Monday": "Lunes", "Tuesday": "Martes", "Wednesday": "Miércoles", "Thursday": "Jueves", "Friday": "Viernes", "Saturday": "Sábado", "Sunday": "Domingo"}
+        for w in week_workouts:
+            status = "✅" if w.completed else "⏳"
+            day_name = w.date.strftime('%A')
+            day_es = day_names_es.get(day_name, day_name)
+            msg += f"{status} *{day_es} {w.date.strftime('%d/%m')}* — {w.description} (RPE Obj: {w.target_rpe})\n"
+
+    msg += f"\n¡Mucho éxito en tus entrenamientos! Recuerda registrar tu RPE al terminar cada sesión. 🔥"
+    return {"whatsapp_text": msg, "current_week": current_week, "week_start": str(week_start), "week_end": str(week_end)}
 
 @app.get("/coach")
 @app.get("/coach.html")
