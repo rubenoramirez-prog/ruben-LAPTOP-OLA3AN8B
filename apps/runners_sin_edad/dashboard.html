@@ -48,6 +48,26 @@
     </style>
 </head>
 <body class="p-4 md:p-8">
+    <!-- Payment Block Overlay -->
+    <div id="payment-block-overlay" class="fixed inset-0 bg-navy/95 z-40 hidden flex items-center justify-center p-4">
+        <div class="card p-8 rounded-xl shadow-2xl max-w-lg w-full text-center border-2 border-red-500/60">
+            <div class="text-5xl mb-3">🔒</div>
+            <h2 class="text-3xl mb-2 text-red-400">Acceso Bloqueado: Pago Pendiente</h2>
+            <p id="payment-block-name" class="text-teal-300 font-bold text-lg mb-2">Atleta</p>
+            <p class="text-slate-300 text-sm mb-6 leading-relaxed">
+                Tu membresía o pago de la cuota para el plan de entrenamiento de 12 semanas se encuentra pendiente. Para desbloquear tu tablero, entrenamientos y seguimiento personalizado, contacta al Coach Ruben Ramírez.
+            </p>
+            <div class="bg-slate-900 p-4 rounded-lg border border-slate-800 text-xs text-slate-400 mb-6 text-left space-y-1">
+                <p>• <strong class="text-white">Coach:</strong> Ruben Omar Ramírez Gutiérrez</p>
+                <p>• <strong class="text-white">Metodología:</strong> A Tu Marca (Adultos 35+)</p>
+                <p>• <strong class="text-white">Estado:</strong> Suscripción Inactiva / Pago Requerido</p>
+            </div>
+            <button onclick="location.reload()" class="w-full bg-teal-500 hover:bg-teal-600 text-navy font-bold py-3 rounded text-xs uppercase transition-colors">
+                Verificar de Nuevo
+            </button>
+        </div>
+    </div>
+
     <div class="max-w-5xl mx-auto">
         <!-- Header -->
         <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b border-slate-800 pb-4 gap-4">
@@ -290,6 +310,17 @@
                 const member = await response.json();
                 CURRENT_MEMBER_ID = id;
                 currentMemberData = member;
+
+                const paymentOverlay = document.getElementById('payment-block-overlay');
+                if (paymentOverlay) {
+                    if (member.paid === false) {
+                        document.getElementById('payment-block-name').innerText = `Atleta: ${member.name} (${member.id})`;
+                        paymentOverlay.classList.remove('hidden');
+                        return;
+                    } else {
+                        paymentOverlay.classList.add('hidden');
+                    }
+                }
 
                 const selector = document.getElementById('athlete-selector');
                 if (selector) selector.value = id;
