@@ -203,9 +203,6 @@
 
             <!-- WEEKLY VIEW MODE (Único Modo Activo) -->
             <div id="view-week-container">
-                <div class="flex gap-1.5 overflow-x-auto pb-3 mb-4" id="week-selectors">
-                    <!-- Injected via JS -->
-                </div>
                 <div id="week-detail-container" class="card p-5 rounded-lg bg-slate-900 border border-slate-800">
                     <!-- Populated dynamically -->
                 </div>
@@ -686,42 +683,36 @@
         function renderWeeklyView() {
             if (!currentMemberData) return;
 
-            const selectorsContainer = document.getElementById('week-selectors');
-            if (selectorsContainer) {
-                let selectorsHtml = '';
-                for (let w = 1; w <= 12; w++) {
-                    const isActive = w === activeWeekNumber;
-                    const bgClass = isActive
-                        ? 'bg-teal-500 text-navy font-bold shadow-lg scale-105'
-                        : 'bg-navy text-slate-300 hover:bg-slate-800 border border-slate-700';
-                    selectorsHtml += `<button onclick="selectWeek(${w})" class="px-3.5 py-2 rounded text-xs font-bold uppercase transition-all ${bgClass}">Sem ${w}</button>`;
-                }
-                selectorsContainer.innerHTML = selectorsHtml;
-            }
+            const activeWeek = calculateCurrentWeekNumber(currentMemberData);
+            activeWeekNumber = activeWeek;
 
             const detailContainer = document.getElementById('week-detail-container');
             if (!detailContainer) return;
 
             const allWorkouts = currentMemberData.workouts || [];
-            let weekWorkouts = allWorkouts.filter(w => w.id && w.id.toLowerCase().startsWith(`s${activeWeekNumber}-`));
+            let weekWorkouts = allWorkouts.filter(w => w.id && w.id.toLowerCase().startsWith(`s${activeWeek}-`));
 
-            // Fallback by date range if prefix doesn't match
-            if (weekWorkouts.length === 0 && currentMemberData.start_date) {
+            let weekRangeText = "";
+            if (currentMemberData.start_date) {
                 try {
                     const sDate = new Date(currentMemberData.start_date + 'T00:00:00');
                     const wStart = new Date(sDate);
-                    wStart.setDate(sDate.getDate() + (activeWeekNumber - 1) * 7);
+                    wStart.setDate(sDate.getDate() + (activeWeek - 1) * 7);
                     const wEnd = new Date(wStart);
                     wEnd.setDate(wStart.getDate() + 6);
                     const startStr = wStart.toISOString().split('T')[0];
                     const endStr = wEnd.toISOString().split('T')[0];
-                    weekWorkouts = allWorkouts.filter(w => w.date >= startStr && w.date <= endStr);
+                    const fmt = (dt) => dt.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+                    weekRangeText = `Del ${fmt(wStart)} al ${fmt(wEnd)}`;
+
+                    if (weekWorkouts.length === 0) {
+                        weekWorkouts = allWorkouts.filter(w => w.date >= startStr && w.date <= endStr);
+                    }
                 } catch (e) {}
             }
 
-            // Fallback to chunk of 7
             if (weekWorkouts.length === 0 && allWorkouts.length > 0) {
-                const startIdx = (activeWeekNumber - 1) * 7;
+                const startIdx = (activeWeek - 1) * 7;
                 weekWorkouts = allWorkouts.slice(startIdx, startIdx + 7);
             }
 
@@ -730,15 +721,15 @@
             let html = `
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-3 border-b border-slate-800 gap-2">
                     <div>
-                        <h4 class="text-xl text-amber-400 font-bold">Semana ${activeWeekNumber} — Detalle de Entrenamientos</h4>
-                        <p class="text-xs text-slate-400">Sesiones oficiales de lunes a domingo (Metodología A Tu Marca)</p>
+                        <h4 class="text-xl text-teal-400 font-bold">Semana ${activeWeek} en Curso — Sesiones de Lunes a Domingo</h4>
+                        <p class="text-xs text-slate-400">${weekRangeText || 'Calendario exclusivo de la semana actual'} (Metodología A Tu Marca)</p>
                     </div>
-                    <span class="text-xs bg-teal-950 text-teal-300 border border-teal-500/40 px-3 py-1 rounded font-bold uppercase">Semana ${activeWeekNumber} / 12</span>
+                    <span class="text-xs bg-teal-950 text-teal-300 border border-teal-500/40 px-3 py-1 rounded font-bold uppercase">Semana ${activeWeek} / 12</span>
                 </div>
             `;
 
             if (weekWorkouts.length === 0) {
-                html += `<p class="text-sm text-slate-500 py-4 text-center italic">No hay entrenamientos específicos registrados para la Semana ${activeWeekNumber} todavía. Usa el Panel del Coach para actualizarla.</p>`;
+                html += `<p class="text-sm text-slate-500 py-4 text-center italic">No hay entrenamientos registrados para la Semana ${activeWeek}.</p>`;
             } else {
                 const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
                 html += `
