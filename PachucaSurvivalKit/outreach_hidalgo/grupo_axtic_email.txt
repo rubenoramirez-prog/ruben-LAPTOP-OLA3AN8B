@@ -1,0 +1,21 @@
+Asunto: Sprint técnico Linux L3 para Grupo AxTic – Runbook y auditoría de vulnerabilidades
+
+Estimado equipo de Grupo AxTic:
+
+Vi que desarrollan software en la zona Pachuca/Mineral de la Reforma y que complementan sus proyectos con operación de servidores y automatización.
+
+Como especialista Linux L3 (RHEL, Ansible, Terraform), ofrezco un sprint de 48 horas que incluye:
+
+- **Runbook de hardening CIS RHEL 9** con Ansible (85+ controles automatizados, idempotentes y reversibles).
+- **Auditoría de vulnerabilidades**: inventario y baseline, escaneo de paquetes obsoletos, configuraciones de firewall, credenciales en texto plano y privilegios excesivos, con asignación de CVSS y priorización de hallazgos.
+- **Roadmap de 30 días** sin cambios en producción sin autorización.
+- **Evidencia audit-ready** lista para SOC2 / PCI-DSS.
+
+Esto les permite cerrar la brecha entre desarrollo y operación, ofrecer entrega más estable a sus clientes y reducir incidentes de seguridad.
+
+¿Quién lidera la validación técnica en sus proyectos? Si encaja, agendamos 15 minutos esta semana.
+
+Saludos,
+Ruben Ramírez
+Linux L3 Specialist | RR_LinuxSupport
++52 55 13726858 | rubeno.ramirez@gmail.com

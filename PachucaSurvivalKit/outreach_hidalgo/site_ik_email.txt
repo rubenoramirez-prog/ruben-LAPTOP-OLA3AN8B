@@ -1,0 +1,21 @@
+Asunto: Sprint técnico Linux L3 para Site IK – Assessment de disponibilidad, hardening y auditoría de vulnerabilidades
+
+Estimado equipo de Site IK:
+
+Vi que ofrecen servicios informáticos, arquitectura de servicios e infraestructura TI, con enfoque en assessment de disponibilidad, hardening y runbooks.
+
+Como especialista Linux L3 (RHEL, Ansible, Terraform), ofrezco un sprint de 48 horas que incluye:
+
+- **Runbook de hardening CIS RHEL 9** con Ansible (85+ controles automatizados).
+- **Auditoría de vulnerabilidades**: inventario, baseline, escaneo de paquetes, configuraciones de firewall, credenciales en texto plano y privilegios excesivos, con CVSS y priorización de riesgos.
+- **Roadmap de 30 días** sin cambios en producción sin autorización.
+- **Evidencia audit-ready** para SOC2 / PCI-DSS.
+
+Les brinda un producto tangible para vender a sus clientes y respaldar sus propios assessments de disponibilidad con datos reales de seguridad.
+
+¿Quién sería la persona adecuada para conversar sobre apoyo por proyecto o capacidad de overflow? Si encaja, agendamos 15 minutos esta semana.
+
+Saludos,
+Ruben Ramírez
+Linux L3 Specialist | RR_LinuxSupport
++52 55 13726858 | rubeno.ramirez@gmail.com

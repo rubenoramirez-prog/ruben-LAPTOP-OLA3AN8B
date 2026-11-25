@@ -1,0 +1,1 @@
+Hola equipo de oneTI: vi su trabajo en Consultoría, redes y servidores. Soy especialista Linux L3 (RHEL, Ansible, Terraform) y ofrezco un sprint de 48 h para identificar riesgos y quick wins sin tocar producción. ¿Quién lidera validación técnica? Saludos, Ruben Ramírez

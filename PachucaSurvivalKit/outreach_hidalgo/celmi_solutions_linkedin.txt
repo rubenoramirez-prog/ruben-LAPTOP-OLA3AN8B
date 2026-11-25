@@ -1,0 +1,1 @@
+Hola equipo de Celmi Solutions: vi su trabajo en Consultoría TI e infraestructura. Soy especialista Linux L3 (RHEL, Ansible, Terraform) y ofrezco un sprint de 48 h para identificar riesgos y quick wins sin tocar producción. ¿Quién lidera validación técnica? Saludos, Ruben Ramírez

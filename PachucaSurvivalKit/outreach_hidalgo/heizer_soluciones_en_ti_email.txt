@@ -1,0 +1,19 @@
+Asunto: Sprint técnico Linux L3 para HEIZER Soluciones en TI — Servidores y redes
+
+Estimado equipo de HEIZER Soluciones en TI:
+
+Vi que trabajan en Servidores y redes. Tengo experiencia L3 en RHEL, automatización con Ansible, Terraform y ambientes híbridos.
+
+El crecimiento trae inconsistencia en servidores; la automatización la resuelve antes de que sea deuda.
+
+Ofrezco un sprint técnico de 48 horas para identificar riesgos, quick wins y un roadmap de 30 días, sin cambios en producción sin autorización. Incluye el runbook CIS RHEL 9 con Ansible (85+ controles automatizados).
+
+Puedo compartirle el runbook y un demo en vivo antes de cualquier compromiso.
+# Si tienes un caso real con métricas, sustituye esta línea por el caso verificado.
+
+¿Quién sería la persona adecuada para conversar sobre apoyo por proyecto o capacidad de overflow? Si encaja, agendamos 15 minutos esta semana.
+
+Saludos,
+Ruben Ramírez
+Linux L3 Specialist | RR_LinuxSupport
++52 55 13726858 | rubeno.ramirez@gmail.com
