@@ -1,0 +1,28 @@
+Asunto: Sprint técnico Linux L3 para STS Hidalgo – Identificación de riesgos y auditoría de vulnerabilidades
+
+Estimado equipo de STS Hidalgo:
+
+Vi que trabajan en Conectividad y telecomunicaciones. Tengo experiencia L3 en RHEL, automatización con Ansible, Terraform y ambientes híbridos.
+
+Como integrador, la capacidad L3 temporal y los runbooks documentados marcan la diferencia con sus clientes.
+
+Ofrezco un sprint técnico de 48 horas para identificar riesgos, quick wins y un roadmap de 30 días, sin cambios en producción sin autorización. Incluye el runbook CIS RHEL 9 con Ansible (85+ controles automatizados) y una auditoría de vulnerabilidades que cubre:
+- Inventario y baseline de su infraestructura
+- Escaneo de paquetes obsoletos y configuraciones de firewall
+- Detección de credenciales en texto plano y privilegios excesivos
+- Asignación de CVSS y priorización de hallazgos
+- Remediación de riesgos críticos y quick wins
+- Verificación mediante pruebas de penetración y generación de evidencia audit-ready
+
+Ambas opciones incluyen:
+- Sprint de 48 horas para identificar riesgos y quick wins
+- Roadmap de 30 días sin cambios en producción sin autorización
+- Evidencia lista para auditoría (SOC2, PCI-DSS)
+- Runbook CIS RHEL 9 con Ansible (para auditoría y cumplimiento)
+
+¿Quién sería la persona adecuada para conversar sobre apoyo por proyecto o capacidad de overflow? Si encaja, agendamos 15 minutos esta semana.
+
+Saludos,
+Ruben Ramírez
+Linux L3 Specialist | RR_LinuxSupport
++52 55 13726858 | rubeno.ramirez@gmail.com
