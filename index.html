@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ruben Ramírez — Ing. Linux L3 & Coach de Running</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0a1428;
+    --carbon: #0f172a;
+    --card-bg: #182234;
+    --amber: #f59e0b;
+    --teal: #14b8a6;
+  }
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--navy);
+    color: #f1f5f9;
+  }
+  h1, h2, h3, h4, .font-title {
+    font-family: 'Oswald', sans-serif;
+    letter-spacing: 0.5px;
+  }
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+</style>
+</head>
+<body class="min-h-full flex flex-col justify-between antialiased selection:bg-amber-500 selection:text-slate-950">
+
+  <!-- Header / Profile Section -->
+  <header class="p-6 text-center border-b border-slate-800 bg-slate-950/60 backdrop-blur">
+    <div class="max-w-md mx-auto space-y-2">
+      <div class="inline-block px-3 py-1 bg-slate-800 border border-slate-700 rounded-full text-xs font-mono text-amber-400 mb-1">
+        📍 Pachuca, Hidalgo • México
+      </div>
+      <h1 class="text-3xl font-extrabold tracking-tight text-white font-title">
+        Ruben Ramírez
+      </h1>
+      <p class="text-sm text-slate-400 font-medium">
+        Ingeniero en Computación (UNAM) • Infraestructura L3 & Coach de Running
+      </p>
+    </div>
+  </header>
+
+  <!-- Main Content / Dual Services Selection -->
+  <main class="max-w-md mx-auto p-6 space-y-6 my-auto w-full">
+
+    <!-- Intro text -->
+    <div class="text-center space-y-2">
+      <p class="text-slate-300 text-sm">
+        Selecciona el servicio de tu interés para contactarme directamente por WhatsApp con atención personalizada:
+      </p>
+    </div>
+
+    <!-- Service Card 1: Linux L3 Enterprise -->
+    <div class="bg-slate-900 border border-amber-500/30 rounded-2xl p-5 shadow-xl space-y-4 relative overflow-hidden group hover:border-amber-500/60 transition-all">
+      <div class="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-2xl group-hover:bg-amber-500/10 transition-all"></div>
+
+      <div class="flex items-center space-x-3">
+        <div class="p-3 bg-amber-500/10 rounded-xl text-amber-400">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"></path>
+          </svg>
+        </div>
+        <div>
+          <span class="text-xs font-mono text-amber-400 uppercase tracking-wider font-semibold">Infraestructura TI / B2B</span>
+          <h2 class="text-xl font-bold text-white font-title">Linux L3 & Hardening CIS</h2>
+        </div>
+      </div>
+
+      <p class="text-slate-300 text-xs leading-relaxed">
+        Especialista Senior en sistemas Linux empresariales. Hardening CIS RHEL 9, automatización agéntica con Ansible, alta disponibilidad y resolución de incidentes complejos L3.
+      </p>
+
+      <ul class="text-xs text-slate-400 space-y-1.5 font-mono">
+        <li class="flex items-center"><span class="text-amber-400 mr-2">✓</span> Hardening y Auditoría CIS Benchmark</li>
+        <li class="flex items-center"><span class="text-amber-400 mr-2">✓</span> Automatización Idempotente con Ansible</li>
+        <li class="flex items-center"><span class="text-amber-400 mr-2">✓</span> Soporte Escalado Nivel 3 Enterprise</li>
+      </ul>
+
+      <a href="https://wa.me/527711234567?text=Hola%20Ruben,%20vengo%20de%20tu%20landing%20de%20WhatsApp.%20Me%20interesa%20contratar%20tus%20servicios%20de%20Infraestructura%20Linux%20L3%20y%20Hardening." target="_blank" class="block w-full text-center bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-3 px-4 rounded-xl shadow-lg transition-transform transform active:scale-95 text-sm">
+        💬 Consultar Linux L3 (WhatsApp)
+      </a>
+    </div>
+
+    <!-- Service Card 2: Coach de Running -->
+    <div class="bg-slate-900 border border-teal-500/30 rounded-2xl p-5 shadow-xl space-y-4 relative overflow-hidden group hover:border-teal-500/60 transition-all">
+      <div class="absolute top-0 right-0 w-24 h-24 bg-teal-500/5 rounded-full blur-2xl group-hover:bg-teal-500/10 transition-all"></div>
+
+      <div class="flex items-center space-x-3">
+        <div class="p-3 bg-teal-500/10 rounded-xl text-teal-400">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+        </div>
+        <div>
+          <span class="text-xs font-mono text-teal-400 uppercase tracking-wider font-semibold">Coaching Deportivo</span>
+          <h2 class="text-xl font-bold text-white font-title">Entrenador de Running ("A Tu Marca")</h2>
+        </div>
+      </div>
+
+      <p class="text-slate-300 text-xs leading-relaxed">
+        Programas de entrenamiento científico para corredores (principiantes y adultos 35+). Periodización estructurada (Base, Fuerza, Velocidad, Taper), control por RPE y prevención de lesiones.
+      </p>
+
+      <ul class="text-xs text-slate-400 space-y-1.5 font-mono">
+        <li class="flex items-center"><span class="text-teal-400 mr-2">✓</span> Planes 5K, 10K y Medio Maratón</li>
+        <li class="flex items-center"><span class="text-teal-400 mr-2">✓</span> Metodología para Adultos 35+</li>
+        <li class="flex items-center"><span class="text-teal-400 mr-2">✓</span> Control Fisiológico y RPE</li>
+      </ul>
+
+      <a href="https://wa.me/527711234567?text=Hola%20Coach%20Ruben,%20vengo%20de%20tu%20landing%20de%20WhatsApp.%20Quiero%20información%20sobre%20los%20planes%20de%20entrenamiento%20de%20running." target="_blank" class="block w-full text-center bg-teal-500 hover:bg-teal-600 text-slate-950 font-bold py-3 px-4 rounded-xl shadow-lg transition-transform transform active:scale-95 text-sm">
+        🏃‍♂️ Cotizar Coaching Running (WhatsApp)
+      </a>
+    </div>
+
+    <!-- Direct Contact & Hours -->
+    <div class="pt-4 border-t border-slate-800 text-center text-xs text-slate-500 space-y-1">
+      <p class="font-semibold text-slate-400">🕒 Horario de Atención:</p>
+      <p>Lunes a Sábado • 9:00 AM - 7:00 PM</p>
+      <p class="pt-2 text-slate-400">📞 Teléfono / WhatsApp directo: <span class="font-mono text-slate-300">+52 771 123 4567</span></p>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="p-4 text-center text-xs text-slate-600 border-t border-slate-800/50 bg-slate-950">
+    <p>© 2026 Ing. Ruben Ramírez. Todos los derechos reservados.</p>
+  </footer>
+
+</body>
+</html>
